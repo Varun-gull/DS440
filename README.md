@@ -46,19 +46,3 @@ DS440/
 | `assets/` | Images, screenshots, figures, and diagrams used by the project |
 | `docs/` | Requirements, architecture, methodology, sources, and research notes |
 | `project-management/` | Sprint evidence, meeting notes, and course reports |
-
-## Team Rules
-
-1. Do not commit directly to `main` for regular development.
-2. Create a focused branch such as `feature/job-search`, `ai/match-model`, or `docs/research-plan`.
-3. Keep raw data unchanged; save transformations under `processed/`.
-4. Record the source and collection date for every dataset.
-5. Never commit passwords, API keys, private resumes, or identifiable participant data.
-6. Run the relevant tests before opening a pull request.
-7. Update documentation whenever behavior, data sources, or setup requirements change.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete team workflow.
-
-## Previous Version
-
-The earlier CareerUp application remains recoverable in Git history at commit `48ba709`. This clean structure is the starting point for the DS 440 team implementation.
