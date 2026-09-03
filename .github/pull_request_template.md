@@ -2,27 +2,21 @@
 
 What changed, and why?
 
-## Testing
+## Area
 
-- [ ] I tested the affected user flow.
-- [ ] `npm run lint` passes.
-- [ ] `npm run build` passes.
-- [ ] I checked desktop and mobile layouts when applicable.
+- [ ] Frontend
+- [ ] Backend
+- [ ] AI/evaluation
+- [ ] Data
+- [ ] Database
+- [ ] Documentation/project management
 
-## Project Impact
+## Verification
 
-- [ ] No database change
-- [ ] Database migration included
-- [ ] No environment-variable change
-- [ ] `.env.local.example` updated
-- [ ] Documentation updated
+- [ ] I tested the change.
+- [ ] I updated documentation or setup instructions when necessary.
+- [ ] I did not include credentials, private resumes, or identifiable participant data.
 
 ## Evidence
 
-Add screenshots, test results, or a short explanation of expected behavior.
-
-## Privacy and Security
-
-- [ ] No credentials, resumes, private messages, or student data are included.
-- [ ] User-owned data remains protected by authorization and Row Level Security.
-
+Add relevant screenshots, results, or evaluation output.

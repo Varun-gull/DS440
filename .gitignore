@@ -1,18 +1,43 @@
-.next/
+# Dependencies and builds
 node_modules/
+.next/
+dist/
+build/
+coverage/
+
+# Local environments and secrets
 .env
 .env.local
 .env.*.local
-dist/
-coverage/
+*.pem
+*.key
+
+# Python and notebooks
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Generated data and models
+data/private/
+data/generated/
+models/
+checkpoints/
+*.parquet
+*.pkl
+*.joblib
+
+# Editors, operating systems, and tools
 .DS_Store
-*.log
-*.tsbuildinfo
-.vercel
-.route-backup/
-.claude/
-.codex/
 .idea/
 .vscode/
+.claude/
+.codex/
 *.swp
 *.swo
+
+# Logs and deployment metadata
+*.log
+*.tsbuildinfo
+.vercel/
