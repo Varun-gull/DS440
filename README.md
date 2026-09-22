@@ -1,10 +1,10 @@
-# CareerUp AI — DS 440 Capstone
+# CareerUp — DS 440 Capstone
 
-This repository is the shared workspace for the CareerUp AI capstone project.
+This repository is the shared workspace for the CareerUp capstone project.
 
-CareerUp will be an interactive job board and career-management platform that helps college students discover opportunities, organize applications, and stay engaged throughout the job-search process. The platform may use progress-based features such as streaks, challenges, rankings, and optional leaderboards, but it is not intended to be a game.
+CareerUp will be an AI powered, gamified, and interactive job board that helps college students discover opportunities, organize applications, and stay engaged throughout the job search process. Progress tracking, challenges, and friendly competition will support student motivation while AI guidance will help students understand their fit for available opportunities.
 
-The repository currently contains only the organized project structure. Application code, datasets, models, experiments, and reports should be added to the appropriate folders as the team develops them.
+The repository now includes the first frontend prototype. Database integration, data collection, AI models, experiments, and reports will be added to the appropriate folders as the team develops them.
 
 ## Repository Structure
 
