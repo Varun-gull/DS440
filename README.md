@@ -4,13 +4,14 @@ This repository is the shared workspace for the CareerUp capstone project.
 
 CareerUp will be an AI powered, gamified, and interactive job board that helps college students discover opportunities, organize applications, and stay engaged throughout the job search process. Progress tracking, challenges, and friendly competition will support student motivation while AI guidance will help students understand their fit for available opportunities.
 
-The repository now includes the first frontend prototype. Database integration, data collection, AI models, experiments, and reports will be added to the appropriate folders as the team develops them.
+The repository now includes the complete original CareerUp website in `frontend/`. The application already contains Supabase authentication and data access, application tracking, profiles, job postings, challenges, rewards, messaging, calendar tools, and supporting database scripts. The earlier capstone prototype is preserved in `archive/capstone-prototype/`.
 
 ## Repository Structure
 
 ```text
 DS440/
 ├── frontend/                    Website pages, components, and styling
+├── archive/                     Preserved earlier prototypes
 ├── backend/                     Server APIs and application logic
 ├── ai/                          AI models, prompts, evaluation, and baselines
 ├── data/
@@ -36,6 +37,7 @@ DS440/
 | Folder | What belongs there |
 | --- | --- |
 | `frontend/` | User-facing website code and interface tests |
+| `archive/` | Preserved prototypes and superseded interface work |
 | `backend/` | APIs, authentication, business logic, and external integrations |
 | `ai/` | Keyword baseline, AI matching, prompts, experiments, and evaluation code |
 | `data/job-postings/raw/` | Unmodified source data with dates and provenance |
