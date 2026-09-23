@@ -19,7 +19,7 @@ import {
   Trophy,
   X
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { sampleJobs, type Job } from "@/data/jobs";
 
 type View = "dashboard" | "jobs" | "applications" | "project";
@@ -31,9 +31,9 @@ type Application = {
 
 const navItems: Array<{ id: View; label: string; icon: typeof Home }> = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "jobs", label: "Job board", icon: Search },
   { id: "applications", label: "Applications", icon: ClipboardList },
-  { id: "project", label: "Project status", icon: BarChart3 }
+  { id: "jobs", label: "Postings", icon: Search },
+  { id: "project", label: "Project", icon: BarChart3 }
 ];
 
 const stages: ApplicationStage[] = ["Saved", "Applied", "Interview"];
@@ -152,7 +152,6 @@ function Dashboard({
   onApply: (jobId: string) => void;
 }) {
   const sentCount = applications.filter((application) => application.stage !== "Saved").length;
-  const savedCount = applications.filter((application) => application.stage === "Saved").length;
   const weeklyGoal = 5;
   const progress = Math.min(100, Math.round((sentCount / weeklyGoal) * 100));
 
@@ -160,10 +159,10 @@ function Dashboard({
     <div className="viewStack">
       <section className="heroPanel">
         <div>
-          <p className="eyebrow">Frontend milestone</p>
-          <h1>Build a better job search routine</h1>
+          <p className="eyebrow">Pennsylvania State University</p>
+          <h1>Welcome back, Student</h1>
           <p className="heroCopy">
-            CareerUp keeps opportunities and applications organized while testing whether simple progress features can improve student motivation.
+            Keep your search focused, review promising roles, and build steady application momentum.
           </p>
           <div className="heroActions">
             <button className="primaryAction largeAction" onClick={() => onNavigate("jobs")} type="button">
@@ -191,10 +190,10 @@ function Dashboard({
       </section>
 
       <section className="statGrid" aria-label="Career progress summary">
-        <StatCard icon={Bookmark} label="Saved jobs" value={savedCount} detail="Ready to review" tone="blue" />
-        <StatCard icon={BriefcaseBusiness} label="Applications sent" value={sentCount} detail="This prototype session" tone="green" />
-        <StatCard icon={Flame} label="Current streak" value="2 days" detail="Motivation preview" tone="orange" />
-        <StatCard icon={Trophy} label="Weekly progress" value={`${progress}%`} detail="Based on application goal" tone="slate" />
+        <StatCard icon={Sparkles} label="Lifetime XP" value="30" detail="Career progress points" tone="blue" />
+        <StatCard icon={Trophy} label="Reward points" value="30" detail="Earned from progress" tone="green" />
+        <StatCard icon={Flame} label="Day streak" value="2" detail="Motivation preview" tone="orange" />
+        <StatCard icon={BriefcaseBusiness} label="Applications sent" value={sentCount} detail="This prototype session" tone="slate" />
       </section>
 
       <section className="contentGrid">
@@ -469,8 +468,28 @@ export function CareerUpPrototype() {
 
   function navigate(view: View) {
     setActiveView(view);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById(view)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
+  useEffect(() => {
+    const sections = navItems
+      .map((item) => document.getElementById(item.id))
+      .filter((section): section is HTMLElement => Boolean(section));
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (visible) setActiveView(visible.target.id as View);
+    }, {
+      rootMargin: "-12% 0px -55% 0px",
+      threshold: [0.08, 0.2, 0.4]
+    });
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
 
   function saveJob(jobId: string) {
     setApplications((current) => {
@@ -501,57 +520,51 @@ export function CareerUpPrototype() {
     <div className="appFrame">
       <header className="topBar">
         <button className="brandLockup" type="button" onClick={() => navigate("dashboard")}>
-          <div className="brandMark"><span /><span /></div>
-          <div><strong>CareerUp</strong><small>Capstone prototype</small></div>
+          <strong>CareerUp</strong>
         </button>
 
-        <nav className="sideNav" aria-label="Main navigation">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={classNames(activeView === item.id && "activeNav")}
-                onClick={() => navigate(item.id)}
-              >
-                <Icon size={19} aria-hidden="true" />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="profilePreview">
-          <div><strong>Student preview</strong><span>No account connected</span></div>
-          <CircleUserRound size={34} aria-hidden="true" />
+        <div className="headerProgress">
+          <div className="headerPill"><Flame size={16} /><strong>2 day streak</strong></div>
+          <div className="rankPill">
+            <div><BarChart3 size={15} /><strong>#3 · Associate</strong><span>30/250</span></div>
+            <div className="rankTrack"><span /></div>
+          </div>
+          <div className="headerPill profilePill"><CircleUserRound size={20} /><strong>Student</strong></div>
         </div>
       </header>
 
-      <div className="mainArea">
-        <section className="contextBar">
-          <div>
-            <p>DS 440 · Group 10</p>
-            <strong>{navItems.find((item) => item.id === activeView)?.label}</strong>
-          </div>
-          <div className="focusLabel">
-            <Sparkles size={17} aria-hidden="true" />
-            <span><strong>Current focus</strong> Frontend and data design</span>
-          </div>
+      <main className="verticalExperience">
+        <section className="scrollSection dashboardSection" id="dashboard" aria-label="Dashboard">
+          <Dashboard applications={applications} onNavigate={navigate} onSave={saveJob} onApply={applyToJob} />
         </section>
+        <section className="scrollSection" id="applications" aria-label="Applications">
+          <Applications applications={applications} onMove={moveApplication} onRemove={removeApplication} />
+        </section>
+        <section className="scrollSection" id="jobs" aria-label="Postings">
+          <JobBoard applications={applications} onSave={saveJob} onApply={applyToJob} />
+        </section>
+        <section className="scrollSection" id="project" aria-label="Project">
+          <ProjectStatus />
+        </section>
+      </main>
 
-        <main className="mainContent">
-          {activeView === "dashboard" && <Dashboard applications={applications} onNavigate={navigate} onSave={saveJob} onApply={applyToJob} />}
-          {activeView === "jobs" && <JobBoard applications={applications} onSave={saveJob} onApply={applyToJob} />}
-          {activeView === "applications" && <Applications applications={applications} onMove={moveApplication} onRemove={removeApplication} />}
-          {activeView === "project" && <ProjectStatus />}
-        </main>
-
-        <footer className="siteFooter">
-          <span>CareerUp · DS 440 capstone prototype</span>
-          <span>Sample data only</span>
-        </footer>
-      </div>
+      <nav className="floatingTabBar" aria-label="Section navigation">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={classNames(activeView === item.id && "activeNav")}
+              onClick={() => navigate(item.id)}
+              aria-current={activeView === item.id ? "page" : undefined}
+            >
+              <Icon size={19} aria-hidden="true" />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }

@@ -9,6 +9,7 @@ This folder contains the first DS 440 CareerUp frontend prototype. It intentiona
 3. Basic application tracker
 4. Simple progress and streak concepts
 5. Project status page explaining the current research scope
+6. One continuous vertical experience with floating section navigation
 
 ## Intentionally deferred
 
