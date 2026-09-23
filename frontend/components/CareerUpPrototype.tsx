@@ -13,7 +13,6 @@ import {
   Flame,
   Home,
   LayoutDashboard,
-  Menu,
   Search,
   Sparkles,
   Target,
@@ -467,11 +466,9 @@ function ProjectStatus() {
 export function CareerUpPrototype() {
   const [activeView, setActiveView] = useState<View>("dashboard");
   const [applications, setApplications] = useState<Application[]>(initialApplications);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   function navigate(view: View) {
     setActiveView(view);
-    setMobileOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -502,14 +499,13 @@ export function CareerUpPrototype() {
 
   return (
     <div className="appFrame">
-      <aside className={classNames("sidebar", mobileOpen && "sidebarOpen")}>
-        <div className="brandLockup">
+      <header className="topBar">
+        <button className="brandLockup" type="button" onClick={() => navigate("dashboard")}>
           <div className="brandMark"><span /><span /></div>
           <div><strong>CareerUp</strong><small>Capstone prototype</small></div>
-        </div>
+        </button>
 
         <nav className="sideNav" aria-label="Main navigation">
-          <p>Workspace</p>
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -526,30 +522,23 @@ export function CareerUpPrototype() {
           })}
         </nav>
 
-        <div className="sidebarResearch">
-          <Sparkles size={20} aria-hidden="true" />
-          <p>Current focus</p>
-          <strong>Frontend and data design</strong>
-          <span>Advanced AI comes later in the research plan.</span>
+        <div className="profilePreview">
+          <div><strong>Student preview</strong><span>No account connected</span></div>
+          <CircleUserRound size={34} aria-hidden="true" />
         </div>
-      </aside>
-
-      {mobileOpen && <button className="mobileOverlay" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
+      </header>
 
       <div className="mainArea">
-        <header className="topBar">
-          <button className="menuButton" type="button" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
-            <Menu size={22} />
-          </button>
+        <section className="contextBar">
           <div>
             <p>DS 440 · Group 10</p>
             <strong>{navItems.find((item) => item.id === activeView)?.label}</strong>
           </div>
-          <div className="profilePreview">
-            <div><strong>Student preview</strong><span>No account connected</span></div>
-            <CircleUserRound size={34} aria-hidden="true" />
+          <div className="focusLabel">
+            <Sparkles size={17} aria-hidden="true" />
+            <span><strong>Current focus</strong> Frontend and data design</span>
           </div>
-        </header>
+        </section>
 
         <main className="mainContent">
           {activeView === "dashboard" && <Dashboard applications={applications} onNavigate={navigate} onSave={saveJob} onApply={applyToJob} />}
@@ -557,6 +546,11 @@ export function CareerUpPrototype() {
           {activeView === "applications" && <Applications applications={applications} onMove={moveApplication} onRemove={removeApplication} />}
           {activeView === "project" && <ProjectStatus />}
         </main>
+
+        <footer className="siteFooter">
+          <span>CareerUp · DS 440 capstone prototype</span>
+          <span>Sample data only</span>
+        </footer>
       </div>
     </div>
   );
