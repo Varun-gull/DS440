@@ -19,8 +19,8 @@ export function PublicApplicationBoard({ applications }: { applications: Applica
   }));
 
   return (
-    <section className="overflow-x-auto pb-3">
-      <div className="grid min-w-[1040px] gap-4 xl:grid-cols-5">
+    <section>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {groupedApplications.map((column) => (
           <div key={column.status} className={clsx("min-w-0 rounded-3xl bg-white/85 p-3 shadow-sm ring-1 ring-inset backdrop-blur", statusAccents[column.status].column)}>
             <div className="mb-3 flex items-center justify-between gap-3">

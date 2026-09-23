@@ -20,7 +20,7 @@ export function AuthShell({
   children: ReactNode;
 }) {
   return (
-    <main className="min-h-screen bg-[#F3F4F6] px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[var(--canvas)] px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col">
         <header className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">

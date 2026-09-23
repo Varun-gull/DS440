@@ -5,15 +5,22 @@
 :root {
   color-scheme: light;
 
-  /* Brand surfaces — sky-blue family, single source of truth */
+  /* Brand surfaces — sky-blue family, single source of truth.
+     The page sits on a cool grey-blue rather than near-white, with dark
+     blue-grey chrome top and bottom, so light cards read as lifted off it
+     and a page can fade out without flashing white. */
   --brand: #2a6384;
   --brand-deep: #214e69;
   --brand-ink: #173b55;
+  --brand-lift: #8fb8d4;
   --steel: #5e7681;
   --wash: #eaf2f8;
-  --canvas: #f3f4f6;
-  --surface: #fafafa;
-  --hairline: rgba(94, 118, 129, 0.3);
+  --canvas: #d2dae4;
+  --canvas-deep: #bfcad8;
+  --surface: #fbfcfe;
+  --chrome: #1f2c38;
+  --chrome-line: rgba(143, 184, 212, 0.18);
+  --hairline: rgba(94, 118, 129, 0.34);
 
   /* Motion: one easing, three durations. Instruments settle, they don't bounce. */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -45,7 +52,17 @@
 
 html {
   min-height: 100%;
-  background: #f3f4f6;
+  background: var(--canvas);
+  /* The page moves on one axis. Anything that would push sideways is either
+     wrapped or stacked rather than given a second scrollbar. */
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 * {
@@ -55,7 +72,10 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: #f3f4f6;
+  overflow-x: hidden;
+  background: var(--canvas);
+  background-image: radial-gradient(110% 70% at 50% 0%, rgba(255, 255, 255, 0.26), transparent 62%);
+  background-attachment: fixed;
   color: #0f172a;
   font-family: var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -117,6 +137,64 @@ textarea {
   }
 }
 
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes arrive-from-below {
+  from {
+    opacity: 0;
+    translate: 0 26px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes arrive-from-above {
+  from {
+    opacity: 0;
+    translate: 0 -26px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes leave-upward {
+  to {
+    opacity: 0;
+    translate: 0 -18px;
+  }
+}
+
+@keyframes leave-downward {
+  to {
+    opacity: 0;
+    translate: 0 18px;
+  }
+}
+
+@keyframes dock-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-50%, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 @keyframes glow-drift {
   0%,
   100% {
@@ -161,7 +239,7 @@ textarea {
 
 @layer components {
   .page-shell {
-    @apply mx-auto w-full max-w-[106rem] px-4 py-6 sm:px-6 lg:px-8 xl:px-10;
+    @apply mx-auto w-full max-w-[106rem] px-4 pb-40 pt-6 sm:px-6 lg:px-8 lg:pb-44 xl:px-10;
   }
 
   /* Cards sit close to the page at rest so hover has somewhere to go. */
@@ -169,8 +247,8 @@ textarea {
     border-color: var(--hairline);
     background: var(--surface);
     box-shadow:
-      0 1px 2px rgba(19, 17, 45, 0.04),
-      0 8px 24px -12px rgba(19, 17, 45, 0.14),
+      0 1px 2px rgba(15, 27, 38, 0.06),
+      0 10px 26px -14px rgba(15, 27, 38, 0.3),
       0 1px 0 rgba(255, 255, 255, 0.9) inset;
     transition: box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out),
       transform var(--dur-2) var(--ease-out);
@@ -180,8 +258,8 @@ textarea {
   .card-interactive:hover {
     border-color: rgba(42, 99, 132, 0.38);
     box-shadow:
-      0 2px 4px rgba(19, 17, 45, 0.05),
-      0 22px 48px -20px rgba(19, 17, 45, 0.28),
+      0 2px 4px rgba(15, 27, 38, 0.07),
+      0 24px 50px -20px rgba(15, 27, 38, 0.42),
       0 1px 0 rgba(255, 255, 255, 0.95) inset;
     transform: translate3d(0, -3px, 0);
   }
@@ -383,6 +461,232 @@ textarea {
 
   .dark-panel {
     @apply rounded-2xl border border-slate-800 bg-slate-950 text-white shadow-strong;
+  }
+
+  /* Fixed, not sticky: the bar is chrome, so it stays put through a page
+     change and through any transform on the content behind it. */
+  .app-topbar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    background: rgba(31, 44, 56, 0.88);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--dur-3) var(--ease-out), box-shadow var(--dur-3) var(--ease-out),
+      background-color var(--dur-3) var(--ease-out);
+  }
+
+  [data-scrolled="true"] .app-topbar {
+    background: rgba(31, 44, 56, 0.96);
+    border-bottom-color: var(--chrome-line);
+    box-shadow: 0 14px 34px -24px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Holds the space the fixed bar would have occupied. */
+  .app-topbar-spacer {
+    height: 4.5rem;
+  }
+
+  /* --- The dock -----------------------------------------------------------
+     Navigation floats free of the page at the bottom centre, where a thumb
+     reaches on a phone and the eye rests on a laptop. Only the current section
+     carries its name; the rest are icons, so the bar stays one pill wide at
+     every breakpoint and never needs to scroll sideways. */
+  .dock {
+    position: fixed;
+    left: 50%;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    z-index: 90;
+    transform: translate3d(-50%, 0, 0);
+    animation: dock-in 620ms var(--ease-out) 240ms both;
+    transition: box-shadow var(--dur-3) var(--ease-out);
+  }
+
+  @media (min-width: 1024px) {
+    .dock {
+      bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  .dock-shell {
+    max-width: calc(100vw - 1.5rem);
+    background: rgba(31, 44, 56, 0.9);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.18),
+      0 22px 50px -16px rgba(0, 0, 0, 0.6),
+      0 1px 0 rgba(255, 255, 255, 0.08) inset;
+    @apply flex items-center gap-1 rounded-full p-2 ring-1 ring-inset ring-white/10 backdrop-blur-xl sm:gap-1.5;
+  }
+
+  /* Once the page has moved, the dock sits a little prouder of the content. */
+  [data-scrolled="true"] .dock-shell {
+    background: rgba(31, 44, 56, 0.96);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.22),
+      0 30px 62px -18px rgba(0, 0, 0, 0.7),
+      0 1px 0 rgba(255, 255, 255, 0.1) inset;
+  }
+
+  /* Reading downward tucks the dock back a little; it returns on scroll up or
+     as soon as you point at it. */
+  [data-reading="true"] .dock:not(:hover):not(:focus-within) .dock-shell {
+    opacity: 0.55;
+    scale: 0.94;
+  }
+
+  .dock-shell {
+    transition: opacity var(--dur-3) var(--ease-out), scale var(--dur-3) var(--ease-out),
+      box-shadow var(--dur-3) var(--ease-out), background-color var(--dur-3) var(--ease-out);
+    transform-origin: bottom center;
+  }
+
+  .dock-item {
+    @apply relative flex h-14 shrink-0 items-center justify-center gap-2.5 rounded-full px-2.5 text-[#A9BACB] sm:h-16 sm:px-4;
+    transition: color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+  }
+
+  .dock-item:hover {
+    color: #ffffff;
+    background-color: rgba(143, 184, 212, 0.16);
+  }
+
+  .dock-item[aria-current="page"] {
+    color: #11202b;
+    background-color: var(--brand-lift);
+  }
+
+  /* The label is revealed by widening its own box, so the pill grows into the
+     name of the section rather than the text popping in. */
+  /* On a phone there is no room to spell the section out; the filled pill is
+     the indicator, and seven icons still fit inside the screen. */
+  .dock-label {
+    display: none;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: max-width var(--dur-3) var(--ease-out), opacity var(--dur-2) var(--ease-out);
+    @apply text-base font-semibold;
+  }
+
+  @media (min-width: 640px) {
+    .dock-label {
+      display: block;
+    }
+  }
+
+  .dock-item[aria-current="page"] .dock-label {
+    max-width: 9rem;
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dock {
+      animation: none;
+    }
+
+    .dock-label,
+    .dock-item,
+    .dock-shell {
+      transition: none;
+    }
+
+    [data-reading="true"] .dock .dock-shell {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  .dock-hint {
+    position: absolute;
+    bottom: calc(100% + 0.625rem);
+    left: 50%;
+    translate: -50% 8px;
+    opacity: 0;
+    pointer-events: none;
+    max-width: min(22rem, calc(100vw - 2rem));
+    background: rgba(143, 184, 212, 0.96);
+    transition: opacity var(--dur-2) var(--ease-out), translate var(--dur-2) var(--ease-out);
+    @apply flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-[#11202B] shadow-lg backdrop-blur;
+  }
+
+  .dock-hint-on {
+    opacity: 1;
+    translate: -50% 0;
+  }
+
+  .dock-hint-track {
+    @apply block h-1 w-12 shrink-0 overflow-hidden rounded-full bg-[#11202B]/25;
+  }
+
+  .dock-hint-fill {
+    transform-origin: left center;
+    @apply block h-full w-full rounded-full bg-[#11202B];
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dock-hint {
+      transition: none;
+    }
+  }
+
+  /* --- Scroll reveal ------------------------------------------------------
+     Sections below the fold arrive as you reach them. The hidden state is set
+     by script, so a page with no JavaScript renders fully visible. */
+  /* Uses the independent `translate` property, not `transform`, so a revealed
+     card can still use `transform` for its hover lift without the two fighting.
+     The transition list carries the card's own properties too, because this
+     rule would otherwise replace the shorthand `.card` sets. */
+  [data-reveal="hidden"] {
+    opacity: 0;
+    translate: 0 22px;
+  }
+
+  [data-reveal="shown"] {
+    opacity: 1;
+    translate: 0 0;
+    transition: opacity 620ms var(--ease-out), translate 620ms var(--ease-out),
+      transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out);
+  }
+
+  /* While you push past the end of a section the body recedes in proportion to
+     the push, so leaving is gradual rather than a cut to an empty screen.
+     This lives on its own element: the arrival animation below fills `opacity`
+     with `both`, which would override a declared value on the same node. Only
+     opacity is used — a filter here would become the containing block for any
+     `position: fixed` modal inside the page. */
+  .page-travel {
+    --travel: 0;
+    opacity: calc(1 - var(--travel) * 0.82);
+  }
+
+  /* A route change replays the same arrival for the whole page body, from the
+     direction you travelled. */
+  .page-arriving[data-flow="down"] {
+    animation: arrive-from-below 440ms var(--ease-out) both;
+  }
+
+  .page-arriving[data-flow="up"] {
+    animation: arrive-from-above 440ms var(--ease-out) both;
+  }
+
+  .page-leaving[data-flow="down"] {
+    animation: leave-upward 200ms ease-in both;
+  }
+
+  .page-leaving[data-flow="up"] {
+    animation: leave-downward 200ms ease-in both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal="hidden"] {
+      opacity: 1;
+      translate: none;
+    }
+
+    .page-arriving,
+    .page-leaving {
+      animation: none;
+    }
   }
 
   .nav-scroll {

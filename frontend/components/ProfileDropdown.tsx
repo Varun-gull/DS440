@@ -1,6 +1,6 @@
 "use client";
 
-import { UserRound, Users, User, LogOut, Mail, Settings } from "lucide-react";
+import { UserRound, Users, User, LogOut, Mail, Settings, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { logOut } from "@/lib/auth/actions";
@@ -84,6 +84,13 @@ export function ProfileDropdown({
               <Mail size={16} /> Messages
             </span>
             {unreadMessages > 0 && <span className="metric rounded-full bg-[#2A6384] px-2 py-0.5 text-xs font-semibold text-white">{unreadMessages}</span>}
+          </Link>
+          <Link
+            href="/leaderboard"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#EAF2F8] hover:text-[#2A6384]"
+          >
+            <Trophy size={16} /> Leaderboard
           </Link>
           <Link
             href="/settings"

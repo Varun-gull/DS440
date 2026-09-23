@@ -107,8 +107,8 @@ export function ApplicationPipelineBoard({ applications, columns }: { applicatio
         onCancel={() => setPendingInterview(null)}
       />
     )}
-    <section className="mt-6 overflow-x-auto pb-4">
-      <div className="grid min-w-[1120px] gap-4 xl:grid-cols-5">
+    <section className="mt-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {columns.map((column) => {
           const columnApplications = groupedApplications[column.status];
           const isActive = activeStatus === column.status;

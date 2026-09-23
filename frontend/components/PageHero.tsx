@@ -47,14 +47,14 @@ export function PageHero({
           )}
 
           {tabs && tabs.length > 0 && (
-            <nav className="rise rise-3 nav-scroll mt-6 flex items-center gap-1 overflow-x-auto rounded-2xl bg-black/20 p-1 ring-1 ring-inset ring-white/10 lg:w-fit">
+            <nav className="rise rise-3 mt-6 flex flex-wrap items-center gap-1 rounded-2xl bg-black/20 p-1 ring-1 ring-inset ring-white/10 lg:w-fit">
               {tabs.map((tab) => (
                 <Link
                   key={tab.href + tab.label}
                   href={tab.href}
                   aria-current={tab.active ? "page" : undefined}
                   className={clsx(
-                    "hero-tab shrink-0",
+                    "hero-tab",
                     tab.active
                       ? "bg-white text-[#173B55] shadow-sm"
                       : "text-white/70 hover:bg-white/10 hover:text-white"

@@ -1,5 +1,5 @@
-import { AppSidebar } from "@/components/AppSidebar";
-import { Navbar } from "@/components/Navbar";
+import { AppDock } from "@/components/AppDock";
+import { PageBody, PageFlow } from "@/components/PageFlow";
 import { TopBar } from "@/components/TopBar";
 
 export default function ShellLayout({
@@ -8,17 +8,13 @@ export default function ShellLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      <div className="lg:hidden">
-        <Navbar />
-      </div>
-      <div className="min-h-screen">
+    <PageFlow>
+      <div className="relative min-h-screen">
         <TopBar />
-        <div className="lg:grid lg:grid-cols-[76px_minmax(0,1fr)]">
-          <AppSidebar />
-          <div className="min-w-0">{children}</div>
-        </div>
+        <div className="app-topbar-spacer" aria-hidden />
+        <PageBody>{children}</PageBody>
+        <AppDock />
       </div>
-    </>
+    </PageFlow>
   );
 }

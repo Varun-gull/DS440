@@ -109,7 +109,7 @@ export function PostingApplyFollowUpPrompt() {
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-sm sm:items-center">
+    <div data-blocks-flow="true" className="fixed inset-0 z-[9999] flex items-end justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-sm sm:items-center">
       <div className="w-full max-w-xl rounded-[1.75rem] border border-white/80 bg-white p-5 shadow-strong ring-1 ring-slate-950/10">
         <div className="flex items-start justify-between gap-4">
           <div>

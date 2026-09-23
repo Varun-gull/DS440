@@ -83,7 +83,7 @@ export function CalendarCreateModal({ defaultDate, onClose, onCreated }: Props) 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div data-blocks-flow="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
         <div className="flex items-start justify-between">
           <div>

@@ -1,13 +1,13 @@
 # CareerUp
 
-CareerUp is an interactive career development platform for students. It combines job postings, application tracking, profiles, interview preparation, progress systems, challenges, rewards, messaging, and calendar tools in one website.
+CareerUp is a gamified internship application tracker for students. The MVP focuses on the core solo loop: track applications, mark roles as applied, earn XP, build streaks, level up through ranks, and complete simple challenges.
 
 ## Tech Stack
 
 - Next.js 14
 - TypeScript
 - Tailwind CSS
-- Supabase authentication, database access, and row security policies
+- Supabase client placeholder for authentication and database integration
 
 ## MVP Screens
 
@@ -46,26 +46,22 @@ npx shadcn@latest add https://21st.dev/r/<component>
 
 Imported registry components should go under `components/ui` and can use the shared `cn()` helper from `@/lib/utils`.
 
-## Supabase Connection
+## Supabase Setup Later
 
-Create `.env.local` and add the values from the existing CareerUp Supabase project:
+Create `.env.local` when you have a Supabase project:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
 ```
 
-The existing Supabase project already contains the live CareerUp data. The SQL files in `supabase/` document the schema and later feature updates. For a completely new database, begin with:
+Then open Supabase SQL Editor and run:
 
 ```text
 supabase/schema.sql
 ```
 
-The app falls back to mock data when the Supabase environment variables are unavailable.
-
-## Vercel Deployment
-
-Connect Vercel to the DS440 GitHub repository and set the project root directory to `frontend`. Add the same Supabase environment variables in the Vercel project settings before deploying. If the public website address changes, add the new address to the allowed redirect URLs in Supabase Authentication settings.
+The app falls back to mock data until Supabase env vars are added.
 
 ## Verify Profile Messages
 

@@ -32,9 +32,9 @@ export async function TopBar() {
   const nextXp = progress.next?.minXp ?? currentXp;
 
   return (
-    <header className="sticky top-0 z-40 hidden items-center justify-between gap-4 border-b border-[#5E7681]/30 bg-[#F8FBFA]/92 px-7 py-3 backdrop-blur-xl lg:flex">
+    <header className="app-topbar z-40 flex h-[4.5rem] items-center justify-between gap-3 px-4 backdrop-blur-xl sm:px-6 lg:px-7">
       <Link href="/dashboard" className="group rounded-lg leading-none">
-        <span className="font-display block text-4xl font-bold tracking-tight text-[#2A6384] transition duration-150 group-hover:text-[#214E69]">CareerUp</span>
+        <span className="font-display block text-2xl font-bold tracking-tight text-white transition duration-150 group-hover:text-[#8FB8D4] sm:text-3xl lg:text-[2.25rem]">CareerUp</span>
       </Link>
 
       <div className="flex items-center gap-3">
@@ -42,20 +42,23 @@ export async function TopBar() {
         <span
           className={
             profile && profile.streak > 0
-              ? "metric inline-flex h-11 items-center gap-2 rounded-2xl bg-[#EAF2F8] px-4 text-sm font-bold text-[#214E69] shadow-sm ring-1 ring-inset ring-[#2A6384]/30"
-              : "metric inline-flex h-11 items-center gap-2 rounded-2xl bg-slate-100 px-4 text-sm font-semibold text-slate-500 shadow-sm ring-1 ring-inset ring-slate-200"
+              ? "metric inline-flex h-11 items-center gap-2 rounded-2xl bg-[#8FB8D4]/18 px-3 text-sm font-bold text-[#CFE2F0] ring-1 ring-inset ring-[#8FB8D4]/35 sm:px-4"
+              : "metric inline-flex h-11 items-center gap-2 rounded-2xl bg-white/5 px-3 text-sm font-semibold text-slate-400 ring-1 ring-inset ring-white/10 sm:px-4"
           }
         >
-          <Flame size={16} className={profile && profile.streak > 0 ? "fill-[#2A6384] text-[#2A6384]" : "text-slate-400"} />
-          {profile?.streak ?? 0} day streak
+          <Flame size={16} className={profile && profile.streak > 0 ? "fill-[#8FB8D4] text-[#8FB8D4]" : "text-slate-500"} />
+          <span>
+            {profile?.streak ?? 0}
+            <span className="hidden sm:inline"> day streak</span>
+          </span>
         </span>
         <Link
           href="/leaderboard"
-          className="group hidden min-w-[17rem] rounded-2xl bg-[#F8FBFA] px-4 py-2 shadow-sm ring-1 ring-inset ring-[#5E7681]/30 transition duration-200 hover:-translate-y-0.5 hover:ring-[#2A6384]/45 xl:block"
+          className="group hidden min-w-[17rem] rounded-2xl bg-white/5 px-4 py-2 ring-1 ring-inset ring-white/12 transition duration-200 hover:-translate-y-0.5 hover:ring-[#8FB8D4]/45 xl:block"
         >
-          <div className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-700">
+          <div className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-300">
             <span className="inline-flex items-center gap-1">
-              <TrendingUp size={13} className="text-[#2A6384]" />
+              <TrendingUp size={13} className="text-[#8FB8D4]" />
               {rankPosition > 0 ? `#${rankPosition}` : "Rank"} · {rank.name}
             </span>
             <span className="metric">
@@ -63,7 +66,7 @@ export async function TopBar() {
               {progress.next ? `/${nextXp.toLocaleString()}` : ""}
             </span>
           </div>
-          <div className="meter-track meter-segments mt-1.5 h-2">
+          <div className="meter-track meter-segments mt-1.5 h-2 !bg-white/10">
             <div className="game-bar-fill" style={{ width: `${progress.percent}%` }} />
           </div>
         </Link>

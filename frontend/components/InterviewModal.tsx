@@ -103,7 +103,7 @@ export function InterviewModal({ company, role, initialDate, initialTime, initia
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div data-blocks-flow="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl">
         <div className="flex items-start justify-between p-6 pb-4">
           <div>
