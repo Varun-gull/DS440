@@ -1,6 +1,6 @@
 # CareerUp Frontend
 
-This folder contains the first DS 440 CareerUp frontend prototype. It intentionally focuses on the current capstone stage instead of recreating every feature from the original application.
+This folder contains the first DS 440 CareerUp frontend prototype.
 
 ## Included now
 
