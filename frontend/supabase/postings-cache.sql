@@ -26,6 +26,9 @@ create index if not exists postings_source_url_idx on public.postings (source_ur
 
 alter table public.postings enable row level security;
 
+grant select, insert, update, delete on table public.postings to service_role;
+grant select on table public.postings to anon, authenticated;
+
 drop policy if exists "Anyone can read cached postings" on public.postings;
 create policy "Anyone can read cached postings"
 on public.postings

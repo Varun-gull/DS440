@@ -17,6 +17,8 @@ function buildPostingKey(kind: PostingKind, posting: InternshipPosting) {
 }
 
 function toCacheRow(kind: PostingKind, posting: InternshipPosting) {
+  const recencyScore = getPostingRecencyScore(posting.postedAt);
+
   return {
     posting_key: buildPostingKey(kind, posting),
     kind,
@@ -28,7 +30,7 @@ function toCacheRow(kind: PostingKind, posting: InternshipPosting) {
     work_mode: posting.workMode,
     remote: posting.remote,
     posted_at_label: posting.postedAt || "Recently",
-    recency_score: getPostingRecencyScore(posting.postedAt),
+    recency_score: Number.isFinite(recencyScore) ? recencyScore : 999999,
     tags: posting.tags,
     tags_text: posting.tags.join(" "),
     description: posting.description,
