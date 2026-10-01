@@ -163,68 +163,84 @@ function getRoleTags(title: string, source: string) {
   return Array.from(tags).slice(0, 5);
 }
 
-function normalizeQuery(searchQuery: string, kind: PostingKind = "internship") {
-  if (kind === "new-grad") {
-    const query = /new grad|new graduate|entry level|university grad|college grad/i.test(searchQuery) ? searchQuery : `${searchQuery} new grad`;
-    return query.trim();
-  }
+const SEARCH_STOP_WORDS = new Set([
+  "intern",
+  "internship",
+  "job",
+  "new",
+  "grad",
+  "graduate",
+  "entry",
+  "level",
+  "role",
+  "position",
+]);
 
-  const query = searchQuery.toLowerCase().includes("intern") ? searchQuery : `${searchQuery} internship`;
-  return query.trim();
+function normalizeSearchToken(value: string) {
+  const token = value.toLowerCase().replace(/[^a-z0-9+#.]/g, "");
+
+  if (/^scien/.test(token)) return "scien";
+  if (/^analy/.test(token)) return "analy";
+  if (/^engineer/.test(token)) return "engineer";
+  if (/^develop/.test(token)) return "develop";
+  if (/^comput/.test(token)) return "comput";
+  if (/^learn/.test(token)) return "learn";
+
+  return token;
 }
 
-function buildPostingQueryVariants(searchQuery: string, kind: PostingKind = "internship") {
-  const cleanQuery = searchQuery.trim();
-  const variants = [
-    cleanQuery,
-    kind === "new-grad"
-      ? /new grad|new graduate|entry level|university grad|college grad/i.test(cleanQuery)
-        ? cleanQuery
-        : `${cleanQuery} new grad`
-      : cleanQuery.toLowerCase().includes("intern")
-        ? cleanQuery
-        : `${cleanQuery} intern`,
-    normalizeQuery(cleanQuery, kind)
-  ];
-
-  if (/data scientist/i.test(cleanQuery)) {
-    variants.push(cleanQuery.replace(/data scientist/gi, kind === "new-grad" ? "data analyst new grad" : "data intern"));
-    variants.push(kind === "new-grad" ? "data analyst new grad" : "data analyst intern");
-  }
-
-  if (/software engineer/i.test(cleanQuery)) {
-    variants.push(cleanQuery.replace(/software engineer/gi, kind === "new-grad" ? "software engineer new grad" : "software intern"));
-    variants.push(kind === "new-grad" ? "software engineer new grad" : "software engineering intern");
-  }
-
-  if (/product manager|product management/i.test(cleanQuery)) {
-    variants.push(kind === "new-grad" ? "associate product manager" : "product intern");
-    variants.push(kind === "new-grad" ? "product management new grad" : "product management intern");
-  }
-
-  const firstWord = cleanQuery.split(/\s+/)[0];
-  if (firstWord && !/intern|grad/i.test(firstWord)) {
-    variants.push(`${firstWord} ${kind === "new-grad" ? "new grad" : "intern"}`);
-  }
-
-  variants.push(kind === "new-grad" ? "new grad" : "internship");
-
-  return Array.from(new Set(variants.map((variant) => variant.trim()).filter(Boolean)));
+function tokenizeSearchValue(value: string) {
+  return value
+    .split(/\s+/)
+    .map(normalizeSearchToken)
+    .filter(Boolean);
 }
 
-function matchesPostingSearch(posting: InternshipPosting, searchQuery: string, targetLocation: string, kind: PostingKind = "internship") {
-  const query = searchQuery.trim();
-  const location = targetLocation.trim();
-  const haystack = `${posting.company} ${posting.title} ${posting.location} ${posting.description} ${posting.tags.join(" ")}`.toLowerCase();
-  const normalizedQuery = query.toLowerCase();
-  const companyMatch = Boolean(normalizedQuery && posting.company.toLowerCase().includes(normalizedQuery));
-  const queryTerms = buildPostingQueryVariants(query, kind)
-    .flatMap((variant) => variant.toLowerCase().split(/\s+/))
-    .filter((term) => term.length > 2 && !["intern", "internship", "grad", "graduate"].includes(term));
-  const queryMatch = !queryTerms.length || queryTerms.some((term) => haystack.includes(term));
-  const locationMatch = companyMatch || !location || includesAny(posting.location, [location, "remote", "united states", "usa"]);
+function getRequiredQueryTerms(query: string) {
+  return Array.from(
+    new Set(
+      tokenizeSearchValue(query).filter(
+        (term) => (term.length > 2 || term === "ai" || term === "ml") && !SEARCH_STOP_WORDS.has(term)
+      )
+    )
+  );
+}
 
-  return queryMatch && locationMatch;
+function matchesAllQueryTerms(value: string, query: string) {
+  const requiredTerms = getRequiredQueryTerms(query);
+
+  if (requiredTerms.length === 0) {
+    return true;
+  }
+
+  const valueTerms = tokenizeSearchValue(value);
+  return requiredTerms.every((requiredTerm) => valueTerms.some((valueTerm) => valueTerm.includes(requiredTerm)));
+}
+
+function normalizeLocation(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/\bnyc\b/g, "new york city")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function matchesRequestedLocation(postingLocation: string, requestedLocation: string) {
+  const location = normalizeLocation(requestedLocation);
+
+  if (!location) {
+    return true;
+  }
+
+  const posting = normalizeLocation(postingLocation);
+  const locationTerms = location.split(" ").filter(Boolean);
+  return posting.includes(location) || locationTerms.every((term) => posting.split(" ").includes(term));
+}
+
+function matchesPostingSearch(posting: InternshipPosting, searchQuery: string, targetLocation: string) {
+  const searchableText = `${posting.company} ${posting.title} ${posting.description} ${posting.tags.join(" ")}`;
+  return matchesAllQueryTerms(searchableText, searchQuery) && matchesRequestedLocation(posting.location, targetLocation);
 }
 
 function sortPostingsByMode(postings: InternshipPosting[], sort: PostingSort = "newest") {
@@ -468,7 +484,7 @@ async function fetchText(url: string) {
 }
 
 async function searchCuratedGithubPostings(searchQuery: string, targetLocation: string, profile?: Profile, kind: PostingKind = "internship"): Promise<PostingSearchResult | null> {
-  const postings = (await fetchCuratedGithubPostings(kind, profile)).filter((posting) => matchesPostingSearch(posting, searchQuery, targetLocation, kind));
+  const postings = (await fetchCuratedGithubPostings(kind, profile)).filter((posting) => matchesPostingSearch(posting, searchQuery, targetLocation));
   const deduped = dedupePostings(postings);
 
   return deduped.length > 0
@@ -506,7 +522,7 @@ export async function fetchCuratedGithubPostings(kind: PostingKind = "internship
 }
 
 async function searchJobrightPostings(searchQuery: string, targetLocation: string, profile?: Profile, kind: PostingKind = "internship"): Promise<PostingSearchResult | null> {
-  const postings = (await fetchJobrightPostings(kind, profile)).filter((posting) => matchesPostingSearch(posting, searchQuery, targetLocation, kind));
+  const postings = (await fetchJobrightPostings(kind, profile)).filter((posting) => matchesPostingSearch(posting, searchQuery, targetLocation));
   const deduped = dedupePostings(postings);
 
   return deduped.length > 0
@@ -779,16 +795,8 @@ function sanitizeSearchTerm(value: string) {
   return value.replace(/[%_,().]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function buildCacheSearchTerms(query: string, kind: PostingKind) {
-  return Array.from(
-    new Set(
-      buildPostingQueryVariants(query, kind)
-        .flatMap((variant) => variant.split(/\s+/))
-        .map(sanitizeSearchTerm)
-        .filter((term) => term.length > 2 && !["intern", "internship", "grad", "graduate"].includes(term.toLowerCase()))
-        .slice(0, 8)
-    )
-  );
+function buildCacheSearchTerms(query: string) {
+  return getRequiredQueryTerms(query).map(sanitizeSearchTerm).slice(0, 8);
 }
 
 export async function searchCachedPostings({
@@ -812,7 +820,7 @@ export async function searchCachedPostings({
   const hasSubmittedSearch = typeof query === "string" || typeof location === "string";
   const searchQuery = rawQuery || (hasSubmittedSearch ? (kind === "new-grad" ? "new grad" : "intern") : profile?.targetRoles[0] || (kind === "new-grad" ? "new grad" : "intern"));
   const targetLocation = rawLocation || (hasSubmittedSearch || rawQuery ? "" : profile?.targetLocations[0] || "");
-  const terms = buildCacheSearchTerms(searchQuery, kind);
+  const terms = buildCacheSearchTerms(searchQuery);
 
   let request = supabase
     .from("postings")
@@ -837,8 +845,14 @@ export async function searchCachedPostings({
   }
 
   if (targetLocation) {
-    const cleanLocation = sanitizeSearchTerm(targetLocation);
-    request = request.or(`location.ilike.%${cleanLocation}%,location.ilike.%Remote%,location.ilike.%United States%,location.ilike.%USA%`);
+    const primaryLocationTerm = normalizeLocation(targetLocation)
+      .split(" ")
+      .filter(Boolean)
+      .sort((a, b) => b.length - a.length)[0];
+
+    if (primaryLocationTerm) {
+      request = request.ilike("location", `%${sanitizeSearchTerm(primaryLocationTerm)}%`);
+    }
   }
 
   const { data, error } = await request
@@ -853,7 +867,7 @@ export async function searchCachedPostings({
   const postings = sortPostingsByMode(
     data
       .map((row) => mapCachedPosting(row, profile))
-      .filter((posting) => matchesPostingSearch(posting, searchQuery, targetLocation, kind))
+      .filter((posting) => matchesPostingSearch(posting, searchQuery, targetLocation))
       .filter((posting) => posting.fitScore >= minFit),
     sort
   ).slice(0, limit);
