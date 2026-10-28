@@ -55,7 +55,7 @@ async function canSendPeerMessage({
   roleKey,
   sourceMessageId
 }: {
-  supabase: NonNullable<ReturnType<typeof getSupabaseServerClient>>;
+  supabase: NonNullable<Awaited<ReturnType<typeof getSupabaseServerClient>>>;
   userId: string;
   recipientId: string;
   applicationId: string;
@@ -101,7 +101,7 @@ async function canSendPeerMessage({
 }
 
 export async function sendPeerMessage(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const returnTo = getSafeReturnTo(formData.get("returnTo"));
 
   if (!supabase) {
@@ -172,7 +172,7 @@ export async function sendPeerMessage(formData: FormData) {
 }
 
 export async function markPeerMessageRead(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const returnTo = getSafeReturnTo(formData.get("returnTo"));
 
   if (!supabase) {

@@ -11,12 +11,14 @@ import { getCurrentUser, getFriendshipWith, getMutualFriends, getPublicProfile, 
 import { sendPeerMessage } from "@/lib/messages/actions";
 
 export default async function PublicProfilePage({
-  params,
-  searchParams
+  params: paramsInput,
+  searchParams: searchParamsInput
 }: {
-  params: { profileId: string };
-  searchParams?: { message?: string; year?: string };
+  params: Promise<{ profileId: string }>;
+  searchParams?: Promise<{ message?: string; year?: string }>;
 }) {
+  const params = await paramsInput;
+  const searchParams = await searchParamsInput;
   const [profile, user, friendship, sharedBoard, mutualFriends] = await Promise.all([
     getPublicProfile(params.profileId),
     getCurrentUser(),

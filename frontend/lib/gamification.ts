@@ -3,7 +3,7 @@ import { getDateKeyStartUtcIso, getTodayKey } from "@/lib/streak";
 import type { ApplicationStatus } from "@/lib/types";
 import type { getSupabaseServerClient } from "@/lib/supabase/server";
 
-type SupabaseServer = NonNullable<ReturnType<typeof getSupabaseServerClient>>;
+type SupabaseServer = NonNullable<Awaited<ReturnType<typeof getSupabaseServerClient>>>;
 
 export const pointValues = {
   saveRole: 5,

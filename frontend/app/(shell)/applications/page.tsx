@@ -1,5 +1,5 @@
 import { PageHero } from "@/components/PageHero";
-import { BriefcaseBusiness, CheckCircle2, Clock3, MessageSquareText, Plus, Trophy } from "lucide-react";
+import { BriefcaseBusiness, CheckCircle2, Clock3, Mail, MessageSquareText, Plus, Trophy } from "lucide-react";
 import Link from "next/link";
 import { ApplicationPipelineBoard } from "@/components/ApplicationPipelineBoard";
 import { ApplicationsFilterForm } from "@/components/ApplicationsFilterForm";
@@ -50,15 +50,16 @@ function getYearHref(year: number | "all", query: string, status: ApplicationSta
 }
 
 export default async function ApplicationsPage({
-  searchParams
+  searchParams: searchParamsInput
 }: {
-  searchParams?: {
+  searchParams?: Promise<{
     q?: string;
     status?: ApplicationStatus | "all";
     year?: string;
     message?: string;
-  };
+  }>;
 }) {
+  const searchParams = await searchParamsInput;
   const applications = await getApplications();
   const query = searchParams?.q?.trim() ?? "";
   const statusFilter: ApplicationStatus | "all" = pipelineColumns.some((column) => column.status === searchParams?.status) ? (searchParams?.status as ApplicationStatus) : "all";
@@ -82,12 +83,17 @@ export default async function ApplicationsPage({
           title="Applications"
           description="Track every role from saved to offer without losing momentum."
           actions={
-            <Link
-              href="/applications/new"
-              className="group inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#2A6384] shadow-sm transition duration-150 hover:bg-[#EAF2F8] active:translate-y-px"
-            >
-              <Plus size={16} className="transition-transform duration-200 group-hover:rotate-90" /> Add role
-            </Link>
+            <>
+              <Link href="/applications/email-scanner" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/20">
+                <Mail size={16} /> Email scanner
+              </Link>
+              <Link
+                href="/applications/new"
+                className="group inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#2A6384] shadow-sm transition duration-150 hover:bg-[#EAF2F8] active:translate-y-px"
+              >
+                <Plus size={16} className="transition-transform duration-200 group-hover:rotate-90" /> Add role
+              </Link>
+            </>
           }
         />
         {searchParams?.message && <p className="rise mt-5 rounded-2xl border border-[#2A6384]/20 bg-[#EAF2F8] p-3 text-sm font-semibold text-[#2A6384]">{searchParams.message}</p>}

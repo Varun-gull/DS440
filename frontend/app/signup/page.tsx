@@ -5,7 +5,8 @@ import { getCurrentUser } from "@/lib/data";
 import { signUp } from "@/lib/auth/actions";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
-export default async function SignupPage({ searchParams }: { searchParams?: { message?: string } }) {
+export default async function SignupPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
+  const searchParams = await searchParamsInput;
   const user = await getCurrentUser();
 
   if (user) {

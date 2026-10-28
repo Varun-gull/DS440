@@ -2,7 +2,8 @@ import { PageHero } from "@/components/PageHero";
 import { Save } from "lucide-react";
 import { createApplication } from "@/lib/applications/actions";
 
-export default function NewApplicationPage({ searchParams }: { searchParams?: { message?: string } }) {
+export default async function NewApplicationPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
+  const searchParams = await searchParamsInput;
   return (
     <>
       <main className="page-shell max-w-4xl">

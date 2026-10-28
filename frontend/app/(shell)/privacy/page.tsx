@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { getCurrentProfile, getCurrentUser } from "@/lib/data";
 import { updatePrivacySettings } from "@/lib/profile/actions";
 
-export default async function PrivacyPage({ searchParams }: { searchParams?: { message?: string } }) {
+export default async function PrivacyPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
+  const searchParams = await searchParamsInput;
   const user = await getCurrentUser();
 
   if (!user) {

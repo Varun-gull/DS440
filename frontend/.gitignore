@@ -10,3 +10,4 @@ coverage/
 *.tsbuildinfo
 .vercel
 .route-backup/
+.careerup-ui-fixture.local.json

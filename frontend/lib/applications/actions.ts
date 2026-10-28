@@ -27,7 +27,7 @@ const validStatuses: ApplicationStatus[] = ["saved", "applied", "interviewing", 
 const PAID_STREAK_REVIVE_COST = 50;
 const DAILY_APPLY_CHALLENGE_TITLE = "Daily Apply Sprint";
 
-async function countApplicationsAppliedToday(supabase: NonNullable<ReturnType<typeof getSupabaseServerClient>>, userId: string) {
+async function countApplicationsAppliedToday(supabase: NonNullable<Awaited<ReturnType<typeof getSupabaseServerClient>>>, userId: string) {
   const { count } = await supabase
     .from("applications")
     .select("id", { count: "exact", head: true })
@@ -42,7 +42,7 @@ async function updateAppliedStreakAndStats({
   supabase,
   userId,
 }: {
-  supabase: NonNullable<ReturnType<typeof getSupabaseServerClient>>;
+  supabase: NonNullable<Awaited<ReturnType<typeof getSupabaseServerClient>>>;
   userId: string;
 }) {
   const { data: profile, error: loadError } = await supabase
@@ -118,7 +118,7 @@ async function updateAppliedStreakAndStats({
   return error;
 }
 
-async function awardDailyApplyChallenge(supabase: NonNullable<ReturnType<typeof getSupabaseServerClient>>, userId: string) {
+async function awardDailyApplyChallenge(supabase: NonNullable<Awaited<ReturnType<typeof getSupabaseServerClient>>>, userId: string) {
   const today = getTodayKey();
   const { data: challenge } = await supabase
     .from("challenges")
@@ -155,7 +155,7 @@ async function awardDailyApplyChallenge(supabase: NonNullable<ReturnType<typeof 
 }
 
 export async function createApplication(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/applications/new", "Connect Supabase before saving real applications.");
@@ -239,7 +239,7 @@ export async function createApplicationFromCalendar({
 }: {
   company: string; role: string; status: ApplicationStatus; deadline: string | null;
 }): Promise<{ error?: string }> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   if (!supabase) return { error: "Connect Supabase to save applications." };
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -299,7 +299,7 @@ export async function createApplicationFromCalendar({
 }
 
 export async function savePostingApplication(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/postings", "Connect Supabase before saving postings.");
@@ -437,7 +437,7 @@ export async function savePostingApplication(formData: FormData) {
 }
 
 export async function updateApplicationStatus(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/applications", "Connect Supabase before updating applications.");
@@ -542,7 +542,7 @@ export async function updateApplicationStatus(formData: FormData) {
 }
 
 export async function deleteApplication(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/applications", "Connect Supabase before deleting applications.");
@@ -573,7 +573,7 @@ export async function deleteApplication(formData: FormData) {
 }
 
 export async function unlockStreakRevive() {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/dashboard", "Connect Supabase before unlocking streak revives.");

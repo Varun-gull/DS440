@@ -10,7 +10,7 @@ function redirectWithMessage(path: string, message: string): never {
 }
 
 async function requireUser(returnTo = "/friends") {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage(returnTo, "Connect Supabase before using groups.");

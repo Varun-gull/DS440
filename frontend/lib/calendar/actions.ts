@@ -10,7 +10,7 @@ export async function addInterviewEvent({
   applicationId: string; company: string; role: string;
   date: string; time: string; notes: string;
 }) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   if (!supabase) return;
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
@@ -43,7 +43,7 @@ export async function addInterviewEvent({
 }
 
 export async function addCalendarEvent(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   if (!supabase) return;
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -67,7 +67,7 @@ export async function createCustomCalendarEvent({
 }: {
   title: string; date: string; time: string | null; notes: string | null;
 }) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   if (!supabase) return;
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
@@ -96,7 +96,7 @@ export async function promoteAndMoveCalendarEvent({
   applicationId: string; company: string; role: string;
   status: string; eventType: string; date: string;
 }) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   if (!supabase) return;
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
@@ -122,7 +122,7 @@ export async function promoteAndMoveCalendarEvent({
 }
 
 export async function moveCalendarEvent(id: string, newDate: string) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   if (!supabase) return;
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -138,7 +138,7 @@ export async function moveCalendarEvent(id: string, newDate: string) {
 }
 
 export async function deleteCalendarEvent(id: string) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   if (!supabase) return;
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -166,7 +166,7 @@ export async function seedCalendarEventsForApplication({
   status: ApplicationStatus;
   deadline: string | null;
 }) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   if (!supabase) return;
 
   const { data: { user } } = await supabase.auth.getUser();

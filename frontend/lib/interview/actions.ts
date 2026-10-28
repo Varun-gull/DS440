@@ -13,7 +13,7 @@ function getField(formData: FormData, key: string) {
 }
 
 export async function saveInterviewAnswer(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/interview", "Connect Supabase before saving interview answers.");
@@ -57,7 +57,7 @@ export async function saveInterviewAnswer(formData: FormData) {
 }
 
 export async function deleteInterviewAnswer(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/interview", "Connect Supabase before deleting interview answers.");

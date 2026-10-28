@@ -3,7 +3,8 @@ import { GroupLeaderboardTable } from "@/components/GroupLeaderboardTable";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { getCurrentUser, getFriendLeaderboard, getGroupLeaderboard, getLeaderboard } from "@/lib/data";
 
-export default async function LeaderboardPage({ searchParams }: { searchParams?: { scope?: string } }) {
+export default async function LeaderboardPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ scope?: string }> }) {
+  const searchParams = await searchParamsInput;
   const scope = searchParams?.scope === "friends" ? "friends" : searchParams?.scope === "groups" ? "groups" : "global";
   const [leaderboard, groupLeaderboard, user] = await Promise.all([
     scope === "friends" ? getFriendLeaderboard() : scope === "groups" ? Promise.resolve([]) : getLeaderboard(),

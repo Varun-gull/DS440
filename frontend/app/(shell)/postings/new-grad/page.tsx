@@ -1,9 +1,9 @@
 import { PostingsPageView } from "@/components/PostingsPageView";
 
-export default function NewGradPostingsPage({
-  searchParams,
+export default async function NewGradPostingsPage({
+  searchParams: searchParamsInput,
 }: {
-  searchParams?: {
+  searchParams?: Promise<{
     q?: string;
     location?: string;
     remote?: "all" | "remote" | "hybrid" | "onsite";
@@ -11,7 +11,8 @@ export default function NewGradPostingsPage({
     sort?: "fit" | "newest" | "company";
     page?: string;
     message?: string;
-  };
+  }>;
 }) {
+  const searchParams = await searchParamsInput;
   return <PostingsPageView kind="new-grad" searchParams={searchParams} />;
 }

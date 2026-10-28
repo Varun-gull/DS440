@@ -3,12 +3,24 @@ import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/AuthShell";
 import { getCurrentUser } from "@/lib/data";
 import { logIn } from "@/lib/auth/actions";
+import { requiresMfaChallenge } from "@/lib/auth/mfa";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
-export default async function LoginPage({ searchParams }: { searchParams?: { message?: string } }) {
+export default async function LoginPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
+  const searchParams = await searchParamsInput;
   const user = await getCurrentUser();
 
   if (user) {
+    const supabase = await getSupabaseServerClient();
+    const { data: assurance } = supabase
+      ? await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+      : { data: null };
+
+    if (assurance && requiresMfaChallenge(assurance.currentLevel, assurance.nextLevel)) {
+      redirect("/mfa?next=%2Fdashboard");
+    }
+
     redirect("/dashboard");
   }
 

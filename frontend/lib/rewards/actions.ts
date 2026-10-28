@@ -10,7 +10,7 @@ function redirectWithMessage(path: string, message: string): never {
 }
 
 export async function unlockReward(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/rewards", "Connect Supabase before unlocking rewards.");

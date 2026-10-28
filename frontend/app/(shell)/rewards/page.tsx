@@ -6,7 +6,8 @@ import { XpProgressBar } from "@/components/XpProgressBar";
 import { unlockReward } from "@/lib/rewards/actions";
 import { getCurrentProfile, getRewards } from "@/lib/data";
 
-export default async function RewardsPage({ searchParams }: { searchParams?: { message?: string } }) {
+export default async function RewardsPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
+  const searchParams = await searchParamsInput;
   const [profile, rewards] = await Promise.all([getCurrentProfile(), getRewards()]);
   const unlockedCount = rewards.filter((reward) => reward.unlocked).length;
 

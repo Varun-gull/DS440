@@ -1,9 +1,12 @@
 import { PageHero } from "@/components/PageHero";
-import { Lock, UsersRound } from "lucide-react";
+import { TwoFactorSettings } from "@/components/TwoFactorSettings";
+import { Lock, ShieldCheck, UsersRound } from "lucide-react";
 import { getCurrentProfile } from "@/lib/data";
 import { updatePrivacySettings } from "@/lib/profile/actions";
+import Link from "next/link";
 
-export default async function SettingsPage({ searchParams }: { searchParams?: { message?: string } }) {
+export default async function SettingsPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
+  const searchParams = await searchParamsInput;
   const profile = await getCurrentProfile();
 
   return (
@@ -23,7 +26,34 @@ export default async function SettingsPage({ searchParams }: { searchParams?: { 
 
         {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#2A6384] shadow-sm ring-1 ring-[#2A6384]/20">{searchParams.message}</p>}
 
-        <section className="card mt-8 max-w-2xl p-6">
+        <section className="card mt-6 max-w-3xl p-6">
+          <h2 className="text-xl font-bold text-ink">Career assistant and voice practice</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Use career chat, resume evidence explanations, and optional live interview practice. You choose the context shared with the AI provider.</p>
+          <Link href="/interview/assistant" className="primary-button mt-4 w-fit">Open career assistant</Link>
+        </section>
+
+        <section className="card mt-6 max-w-3xl p-6">
+          <h2 className="text-xl font-bold text-ink">Application email scanner</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Connect Gmail or preview a pasted email to find application updates. Every status change needs your confirmation.</p>
+          <Link href="/applications/email-scanner" className="primary-button mt-4 w-fit">Open email scanner</Link>
+        </section>
+
+        <section className="card mt-8 max-w-3xl p-6">
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F8] text-brand">
+              <ShieldCheck size={20} />
+            </span>
+            <div>
+              <h2 className="text-xl font-bold text-ink">Two factor authentication</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Protect your resume, saved jobs, and application history with a second sign in step.
+              </p>
+            </div>
+          </div>
+          <TwoFactorSettings />
+        </section>
+
+        <section className="card mt-6 max-w-3xl p-6">
           <div className="flex items-start gap-3">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F8] text-brand">
               {profile.shareApplicationBoard ? <UsersRound size={20} /> : <Lock size={20} />}

@@ -13,7 +13,7 @@ function cleanList(value: unknown) {
 }
 
 export async function POST(request: Request) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     return NextResponse.json({ error: "Connect Supabase before updating your profile." }, { status: 500 });

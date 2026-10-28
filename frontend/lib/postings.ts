@@ -1,5 +1,6 @@
 import type { InternshipPosting, Profile } from "./types";
 import { getSupabaseServerClient } from "./supabase/server";
+import { getFitScore } from "./fit-score";
 
 type SearchPostingsOptions = {
   query?: string;
@@ -41,11 +42,6 @@ export type CachedPostingSearchOptions = SearchPostingsOptions & {
   sort?: PostingSort;
   limit?: number;
 };
-
-function includesAny(value: string, terms: string[]) {
-  const normalized = value.toLowerCase();
-  return terms.some((term) => normalized.includes(term.toLowerCase()));
-}
 
 function stripHtml(value: string) {
   return decodeHtml(value)
@@ -93,35 +89,6 @@ function makePostingId(source: string, company: string, title: string, url: stri
   }
 
   return `${source.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${hash.toString(36)}`;
-}
-
-function getFitScore(job: Pick<InternshipPosting, "title" | "location" | "description" | "tags">, profile?: Profile) {
-  if (!profile) {
-    return 72;
-  }
-
-  let score = 62;
-  const haystack = `${job.title} ${job.description} ${job.tags.join(" ")}`;
-
-  if (profile.targetRoles.length && includesAny(haystack, profile.targetRoles)) {
-    score += 20;
-  }
-
-  if (profile.targetLocations.length && includesAny(job.location, profile.targetLocations)) {
-    score += 12;
-  }
-
-  if (job.location.toLowerCase().includes("remote") && profile.targetLocations.some((location) => location.toLowerCase().includes("remote"))) {
-    score += 8;
-  }
-
-  const resumeMatches = profile.resumeKeywords.filter((keyword) => includesAny(haystack, [keyword]));
-
-  if (resumeMatches.length > 0) {
-    score += Math.min(18, resumeMatches.length * 4);
-  }
-
-  return Math.min(98, score);
 }
 
 function getWorkMode(value: string): InternshipPosting["workMode"] {
@@ -809,7 +776,7 @@ export async function searchCachedPostings({
   sort = "newest",
   limit = 600,
 }: CachedPostingSearchOptions = {}): Promise<PostingSearchResult | null> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     return null;

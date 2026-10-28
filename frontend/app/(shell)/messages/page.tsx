@@ -84,7 +84,8 @@ function EmptyMessages() {
   );
 }
 
-export default async function MessagesPage({ searchParams }: { searchParams?: { message?: string; thread?: string; q?: string; archived?: string } }) {
+export default async function MessagesPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string; thread?: string; q?: string; archived?: string }> }) {
+  const searchParams = await searchParamsInput;
   const [messages, peerFeatureStatus] = await Promise.all([getPeerMessages(), getRolePeerFeatureStatus()]);
   const conversations = buildConversations(messages);
   const searchQuery = typeof searchParams?.q === "string" ? searchParams.q.trim() : "";

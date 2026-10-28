@@ -45,9 +45,9 @@ function buildInsightHref({
 }
 
 export default async function PostingInsightsPage({
-  searchParams,
+  searchParams: searchParamsInput,
 }: {
-  searchParams?: {
+  searchParams?: Promise<{
     roleKey?: string;
     company?: string;
     role?: string;
@@ -55,8 +55,9 @@ export default async function PostingInsightsPage({
     year?: string;
     signal?: "all" | "interviewed" | "offers";
     message?: string;
-  };
+  }>;
 }) {
+  const searchParams = await searchParamsInput;
   const roleKey = searchParams?.roleKey || buildRoleKey(searchParams?.company ?? "", searchParams?.role ?? "");
   const company = searchParams?.company ?? "This company";
   const role = searchParams?.role ?? "this role";

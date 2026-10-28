@@ -152,7 +152,8 @@ async function getDashboardMatches(profile: Awaited<ReturnType<typeof getCurrent
     .slice(0, DASHBOARD_MATCH_LIMIT);
 }
 
-export default async function DashboardPage({ searchParams }: { searchParams?: { message?: string } }) {
+export default async function DashboardPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
+  const searchParams = await searchParamsInput;
   const [profile, challenges, applications] = await Promise.all([
     getCurrentProfile(),
     getChallenges(),

@@ -9,12 +9,13 @@ import { acceptFriendRequest, removeFriend, sendFriendRequest, sendFriendRequest
 import { addGroupMember, createGroup, leaveGroup } from "@/lib/groups/actions";
 import { getCurrentUser, getFriends, getGroups } from "@/lib/data";
 
-export default async function FriendsPage({ searchParams }: { searchParams?: { message?: string; invite?: string } }) {
+export default async function FriendsPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string; invite?: string }> }) {
+  const searchParams = await searchParamsInput;
   const [friends, user, groups] = await Promise.all([getFriends(), getCurrentUser(), getGroups()]);
   const acceptedFriends = friends.filter((friend) => friend.status === "accepted");
   const incomingRequests = friends.filter((friend) => friend.status === "pending" && friend.direction === "incoming");
   const outgoingRequests = friends.filter((friend) => friend.status === "pending" && friend.direction === "outgoing");
-  const headerList = headers();
+  const headerList = await headers();
   const host = headerList.get("x-forwarded-host") ?? headerList.get("host") ?? "";
   const protocol = headerList.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
   const origin = host ? `${protocol}://${host}` : "";

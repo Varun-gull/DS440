@@ -9,6 +9,7 @@ export const profile: Profile = {
   graduationYear: "2027",
   targetRoles: ["Software Engineering", "Product", "Data"],
   targetLocations: ["New York", "Remote", "San Francisco"],
+  resumeText: "Built React and TypeScript applications. Analyzed data with Python and SQL. Designed a predictive model for a class project.",
   resumeKeywords: ["React", "TypeScript", "Python", "Data Analysis"],
   resumeFileName: "sample-resume.txt",
   resumeUpdatedAt: "Sample",

@@ -10,7 +10,7 @@ function redirectWithMessage(path: string, message: string): never {
 }
 
 export async function sendFriendRequest(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/friends", "Connect Supabase before adding friends.");
@@ -75,7 +75,7 @@ export async function sendFriendRequest(formData: FormData) {
 }
 
 export async function sendFriendRequestById(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/friends", "Connect Supabase before adding friends.");
@@ -134,7 +134,7 @@ export async function sendFriendRequestById(formData: FormData) {
 }
 
 export async function acceptFriendRequest(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/friends", "Connect Supabase before accepting friends.");
@@ -173,7 +173,7 @@ export async function acceptFriendRequest(formData: FormData) {
 }
 
 export async function removeFriend(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/friends", "Connect Supabase before changing friends.");

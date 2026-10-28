@@ -40,7 +40,8 @@ const targetLocationOptions = [
   "Dallas, TX"
 ].map((value) => ({ label: value, value }));
 
-export default async function ProfilePage({ searchParams }: { searchParams?: { message?: string } }) {
+export default async function ProfilePage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
+  const searchParams = await searchParamsInput;
   const profile = await getCurrentProfile();
   const profileDetails = [
     profile.school && profile.school !== "CareerUp Student" ? profile.school : "",

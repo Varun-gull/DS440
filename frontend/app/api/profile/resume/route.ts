@@ -19,7 +19,7 @@ function isUploadedFile(value: FormDataEntryValue | null): value is File {
 }
 
 export async function POST(request: Request) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     return NextResponse.json({ error: "Connect Supabase before saving your resume." }, { status: 500 });

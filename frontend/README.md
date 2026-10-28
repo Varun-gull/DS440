@@ -4,10 +4,11 @@ CareerUp is a gamified internship application tracker for students. The MVP focu
 
 ## Tech Stack
 
-- Next.js 14
+- Next.js 15.5.28
 - TypeScript
 - Tailwind CSS
-- Supabase client placeholder for authentication and database integration
+- Supabase authentication, database, and private storage
+- Google GenAI SDK for optional AI chat and live voice
 
 ## MVP Screens
 
@@ -21,7 +22,17 @@ CareerUp is a gamified internship application tracker for students. The MVP focu
 - Challenges
 - Leaderboard
 
-## Run Locally
+## Application Email Scanner
+
+Open `/applications/email-scanner` from Applications or Settings. Pasted email preview runs locally in the browser. Gmail reading and saved suggestions require the additive database migration and OAuth settings described in [the email scanner setup guide](../docs/email-scanner-setup.md).
+
+The scanner suggests statuses and requires confirmation before changing applications. It does not send mail, award XP, or scan in the background. Run `npm run verify:email-scanner` for synthetic rule checks and `npm run verify:email-scanner:database` for isolated Docker based database checks.
+
+## Career Assistant and Live Voice
+
+Open `/interview/assistant` for optional AI chat, live interview practice, and an explicitly labelled offline guide. Resume sharing is off by default. Read the [assistant setup guide](../docs/career-assistant-setup.md) for private provider settings, usage limits, and verification. The assistant does not submit applications or change fit scores.
+
+## Development Server
 
 ```bash
 npm install
@@ -46,7 +57,7 @@ npx shadcn@latest add https://21st.dev/r/<component>
 
 Imported registry components should go under `components/ui` and can use the shared `cn()` helper from `@/lib/utils`.
 
-## Supabase Setup Later
+## Supabase Setup
 
 Create `.env.local` when you have a Supabase project:
 
@@ -55,13 +66,13 @@ NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
 ```
 
-Then open Supabase SQL Editor and run:
+For a new empty project only, open Supabase SQL Editor and run:
 
 ```text
 supabase/schema.sql
 ```
 
-The app falls back to mock data until Supabase env vars are added.
+Do not rerun the base schema over the existing CareerUp database. Integration migrations are additive and described in their setup guides. The app falls back to mock data until Supabase env vars are added.
 
 ## Verify Profile Messages
 

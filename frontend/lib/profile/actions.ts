@@ -34,7 +34,7 @@ function isUploadedFile(value: FormDataEntryValue | null): value is File {
 }
 
 export async function updateProfile(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/profile", "Connect Supabase before updating your profile.");
@@ -102,7 +102,7 @@ export async function updateProfile(formData: FormData) {
 }
 
 export async function updatePrivacySettings(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const returnTo = String(formData.get("returnTo") ?? "/settings");
 
   if (!supabase) {
@@ -139,7 +139,7 @@ export async function updatePrivacySettings(formData: FormData) {
 }
 
 export async function saveResumeProfile(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     redirectWithMessage("/profile", "Connect Supabase before saving your resume.");

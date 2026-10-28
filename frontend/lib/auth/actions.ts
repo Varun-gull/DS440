@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { requiresMfaChallenge } from "@/lib/auth/mfa";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 function redirectWithMessage(path: string, message: string): never {
@@ -8,7 +9,7 @@ function redirectWithMessage(path: string, message: string): never {
 }
 
 export async function signUp(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const fullName = String(formData.get("fullName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
@@ -42,7 +43,7 @@ export async function signUp(formData: FormData) {
 }
 
 export async function logIn(formData: FormData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
@@ -58,6 +59,8 @@ export async function logIn(formData: FormData) {
 
   const userId = data.user?.id;
 
+  let destination = "/dashboard";
+
   if (userId) {
     const { data: profile } = await supabase
       .from("profiles")
@@ -66,15 +69,21 @@ export async function logIn(formData: FormData) {
       .maybeSingle<{ privacy_prompt_answered: boolean | null }>();
 
     if (!profile?.privacy_prompt_answered) {
-      redirect("/privacy");
+      destination = "/privacy";
     }
   }
 
-  redirect("/dashboard");
+  const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+  if (assurance && requiresMfaChallenge(assurance.currentLevel, assurance.nextLevel)) {
+    redirect(`/mfa?next=${encodeURIComponent(destination)}`);
+  }
+
+  redirect(destination);
 }
 
 export async function logOut() {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (supabase) {
     await supabase.auth.signOut();

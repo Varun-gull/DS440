@@ -174,7 +174,7 @@ type DbInterviewAnswer = {
 };
 
 export async function getCurrentUser() {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     return null;
@@ -188,7 +188,7 @@ export async function getCurrentUser() {
 }
 
 export async function getCurrentProfile(): Promise<Profile> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -212,6 +212,7 @@ export async function getCurrentProfile(): Promise<Profile> {
     graduationYear: data.graduation_year ?? "",
     targetRoles: data.target_roles ?? [],
     targetLocations: data.target_locations ?? [],
+    resumeText: data.resume_text ?? "",
     resumeKeywords: data.resume_keywords ?? [],
     resumeFileName: data.resume_file_name ?? "",
     resumeUpdatedAt: data.resume_updated_at ? new Date(data.resume_updated_at).toLocaleDateString() : "",
@@ -230,7 +231,7 @@ export async function getCurrentProfile(): Promise<Profile> {
 }
 
 export async function getCurrentResumeForOptimization() {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -255,7 +256,7 @@ export async function getCurrentResumeForOptimization() {
 }
 
 export async function getApplications(): Promise<Application[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -277,7 +278,7 @@ export async function getApplications(): Promise<Application[]> {
 }
 
 export async function getRolePeerFeatureStatus(): Promise<RolePeerFeatureStatus> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -307,7 +308,7 @@ export async function getRolePeerFeatureStatus(): Promise<RolePeerFeatureStatus>
 }
 
 export async function getRolePeerInsights(roleKeys: string[]): Promise<Map<string, RolePeerInsight>> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
   const uniqueRoleKeys = Array.from(new Set(roleKeys.filter(Boolean)));
 
@@ -338,7 +339,7 @@ export async function getRolePeerInsights(roleKeys: string[]): Promise<Map<strin
 }
 
 export async function getRolePeerApplicants(roleKey: string): Promise<RolePeerApplicant[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user || !roleKey) {
@@ -370,7 +371,7 @@ export async function getRolePeerApplicants(roleKey: string): Promise<RolePeerAp
 }
 
 export async function getPeerMessages(): Promise<PeerMessage[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -482,7 +483,7 @@ export async function getPeerMessages(): Promise<PeerMessage[]> {
 }
 
 export async function getUnreadPeerMessageCount(): Promise<number> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -503,7 +504,7 @@ export async function getUnreadPeerMessageCount(): Promise<number> {
 }
 
 export async function getLeaderboard(): Promise<LeaderboardUser[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     return mockLeaderboard;
@@ -544,7 +545,7 @@ export async function getLeaderboard(): Promise<LeaderboardUser[]> {
 }
 
 export async function getFriends(): Promise<Friend[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -601,7 +602,7 @@ export async function getFriends(): Promise<Friend[]> {
 }
 
 export async function getFriendLeaderboard(): Promise<LeaderboardUser[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -647,7 +648,7 @@ export async function getFriendLeaderboard(): Promise<LeaderboardUser[]> {
 }
 
 export async function getGroups(): Promise<CareerGroup[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -733,7 +734,7 @@ export async function getGroups(): Promise<CareerGroup[]> {
 }
 
 export async function getGroupLeaderboard(): Promise<GroupLeaderboardRow[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -756,7 +757,7 @@ export async function getGroupLeaderboard(): Promise<GroupLeaderboardRow[]> {
 }
 
 export async function getPublicProfile(profileId: string): Promise<PublicProfile | null> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
     return null;
@@ -788,7 +789,7 @@ export async function getPublicProfile(profileId: string): Promise<PublicProfile
 }
 
 export async function getFriendshipWith(profileId: string): Promise<Pick<Friend, "status" | "direction"> | null> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user || user.id === profileId) {
@@ -812,7 +813,7 @@ export async function getFriendshipWith(profileId: string): Promise<Pick<Friend,
 }
 
 export async function getSharedApplicationBoard(profileId: string): Promise<{ applications: Application[]; canView: boolean; shareEnabled: boolean }> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -857,7 +858,7 @@ export async function getSharedApplicationBoard(profileId: string): Promise<{ ap
 }
 
 export async function getMutualFriends(profileId: string): Promise<MutualFriend[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user || user.id === profileId) {
@@ -911,7 +912,7 @@ export async function getMutualFriends(profileId: string): Promise<MutualFriend[
 }
 
 export async function getChallenges(): Promise<ChallengesData> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   const emptyData: ChallengesData = { tiered: [], oneOff: [] };
@@ -996,7 +997,7 @@ export async function getChallenges(): Promise<ChallengesData> {
 }
 
 export async function getRewards(): Promise<Reward[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -1018,7 +1019,7 @@ export async function getRewards(): Promise<Reward[]> {
 }
 
 export async function getCalendarEvents(): Promise<CalendarEvent[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {
@@ -1070,7 +1071,7 @@ export async function getCalendarEvents(): Promise<CalendarEvent[]> {
 }
 
 export async function getInterviewAnswers(): Promise<InterviewAnswer[]> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
   if (!supabase || !user) {

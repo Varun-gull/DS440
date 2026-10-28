@@ -204,6 +204,7 @@ export type Profile = {
   graduationYear: string;
   targetRoles: string[];
   targetLocations: string[];
+  resumeText: string;
   resumeKeywords: string[];
   resumeFileName: string;
   resumeUpdatedAt: string;

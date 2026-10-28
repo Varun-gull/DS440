@@ -5,7 +5,8 @@ import { deleteInterviewAnswer, saveInterviewAnswer } from "@/lib/interview/acti
 import { behavioralInterviewPrompts } from "@/lib/interview/prompts";
 import { getInterviewAnswers, getRewards } from "@/lib/data";
 
-export default async function InterviewPage({ searchParams }: { searchParams?: { message?: string } }) {
+export default async function InterviewPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
+  const searchParams = await searchParamsInput;
   const [rewards, answers] = await Promise.all([getRewards(), getInterviewAnswers()]);
   const isUnlocked = rewards.some((reward) => reward.id === "behavioral-interview-pack" && reward.unlocked);
 
@@ -18,6 +19,7 @@ export default async function InterviewPage({ searchParams }: { searchParams?: {
           title="Interview Prep"
           description="Draft STAR answers for behavioral interviews and keep your best stories ready."
           tabs={[
+            { label: "AI coach", href: "/interview/assistant" },
             { label: "STAR builder", href: "/interview", active: true },
             { label: "Rewards", href: "/rewards" }
           ]}
