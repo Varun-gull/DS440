@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { requiresMfaChallenge } from "@/lib/auth/mfa";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -82,12 +83,18 @@ export async function logIn(formData: FormData) {
   redirect(destination);
 }
 
-export async function logOut() {
-  const supabase = await getSupabaseServerClient();
+export async function logOut(_previousState: { error: string }, _formData: FormData) {
+  try {
+    const supabase = await getSupabaseServerClient();
 
-  if (supabase) {
-    await supabase.auth.signOut();
+    if (supabase) {
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error) return { error: "We could not log you out. Please try again." };
+    }
+  } catch {
+    return { error: "We could not log you out. Please try again." };
   }
 
+  revalidatePath("/", "layout");
   redirect("/login?message=You have been logged out.");
 }
