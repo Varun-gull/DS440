@@ -4,6 +4,10 @@ Paths beginning with `frontend/` refer to the DS440 repository. In the standalon
 
 ## Implemented behavior
 
+The floating AI coach button appears in the bottom right of app pages. It opens a compact chat panel above the navigation on phones and beside it on larger screens. The panel loads only when opened, uses the existing authenticated assistant endpoint, preserves the conversation while minimized, and supports Escape and a close button. The full assistant page has its own interface, so the floating button is hidden there.
+
+Quick chat does not attach saved resume text, email records, or job descriptions. AI mode requires explicit consent to share the conversation and career preferences with Google. When the provider is unavailable, the panel clearly labels the offline guide rather than presenting it as AI. Students can open the full coach for selected job context, optional resume review, and voice practice. Conversations stay in memory and clear on reload; the full coach starts its own conversation.
+
 Open `/interview/assistant` from Interview or Settings. Students can select a cached job or paste a job description, optionally include their own saved resume, and ask for career guidance. Resume context is off by default. Contact patterns are redacted where possible; this is not guaranteed anonymization. The assistant explains the existing evidence coverage score and cannot alter it, send email, submit applications, or change application statuses.
 
 AI text uses the Google GenAI SDK on the server. Live interview practice uses a single use provider token, a five minute session cap, microphone mute and stop controls, interruptions, and live captions. The permanent API key never goes to the browser. Audio uses 16 kHz PCM input and 24 kHz output. Leaving the page or switching tabs stops the microphone. Microphone permission and provider consent are required. Browser dictation and read aloud are separate optional controls, with browser speech processing disclosed.

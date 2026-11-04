@@ -506,6 +506,55 @@ textarea {
     }
   }
 
+  .career-coach-widget {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right, 0px));
+    bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+    z-index: 95;
+  }
+
+  .career-coach-launcher {
+    @apply relative flex h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-[#2A6384] px-4 text-sm font-semibold text-white shadow-xl ring-1 ring-white/30 transition-colors hover:bg-[#214E69] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2A6384];
+  }
+
+  .career-coach-badge {
+    @apply absolute -right-1 -top-1 rounded-full border-2 border-white bg-[#83C8AC] px-1.5 py-0.5 text-[9px] font-extrabold text-[#17394D];
+  }
+
+  .career-coach-panel {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.75rem);
+    display: flex;
+    flex-direction: column;
+    width: min(25rem, calc(100vw - 2rem));
+    height: min(34rem, calc(100dvh - 16rem - env(safe-area-inset-bottom, 0px)));
+    overflow: hidden;
+    border: 1px solid rgb(148 163 184 / 0.35);
+    border-radius: 1.5rem;
+    background: white;
+    box-shadow: 0 20px 70px -15px rgb(15 23 42 / 0.3), 0 4px 12px rgb(15 23 42 / 0.08);
+  }
+
+  .career-coach-panel[hidden] {
+    display: none;
+  }
+
+  .career-coach-icon-button {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2A6384] disabled:opacity-40;
+  }
+
+  @media (min-width: 768px) {
+    .career-coach-widget {
+      right: max(1.5rem, env(safe-area-inset-right, 0px));
+      bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .career-coach-panel {
+      height: min(34rem, calc(100dvh - 8rem - env(safe-area-inset-bottom, 0px)));
+    }
+  }
+
   .dock-shell {
     max-width: calc(100vw - 1.5rem);
     background: rgba(31, 44, 56, 0.9);
