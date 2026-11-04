@@ -41,6 +41,7 @@ export default async function LoginPage({ searchParams: searchParamsInput }: { s
       <form action={logIn} className="mt-6 grid gap-4">
         <input name="email" className="field min-h-12" placeholder="Email" type="email" required />
         <input name="password" className="field min-h-12" placeholder="Password" type="password" required />
+        <Link href="/forgot-password" className="justify-self-end text-sm font-semibold text-[#2A6384] hover:underline">Forgot password?</Link>
         <button type="submit" className="primary-button mt-1 w-full">Log in</button>
       </form>
       <p className="mt-5 text-sm text-slate-600">

@@ -102,3 +102,47 @@ export async function logOut(_previousState: { error: string }, _formData: FormD
   revalidatePath("/", "layout");
   redirect("/login?message=You have been logged out.");
 }
+
+export async function requestPasswordReset(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    redirectWithMessage("/forgot-password", "Enter a valid account email address.");
+  }
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) redirectWithMessage("/forgot-password", "Account recovery is temporarily unavailable. Please try again later.");
+  const origin = new URL(process.env.APP_BASE_URL || "https://careerup-smoky.vercel.app").origin;
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+  });
+  if (error) {
+    const message = error.status === 429
+      ? "Too many email requests. Please wait a few minutes before requesting another link."
+      : "The reset email could not be sent. Please contact the CareerUp project owner for help restoring access.";
+    redirectWithMessage("/forgot-password", message);
+  }
+  redirect("/forgot-password?sent=1");
+}
+
+export async function updatePassword(formData: FormData) {
+  const password = String(formData.get("password") ?? "");
+  const confirmation = String(formData.get("confirmPassword") ?? "");
+  if (password.length < 8 || password.length > 128) redirectWithMessage("/reset-password", "Choose a password between 8 and 128 characters.");
+  if (password !== confirmation) redirectWithMessage("/reset-password", "The passwords do not match. Please enter them again.");
+  const supabase = await getSupabaseServerClient();
+  if (!supabase) redirectWithMessage("/forgot-password", "Account recovery is temporarily unavailable.");
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) redirectWithMessage("/forgot-password", "Your recovery session has expired. Please open a new reset link.");
+  const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (assuranceError || !assurance) redirectWithMessage("/reset-password", "We could not verify your security settings. Please try again.");
+  if (requiresMfaChallenge(assurance.currentLevel, assurance.nextLevel)) redirect("/mfa?next=%2Freset-password");
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    const message = error.code === "same_password"
+      ? "Choose a different password from the one you used before."
+      : "Your password could not be updated. Try a stronger password or request a new reset link.";
+    redirectWithMessage("/reset-password", message);
+  }
+  await supabase.auth.signOut({ scope: "global" });
+  revalidatePath("/", "layout");
+  redirectWithMessage("/login", "Password updated. Sign in with your new password.");
+}
