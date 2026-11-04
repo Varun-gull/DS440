@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { LoaderCircle, RotateCcw, Send, ShieldCheck } from "lucide-react";
-import type { ChatMessage } from "@/lib/assistant/core";
+import { chatRequestMessages, type ChatMessage } from "@/lib/assistant/core";
 
 type Readiness = { aiReady: boolean; textRemaining: number };
 const prompts = ["Help me improve my resume", "Practice an interview question", "Plan my next application"];
@@ -63,12 +63,11 @@ export default function CareerCoachChat() {
     setWorking(true); setError("");
     const controller = new AbortController();
     request.current = controller;
-    // Preserve complete turns while staying below the existing API's length limits.
-    const history = messages.slice(-8).map((message) => ({ ...message, text: message.text.slice(0, 1500) }));
+    const conversation = chatRequestMessages(messages, text);
     try {
       const response = await fetch("/api/assistant", {
         method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
-        body: JSON.stringify({ mode, consent, includeResume: false, messages: [...history, { role: "user", text }] }),
+        body: JSON.stringify({ mode, consent, includeResume: false, messages: conversation }),
       });
       const value = await response.json();
       if (controller.signal.aborted) return;

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Bot, CheckCircle2, LoaderCircle, Mic, MicOff, Send, ShieldCheck, Square, Trash2, Volume2, VolumeX } from "lucide-react";
-import type { AssistantContext, ChatMessage } from "@/lib/assistant/core";
+import { chatRequestMessages, type AssistantContext, type ChatMessage } from "@/lib/assistant/core";
 import type { startLiveInterview } from "@/lib/assistant/live-client";
 
 type Readiness = {
@@ -83,12 +83,11 @@ export function CareerAssistant() {
   }
   async function send(event?: FormEvent, preset?: string) {
     event?.preventDefault();
-    const text = (preset ?? question).trim();
+    const text = (preset ?? question).trim().slice(0, 2500);
     if (!text || working || voiceState !== "off") return;
     if (mode === "ai" && !aiConsent) { setError("Approve AI data processing before sending, or choose the offline guide."); return; }
     recognition.current?.abort();
-    const previous = messages.slice(-10);
-    const conversation = [...previous, { role: "user" as const, text }];
+    const conversation = chatRequestMessages(messages, text);
     setWorking(true); setError(""); setNotice("");
     sendAbort.current = new AbortController();
     try {

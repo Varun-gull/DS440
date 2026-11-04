@@ -14,6 +14,8 @@ AI text uses the Google GenAI SDK on the server. Live interview practice uses a 
 
 An explicitly labelled offline guide offers fixed templates and evidence explanations without an AI provider. It is not a generative model. AI failures remain visible and do not silently become offline replies.
 
+Both chat interfaces send at most four recent conversation turns plus the new question. Older messages remain visible on the page, while long replies are shortened only in the next request so they cannot exceed the API's message limits. Provider quota, key/access, model availability, and timeout failures produce distinct safe messages. Raw Google error bodies and credentials are never shown to students.
+
 ## Configuration
 
 Use Node.js 24 and the existing Supabase project. Apply `frontend/supabase/career-assistant.sql` once to add the isolated usage table and reservation function. The migration is idempotent. Do not rerun the application's base schema over an existing database.
@@ -32,6 +34,8 @@ CAREERUP_VOICE_ENABLED=true
 Use the exact site origin for `APP_BASE_URL`; use `http://localhost:3000` during local development. Preview deployments need their own origin configuration. Model availability and quotas depend on the Google project and API account. Verify access in that account before promising availability. A free API tier is not an assurance of confidential processing; review provider terms before sending real resumes or speech. No billing account or paid plan is created by this setup.
 
 `node scripts/setup-integrations.mjs --origin https://your-careerup-domain.example --enable-voice` prepares private local settings and creates a fresh email encryption key if missing. It preserves nonempty credentials and prints readiness only. Add actual Google and Gemini credentials privately. Never prefix server secrets with `NEXT_PUBLIC_`. Never commit an environment file or paste keys in a chat.
+
+Get the key from [Google AI Studio API keys](https://aistudio.google.com/api-keys). Save it as `GEMINI_API_KEY` in the ignored local file and as a sensitive production variable in each hosting project. Redeploy after a hosting variable changes. Google OAuth client credentials used for Gmail are separate and do not configure Gemini.
 
 Each existing Vercel project needs its own `APP_BASE_URL` and `EMAIL_SCANNER_BASE_URL`. For Gmail, register each callback URL in the same Google OAuth web client:
 

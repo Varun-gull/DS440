@@ -5,6 +5,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requiresMfaChallenge } from "@/lib/auth/mfa";
 import { getFitScoreBreakdown } from "@/lib/fit-score";
 import { buildAssistantInstructions, redactResumeContact, VOICE_SECONDS, type AssistantContext, type AssistantJob, type ChatMessage } from "./core";
+import { geminiFailure } from "./provider-errors";
 
 export class AssistantError extends Error {
   constructor(message: string, public status = 400) { super(message); }
@@ -23,8 +24,8 @@ type Session = Awaited<ReturnType<typeof assistantUser>>;
 
 export function assistantConfig() {
   return { configured: Boolean(process.env.GEMINI_API_KEY?.trim()),
-    model: process.env.CAREERUP_CHAT_MODEL || "gemini-3.5-flash-lite",
-    voiceModel: process.env.CAREERUP_VOICE_MODEL || "gemini-3.8-live",
+    model: process.env.CAREERUP_CHAT_MODEL?.trim() || "gemini-3.5-flash-lite",
+    voiceModel: process.env.CAREERUP_VOICE_MODEL?.trim() || "gemini-3.8-live",
     voiceEnabled: process.env.CAREERUP_VOICE_ENABLED === "true" };
 }
 
@@ -74,16 +75,24 @@ async function reserve(session: Session, mode: "text" | "voice") {
 
 function googleClient() {
   if (!assistantConfig().configured) throw new AssistantError("The AI provider is not configured. You can use the offline guide instead.", 503);
-  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, httpOptions: { apiVersion: "v1beta", timeout: 25000 } });
+  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY!.trim(), httpOptions: { apiVersion: "v1beta", timeout: 25000 } });
+}
+
+async function providerRequest<T>(request: () => Promise<T>): Promise<T> {
+  try { return await request(); }
+  catch (error) {
+    const failure = geminiFailure(error);
+    throw new AssistantError(failure.message, failure.status);
+  }
 }
 
 export async function generateAssistantReply(session: Session, messages: ChatMessage[], context: AssistantContext) {
   const ai = googleClient();
   await reserve(session, "text");
-  const result = await ai.models.generateContent({ model: assistantConfig().model,
+  const result = await providerRequest(() => ai.models.generateContent({ model: assistantConfig().model,
     contents: messages.map((message) => ({ role: message.role === "assistant" ? "model" : "user", parts: [{ text: message.text }] })),
     config: { systemInstruction: buildAssistantInstructions(context), maxOutputTokens: 700, temperature: 0.4 },
-  });
+  }));
   const text = result.text?.trim();
   if (!text) throw new AssistantError("The model did not return a usable response. Try rephrasing your question.", 502);
   return text.slice(0, 10000);
@@ -98,8 +107,8 @@ export async function createVoiceToken(session: Session, context: AssistantConte
   const liveConfig = { responseModalities: [Modality.AUDIO], maxOutputTokens: 256,
     systemInstruction: buildAssistantInstructions(context, true), inputAudioTranscription: {}, outputAudioTranscription: {},
     speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } };
-  const result = await ai.authTokens.create({ config: { uses: 1, expireTime: expiresAt,
-    newSessionExpireTime: new Date(Date.now() + 60000).toISOString(), liveConnectConstraints: { model: config.voiceModel, config: liveConfig } } });
+  const result = await providerRequest(() => ai.authTokens.create({ config: { uses: 1, expireTime: expiresAt,
+    newSessionExpireTime: new Date(Date.now() + 60000).toISOString(), liveConnectConstraints: { model: config.voiceModel, config: liveConfig } } }));
   if (!result.name) throw new AssistantError("A voice session could not be created.", 502);
   // Only this single use, five minute token is returned. The permanent key and
   // selected resume context stay on the trusted server/provider boundary.

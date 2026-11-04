@@ -9,6 +9,13 @@ export type AssistantContext = {
 export const MAX_CHAT_MESSAGES = 12;
 export const VOICE_SECONDS = 300;
 
+// Retain complete recent turns while keeping long model replies within the API budget.
+// The full replies remain visible in the UI; only the next request is shortened.
+export function chatRequestMessages(history: ChatMessage[], question: string): ChatMessage[] {
+  const recent = history.slice(-8).map((message) => ({ ...message, text: message.text.slice(0, 1500) }));
+  return validateMessages([...recent, { role: "user", text: question.trim().slice(0, 2500) }]);
+}
+
 export function validateMessages(value: unknown): ChatMessage[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > MAX_CHAT_MESSAGES) throw new Error("Send between 1 and 12 conversation messages.");
   const result: ChatMessage[] = value.map((item) => {

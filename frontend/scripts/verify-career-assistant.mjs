@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { validateMessages, redactResumeContact, buildAssistantInstructions, offlineGuidance, VOICE_SECONDS } from "../lib/assistant/core.ts";
+import { validateMessages, chatRequestMessages, redactResumeContact, buildAssistantInstructions, offlineGuidance, VOICE_SECONDS } from "../lib/assistant/core.ts";
+import { geminiFailure } from "../lib/assistant/provider-errors.ts";
 import { resamplePcm16, pcm16Bytes, pcm16Floats } from "../lib/assistant/audio.ts";
 let passed=0;
 function check(label,fn){fn();passed++;console.log(`PASS ${label}`);}
@@ -16,6 +17,23 @@ check("assistant cannot be the last message",()=>assert.throws(()=>validateMessa
 check("repeated roles rejected",()=>assert.throws(()=>validateMessages([{role:"user",text:"Hi"},{role:"user",text:"Hi"}])));
 check("too many messages rejected",()=>assert.throws(()=>validateMessages(Array.from({length:13},(_,i)=>({role:i%2?"assistant":"user",text:"Hi"})))));
 check("aggregate context is bounded",()=>assert.throws(()=>validateMessages(Array.from({length:11},(_,i)=>({role:i%2?"assistant":"user",text:"a".repeat(2000)})))));
+check("long Gemini replies do not break later conversation turns",()=>{
+  const history=Array.from({length:60},(_,i)=>({role:i%2?"assistant":"user",text:(i%2?"reply ":"question ").repeat(2000)}));
+  const request=chatRequestMessages(history,"q".repeat(2500));
+  assert.equal(request.length,9);assert.equal(request[0].role,"user");assert.equal(request.at(-1).text.length,2500);
+  assert.ok(request.slice(0,-1).reduce((total,item)=>total+item.text.length,0)<=12000);
+  assert.equal(history[1].text.length,12000);assert.doesNotThrow(()=>validateMessages(request));
+});
+check("Gemini quota errors are actionable and preserve rate limit status",()=>{
+  const result=geminiFailure({status:429,message:"secret provider payload"});
+  assert.equal(result.status,429);assert.match(result.message,/quota limit/);assert.ok(!result.message.includes("secret"));
+});
+check("Gemini credential errors do not look like student authentication errors",()=>{
+  for(const status of [400,401,403]){const result=geminiFailure({status});assert.equal(result.status,503);assert.match(result.message,/project owner/);}
+});
+check("missing Gemini model gets a configuration explanation",()=>assert.match(geminiFailure({status:404}).message,/model is unavailable/));
+check("Gemini timeout can be retried",()=>assert.equal(geminiFailure(new DOMException("private request","TimeoutError")).status,504));
+check("unexpected Gemini failures never reveal raw error data",()=>assert.ok(!geminiFailure(new Error("GEMINI_API_KEY=secret")).message.includes("secret")));
 check("contact email redacted",()=>assert.ok(!redactResumeContact("Student hello@example.com Python").includes("hello@example.com")));
 check("contact phone redacted",()=>assert.ok(!redactResumeContact("Call +1 (555) 123 4567").includes("555")));
 check("resume length bounded",()=>assert.equal(redactResumeContact("a".repeat(8000)).length,6000));
