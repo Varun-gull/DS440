@@ -24,7 +24,7 @@ export async function signUp(formData: FormData) {
     redirectWithMessage("/signup", "Add your name, email, and a password with at least 6 characters.");
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -40,7 +40,11 @@ export async function signUp(formData: FormData) {
     redirectWithMessage("/signup", error.message);
   }
 
-  redirectWithMessage("/login", "Account created. Check your email if confirmation is enabled, then log in.");
+  if (data.session) {
+    redirect("/dashboard");
+  }
+
+  redirectWithMessage("/login", "If this email is new, check your inbox for a confirmation link. If you already registered, log in with your existing password. Signing up again does not reset it.");
 }
 
 export async function logIn(formData: FormData) {

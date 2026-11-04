@@ -39,6 +39,7 @@ export default async function SignupPage({ searchParams: searchParamsInput }: { 
           </span>
         </label>
         <button type="submit" className="primary-button mt-1 w-full">Create account</button>
+        <p className="text-xs leading-5 text-slate-500">Use a different email to create a separate account. Registering again will not change an existing password.</p>
       </form>
       <p className="mt-5 text-sm text-slate-600">
         Already have an account?{" "}
