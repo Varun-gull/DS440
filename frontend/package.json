@@ -14,7 +14,10 @@
     "verify:assistant": "node scripts/verify-career-assistant.mjs",
     "verify:integrations": "node scripts/verify-integrations-live.mjs",
     "verify:email-scanner:database": "node scripts/verify-email-scanner-database.mjs",
-    "verify:profile-messages": "node scripts/verify-profile-messages.mjs"
+    "verify:profile-messages": "node scripts/verify-profile-messages.mjs",
+    "verify:rewards": "node scripts/verify-rewards.mjs",
+    "verify:rewards:database": "node scripts/verify-rewards-database.mjs",
+    "verify:rewards:live": "node scripts/verify-rewards-live.mjs"
   },
   "dependencies": {
     "@google/genai": "2.31.0",

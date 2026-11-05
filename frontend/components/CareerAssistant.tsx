@@ -8,7 +8,7 @@ import type { startLiveInterview } from "@/lib/assistant/live-client";
 
 type Readiness = {
   configured: boolean; quotaReady: boolean; aiReady: boolean; voiceReady: boolean;
-  model: string; voiceModel: string; textRemaining: number; voiceRemaining: number; voiceAvailableAt: string | null;
+  model: string; voiceModel: string; textRemaining: number; voiceRemaining: number; rewardVoiceCredits: number; voiceAvailableAt: string | null;
   jobs: Array<{ id: string; company: string; title: string; location: string }>;
 };
 type SpeechRecognitionResult = { results: ArrayLike<ArrayLike<{ transcript: string }>> };
@@ -126,14 +126,19 @@ export function CareerAssistant() {
     recognition.current?.abort(); window.speechSynthesis?.cancel();
     voiceAbort.current = new AbortController();
     const controller = voiceAbort.current;
+    let microphoneStream: MediaStream | null = null;
     try {
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.AudioWorkletNode) throw new Error("Live voice needs HTTPS or localhost, a microphone, and AudioWorklet support.");
+      // Get permission before reserving a paid credit or a daily session.
+      microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      if (controller.signal.aborted || !mounted.current) return;
       const response = await fetch("/api/assistant/voice", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
         body: JSON.stringify({ consent: voiceConsent, ...contextFields() }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Could not start voice.");
       if (controller.signal.aborted || !mounted.current) return;
       const { startLiveInterview } = await import("@/lib/assistant/live-client");
-      const connected = await startLiveInterview({ ...result,
+      const connected = await startLiveInterview({ ...result, microphoneStream,
         onCaption: (speaker, text, complete) => {
           if (!mounted.current) return;
           if (complete) { setCaptions((items) => [...items, { role: speaker, text }].slice(-40)); setPartial((current) => ({ ...current, [speaker]: "" })); }
@@ -141,10 +146,15 @@ export function CareerAssistant() {
         },
         onEnded: (reason) => { if (mounted.current) { setVoiceState("off"); setMuted(false); setNotice(reason); void refresh().catch(() => undefined); } },
       }, controller.signal);
+      microphoneStream = null; // The live client now owns and stops these tracks.
       if (controller.signal.aborted || !mounted.current) { connected.stop(); return; }
       voice.current = connected; setVoiceState("live");
     } catch (failure) {
       if (mounted.current) { setVoiceState("off"); if (!controller.signal.aborted) setError(failure instanceof Error ? failure.message : "Voice connection failed."); }
+    } finally {
+      microphoneStream?.getTracks().forEach((track) => track.stop());
+      if (controller.signal.aborted && mounted.current) setVoiceState("off");
+      if (mounted.current) void refresh().catch(() => undefined);
     }
   }
 
@@ -162,8 +172,9 @@ export function CareerAssistant() {
           <p className="mt-2 text-xs leading-5 text-slate-500">Resume context is off by default. Contact patterns are removed where possible; review your resume for other private details. <Link className="font-semibold text-[#2A6384] underline" href="/profile">Manage resume</Link></p>
         </section>
         <section className="card p-5"><div className="flex items-center gap-2"><ShieldCheck size={19} className="text-[#2A6384]" /><h2 className="font-bold text-slate-950">Privacy and usage</h2></div><p className="mt-3 text-sm leading-6 text-slate-600">Chats and captions stay in this page’s memory, not your CareerUp database. Google processes AI chat and live voice data under its service terms. Avoid sensitive information, especially on a free API tier.</p>
-          <p className="mt-3 text-xs leading-5 text-slate-500">Daily account caps: 50 AI messages and 3 voice session reservations of up to 5 minutes. Failed provider requests can consume a reservation. Daily counts reset at midnight UTC.</p>
+          <p className="mt-3 text-xs leading-5 text-slate-500">Each day includes 50 AI messages and 3 voice sessions of up to 5 minutes. Reward Points can unlock extra voice credits, with a safety cap of 10 sessions per day. Daily counts reset at midnight UTC.</p>
           {ready && <p className="mt-3 text-xs font-semibold text-[#2A6384]">{ready.textRemaining} AI messages and {ready.voiceRemaining} voice sessions remaining</p>}
+          {ready && <Link href="/rewards?tab=library" className="mt-3 inline-flex text-xs font-bold text-[#2A6384] underline">{ready.rewardVoiceCredits || 0} extra voice credits · Visit rewards</Link>}
         </section>
       </aside>
 

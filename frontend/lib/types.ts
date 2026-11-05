@@ -218,5 +218,6 @@ export type Profile = {
   streakFreeReviveUsed: boolean;
   streakPaidRevives: number;
   streakReviveRequiredApplications: number;
+  protectedStreakDays?: string[];
   applicationsApplied: number;
 };

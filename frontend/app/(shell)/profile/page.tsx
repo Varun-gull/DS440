@@ -5,7 +5,10 @@ import { RankBadge } from "@/components/RankBadge";
 import { ResumeUploadField } from "@/components/ResumeUploadField";
 import { BadgeShelf } from "@/components/BadgeDisplay";
 import { XpProgressBar } from "@/components/XpProgressBar";
-import { getCurrentProfile } from "@/lib/data";
+import { getCurrentProfile, getCurrentUser } from "@/lib/data";
+import { rewardsSnapshot } from "@/lib/rewards/server";
+import { RewardAvatar } from "@/components/rewards/RewardUI";
+import { applicationBadges } from "@/lib/badges/catalog";
 import { schoolOptions } from "@/lib/schools";
 
 export const runtime = "nodejs";
@@ -43,6 +46,9 @@ const targetLocationOptions = [
 export default async function ProfilePage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
   const searchParams = await searchParamsInput;
   const profile = await getCurrentProfile();
+  const user = await getCurrentUser();
+  const appearance = user ? await rewardsSnapshot(user.id) : null;
+  const featuredBadge = applicationBadges.find((b) => b.id === appearance?.preferences.badge && profile.applicationsApplied >= b.threshold);
   const profileDetails = [
     profile.school && profile.school !== "CareerUp Student" ? profile.school : "",
     profile.major,
@@ -59,10 +65,11 @@ export default async function ProfilePage({ searchParams: searchParamsInput }: {
             <div className="relative flex flex-wrap items-center justify-between gap-6">
               <div className="flex items-center gap-4">
                 <div className="font-display flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-white/15 bg-white text-2xl font-bold text-[#2A6384] shadow-glow">
-                  {profile.schoolLogoUrl ? <img src={profile.schoolLogoUrl} alt="" className="h-full w-full bg-white object-contain p-2" /> : profile.name.charAt(0)}
+                  {appearance?.customized ? <RewardAvatar avatar={appearance.preferences.avatar} name={profile.name} size={36} /> : profile.schoolLogoUrl ? <img src={profile.schoolLogoUrl} alt="" className="h-full w-full bg-white object-contain p-2" /> : profile.name.charAt(0)}
                 </div>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65">Student profile</p>
+                  {featuredBadge && <p className="mt-2 text-xs font-semibold text-[#BBE5CE]">{featuredBadge.emoji} {featuredBadge.label}</p>}
                   <h1 className="font-display mt-1 text-4xl font-bold tracking-tight">{profile.name}</h1>
                   {profileDetails.length > 0 ? (
                     <div className="mt-3 flex flex-wrap gap-2">

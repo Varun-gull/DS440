@@ -5,6 +5,7 @@ import { pcm16Bytes, pcm16Floats, resamplePcm16 } from "./audio";
 
 export type LiveOptions = {
   token: string; model: string; expiresAt: string;
+  microphoneStream?: MediaStream;
   onCaption: (speaker: "user" | "assistant", text: string, complete: boolean) => void;
   onEnded: (reason: string) => void;
 };
@@ -12,7 +13,7 @@ export type LiveOptions = {
 export async function startLiveInterview(options: LiveOptions, signal: AbortSignal) {
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.AudioWorkletNode) throw new Error("Live voice needs HTTPS or localhost, a microphone, and AudioWorklet support.");
   let session: Session | null = null;
-  let stream: MediaStream | null = null;
+  let stream: MediaStream | null = options.microphoneStream ?? null;
   let context: AudioContext | null = null;
   let microphone: AudioWorkletNode | null = null;
   let source: MediaStreamAudioSourceNode | null = null;
@@ -81,7 +82,7 @@ export async function startLiveInterview(options: LiveOptions, signal: AbortSign
     // The user click and disclosure precede this browser permission prompt.
     context = new AudioContext();
     await context.resume();
-    stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    stream ??= await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     if (closed || signal.aborted) { stream.getTracks().forEach((track) => track.stop()); throw new Error("Voice start cancelled."); }
     await context.audioWorklet.addModule("/careerup-microphone.js");
     if (closed || signal.aborted) throw new Error("Voice start cancelled.");

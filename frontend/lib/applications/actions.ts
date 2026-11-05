@@ -7,6 +7,7 @@ import { buildRoleKey } from "@/lib/role-key";
 import { awardEligibleChallenges, awardXp, pointValues } from "@/lib/gamification";
 import { getDateKeyStartUtcIso, getNextStreak, getTodayKey, isBrokenStreak } from "@/lib/streak";
 import type { ApplicationStatus } from "@/lib/types";
+import { rewardsSnapshot } from "@/lib/rewards/server";
 
 function redirectWithMessage(path: string, message: string): never {
   const separator = path.includes("?") ? "&" : "?";
@@ -74,14 +75,15 @@ async function updateAppliedStreakAndStats({
   const paidRevives = profile?.streak_paid_revives ?? 0;
   const applicationsAppliedToday = await countApplicationsAppliedToday(supabase, userId);
   const inProgressReviveStartedToday = profile?.streak_revive_started_on === todayKey;
-  const missedStreak = isBrokenStreak(lastAppliedOn, currentStreak) || inProgressReviveStartedToday;
+  const protection = await rewardsSnapshot(userId);
+  const missedStreak = isBrokenStreak(lastAppliedOn, currentStreak, protection?.protectedDays) || inProgressReviveStartedToday;
   const updates: Record<string, string | number | boolean | null> = {
     applications_applied: (profile?.applications_applied ?? 0) + 1,
     last_applied_on: todayKey,
   };
 
   if (!missedStreak) {
-    updates.streak_count = getNextStreak(lastAppliedOn, currentStreak);
+    updates.streak_count = getNextStreak(lastAppliedOn, currentStreak, protection?.protectedDays);
     updates.streak_revive_started_on = null;
     updates.streak_revive_base_count = null;
     updates.streak_revive_required_applications = null;
@@ -573,60 +575,5 @@ export async function deleteApplication(formData: FormData) {
 }
 
 export async function unlockStreakRevive() {
-  const supabase = await getSupabaseServerClient();
-
-  if (!supabase) {
-    redirectWithMessage("/dashboard", "Connect Supabase before unlocking streak revives.");
-  }
-
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirectWithMessage("/login", "Log in before unlocking a streak revive.");
-  }
-
-  const { data: profile, error: loadError } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single<{ xp: number | null; reward_points?: number | null; streak_paid_revives: number | null }>();
-
-  if (loadError || !profile) {
-    redirectWithMessage("/dashboard", "Profile not found.");
-  }
-
-  const currentRewardPoints = profile.reward_points ?? profile.xp ?? 0;
-
-  if (currentRewardPoints < PAID_STREAK_REVIVE_COST) {
-    redirectWithMessage("/dashboard", `You need ${PAID_STREAK_REVIVE_COST} Reward Points to unlock another streak revive.`);
-  }
-
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      reward_points: currentRewardPoints - PAID_STREAK_REVIVE_COST,
-      streak_paid_revives: (profile.streak_paid_revives ?? 0) + 1,
-    })
-    .eq("id", user.id);
-
-  if (error) {
-    const { error: fallbackError } = await supabase
-      .from("profiles")
-      .update({
-        xp: Math.max(0, (profile.xp ?? 0) - PAID_STREAK_REVIVE_COST),
-        streak_paid_revives: (profile.streak_paid_revives ?? 0) + 1,
-      })
-      .eq("id", user.id);
-
-    if (fallbackError) {
-      redirectWithMessage("/dashboard", error.message);
-    }
-  }
-
-  revalidatePath("/dashboard");
-  revalidatePath("/profile");
-  revalidatePath("/leaderboard");
-  redirectWithMessage("/dashboard", "Streak revive unlocked. Apply to 2 roles in one day to use it.");
+  redirect("/rewards?category=Personalize%20%26%20protect");
 }

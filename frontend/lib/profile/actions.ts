@@ -98,7 +98,7 @@ export async function updateProfile(formData: FormData) {
   revalidatePath("/profile");
   revalidatePath("/dashboard");
   revalidatePath("/leaderboard");
-  redirectWithMessage("/profile", shouldAwardProfileXp ? "Profile saved. You earned 30 XP and 6 Reward Points for completing it." : "Profile saved.");
+  redirectWithMessage("/profile", shouldAwardProfileXp ? "Profile saved. You earned 30 XP. Check Rewards for the points recorded from your activity." : "Profile saved.");
 }
 
 export async function updatePrivacySettings(formData: FormData) {
@@ -236,7 +236,7 @@ export async function saveResumeProfile(formData: FormData) {
         ? "Resume text saved from the pasted box because the file could not be read."
         : "Resume file saved, but CareerUp could not read the text. Paste the resume text later to improve matching."
       : shouldAwardResumeXp
-        ? "Resume saved. You earned 40 XP and 8 Reward Points."
+        ? "Resume saved. You earned 40 XP. Check Rewards for the points recorded from your activity."
         : "Resume saved."
   );
 }

@@ -52,25 +52,30 @@ export async function assistantReadiness(session: Session) {
   const config = assistantConfig();
   const admin = getSupabaseAdminClient();
   let quotaReady = false;
-  let usage: { text_requests: number; voice_sessions: number; voice_until: string | null } | null = null;
+  let usage: { text_requests: number; voice_sessions: number; reward_voice_sessions: number; voice_until: string | null } | null = null;
+  let rewardVoiceCredits = 0;
   if (admin) {
-    const result = await admin.from("assistant_usage").select("text_requests,voice_sessions,voice_until").eq("user_id", session.user.id).eq("usage_day", new Date().toISOString().slice(0, 10)).maybeSingle();
+    const result = await admin.from("assistant_usage").select("text_requests,voice_sessions,reward_voice_sessions,voice_until").eq("user_id", session.user.id).eq("usage_day", new Date().toISOString().slice(0, 10)).maybeSingle();
     quotaReady = !result.error; usage = result.data;
+    const credits = await admin.from("reward_redemptions").select("id", { count: "exact", head: true }).eq("user_id", session.user.id).eq("reward_id", "extra-voice-session").eq("status", "available");
+    rewardVoiceCredits = credits.count ?? 0;
   }
   const jobs = await session.supabase.from("postings").select("id,company,title,location").order("last_seen_at", { ascending: false }).limit(50);
   return { configured: config.configured, quotaReady, aiReady: config.configured && quotaReady,
     voiceReady: config.configured && quotaReady && config.voiceEnabled,
     model: config.model, voiceModel: config.voiceModel,
-    textRemaining: Math.max(0, 50 - (usage?.text_requests ?? 0)), voiceRemaining: Math.max(0, 3 - (usage?.voice_sessions ?? 0)),
+    textRemaining: Math.max(0, 50 - (usage?.text_requests ?? 0)),
+    rewardVoiceCredits, voiceRemaining: Math.min(Math.max(0, 10 - (usage?.voice_sessions ?? 0)), Math.max(0, 3 - ((usage?.voice_sessions ?? 0) - (usage?.reward_voice_sessions ?? 0))) + rewardVoiceCredits),
     voiceAvailableAt: usage?.voice_until ?? null, jobs: jobs.data ?? [] };
 }
 
 async function reserve(session: Session, mode: "text" | "voice") {
   const admin = getSupabaseAdminClient();
   if (!admin) throw new AssistantError("Assistant server configuration is incomplete.", 503);
-  const result = await admin.rpc("reserve_assistant_usage", { p_user_id: session.user.id, p_mode: mode });
+  const result = await admin.rpc("reserve_careerup_assistant", { p_user_id: session.user.id, p_mode: mode });
   if (result.error) throw new AssistantError("Assistant usage limits are not configured. Apply career-assistant.sql.", 503);
-  if (!result.data) throw new AssistantError(mode === "voice" ? "Voice session limit reached or another session is still reserved. Try later." : "Message limit reached. Wait briefly or return after the UTC daily reset.", 429);
+  if (!result.data?.allowed) throw new AssistantError(mode === "voice" ? "Voice session limit reached or another session is still reserved. Use Reward Points for extra sessions, or try later. The daily safety cap is ten sessions." : "Message limit reached. Wait briefly or return after the UTC daily reset.", 429);
+  return result.data as { allowed: true; reservationId: string; rewardUsed: boolean };
 }
 
 function googleClient() {
@@ -102,14 +107,20 @@ export async function createVoiceToken(session: Session, context: AssistantConte
   const config = assistantConfig();
   if (!config.voiceEnabled) throw new AssistantError("Live voice is not enabled by the project owner.", 503);
   const ai = googleClient();
-  await reserve(session, "voice");
+  const reservation = await reserve(session, "voice");
   const expiresAt = new Date(Date.now() + VOICE_SECONDS * 1000).toISOString();
   const liveConfig = { responseModalities: [Modality.AUDIO], maxOutputTokens: 256,
     systemInstruction: buildAssistantInstructions(context, true), inputAudioTranscription: {}, outputAudioTranscription: {},
     speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } };
-  const result = await providerRequest(() => ai.authTokens.create({ config: { uses: 1, expireTime: expiresAt,
-    newSessionExpireTime: new Date(Date.now() + 60000).toISOString(), liveConnectConstraints: { model: config.voiceModel, config: liveConfig } } }));
-  if (!result.name) throw new AssistantError("A voice session could not be created.", 502);
+  let result;
+  try {
+    result = await providerRequest(() => ai.authTokens.create({ config: { uses: 1, expireTime: expiresAt,
+      newSessionExpireTime: new Date(Date.now() + 60000).toISOString(), liveConnectConstraints: { model: config.voiceModel, config: liveConfig } } }));
+    if (!result.name) throw new AssistantError("A voice session could not be created.", 502);
+  } catch (error) {
+    await getSupabaseAdminClient()?.rpc("cancel_careerup_voice", { p_user_id: session.user.id, p_reservation: reservation.reservationId });
+    throw error;
+  }
   // Only this single use, five minute token is returned. The permanent key and
   // selected resume context stay on the trusted server/provider boundary.
   return { token: result.name, model: config.voiceModel, expiresAt, durationSeconds: VOICE_SECONDS };

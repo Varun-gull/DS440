@@ -1,7 +1,6 @@
 import { CheckCircle2, Crown, Gem, Medal, Trophy } from "lucide-react";
 import clsx from "clsx";
 import type { LucideIcon } from "lucide-react";
-import { getRewardPointsForXp } from "@/lib/gamification";
 import type { Challenge } from "@/lib/types";
 
 const TIER_LABELS = ["", "Bronze", "Silver", "Gold", "Platinum", "Diamond"];
@@ -28,7 +27,6 @@ export function ChallengeCard({ challenge }: { challenge: Challenge }) {
   const isTiered = challenge.tier !== undefined;
   const completedTier = challenge.completed && isTiered ? challenge.tier! - 1 : null;
   const CompletedTierIcon = completedTier !== null ? TIER_ICONS[completedTier] : null;
-  const rewardPoints = getRewardPointsForXp(challenge.xp);
 
   return (
     <article className={clsx("card card-interactive p-5", challenge.completed && "ring-2 ring-emerald-400/60")}>
@@ -49,7 +47,7 @@ export function ChallengeCard({ challenge }: { challenge: Challenge }) {
               <CheckCircle2 size={12} /> Completed
             </span>
           ) : (
-            <span className="metric rounded-full bg-[#EAF2F8] px-3 py-1 text-xs font-semibold text-[#2A6384] ring-1 ring-[#5E7681]/30">+{challenge.xp} XP +{rewardPoints} RP</span>
+            <span className="metric rounded-full bg-[#EAF2F8] px-3 py-1 text-xs font-semibold text-[#2A6384] ring-1 ring-[#5E7681]/30">+{challenge.xp} XP</span>
           )}
         </div>
       </div>

@@ -6,6 +6,7 @@ import { getSchoolLogoUrl } from "./schools";
 import type { Application, CalendarEvent, CareerGroup, Challenge, ChallengesData, Friend, GroupLeaderboardRow, InterviewAnswer, LeaderboardUser, MutualFriend, PeerMessage, Profile, PublicProfile, Reward, RolePeerApplicant, RolePeerFeatureStatus, RolePeerInsight } from "./types";
 import { getSupabaseServerClient } from "./supabase/server";
 import { getDateKeyStartUtcIso, getTodayKey, getVisibleStreak, isBrokenStreak } from "./streak";
+import { rewardsSnapshot, rewardProtectionForUsers } from "./rewards/server";
 
 type DbApplication = {
   id: string;
@@ -202,7 +203,8 @@ export async function getCurrentProfile(): Promise<Profile> {
   }
 
   const permanentXp = Math.max(data.xp ?? 0, data.total_xp ?? data.xp ?? 0);
-  const rewardPoints = data.reward_points ?? data.xp ?? 0;
+  const wallet = await rewardsSnapshot(user.id);
+  const rewardPoints = wallet?.balance ?? data.reward_points ?? data.xp ?? 0;
 
   return {
     name: data.full_name ?? user.email ?? "Student",
@@ -221,11 +223,12 @@ export async function getCurrentProfile(): Promise<Profile> {
     xp: permanentXp,
     totalXp: permanentXp,
     rewardPoints,
-    streak: getVisibleStreak(data.last_applied_on ?? null, data.streak_count ?? 0),
-    streakBroken: isBrokenStreak(data.last_applied_on ?? null, data.streak_count ?? 0),
+    streak: getVisibleStreak(data.last_applied_on ?? null, data.streak_count ?? 0, wallet?.protectedDays),
+    streakBroken: isBrokenStreak(data.last_applied_on ?? null, data.streak_count ?? 0, wallet?.protectedDays),
     streakFreeReviveUsed: data.streak_free_revive_used ?? false,
     streakPaidRevives: data.streak_paid_revives ?? 0,
     streakReviveRequiredApplications: data.streak_revive_required_applications ?? 0,
+    protectedStreakDays: wallet?.protectedDays ?? [],
     applicationsApplied: data.applications_applied ?? 0
   };
 }
@@ -533,13 +536,14 @@ export async function getLeaderboard(): Promise<LeaderboardUser[]> {
     return mockLeaderboard;
   }
 
+  const protection = await rewardProtectionForUsers(rows.map((row) => row.id));
   return rows.map((user) => ({
     id: user.id,
     name: user.full_name ?? "CareerUp Student",
     school: user.school ?? "Student",
     schoolLogoUrl: resolveSchoolLogoUrl(user.school, user.school_logo_url),
     xp: getLeaderboardXp({ xp: user.xp, total_xp: getOptionalTotalXp(user) }),
-    streak: getVisibleStreak(user.last_applied_on ?? null, user.streak_count ?? 0),
+    streak: getVisibleStreak(user.last_applied_on ?? null, user.streak_count ?? 0, protection.get(user.id)),
     applicationsApplied: user.applications_applied ?? 0,
   }));
 }
@@ -574,6 +578,7 @@ export async function getFriends(): Promise<Friend[]> {
     return [];
   }
 
+  const protection = await rewardProtectionForUsers(profiles.map((profile) => profile.id));
   const profilesById = new Map(profiles.map((profile) => [profile.id, profile]));
 
   return friendships
@@ -593,7 +598,7 @@ export async function getFriends(): Promise<Friend[]> {
         school: profile.school ?? "Student",
         schoolLogoUrl: resolveSchoolLogoUrl(profile.school, profile.school_logo_url),
         xp: getLeaderboardXp({ xp: profile.xp, total_xp: getOptionalTotalXp(profile) }),
-        streak: getVisibleStreak(profile.last_applied_on ?? null, profile.streak_count ?? 0),
+        streak: getVisibleStreak(profile.last_applied_on ?? null, profile.streak_count ?? 0, protection.get(profile.id)),
         status: friendship.status,
         direction: friendship.requester_id === user.id ? "outgoing" : "incoming"
       } satisfies Friend;
@@ -636,13 +641,14 @@ export async function getFriendLeaderboard(): Promise<LeaderboardUser[]> {
     return [];
   }
 
+  const protection = await rewardProtectionForUsers(rows.map((row) => row.id));
   return rows.map((profile) => ({
     id: profile.id,
     name: profile.full_name ?? "CareerUp Student",
     school: profile.school ?? "Student",
     schoolLogoUrl: resolveSchoolLogoUrl(profile.school, profile.school_logo_url),
     xp: getLeaderboardXp({ xp: profile.xp, total_xp: getOptionalTotalXp(profile) }),
-    streak: getVisibleStreak(profile.last_applied_on ?? null, profile.streak_count ?? 0),
+    streak: getVisibleStreak(profile.last_applied_on ?? null, profile.streak_count ?? 0, protection.get(profile.id)),
     applicationsApplied: profile.applications_applied ?? 0,
   }));
 }
@@ -697,6 +703,7 @@ export async function getGroups(): Promise<CareerGroup[]> {
     return [];
   }
 
+  const protection = await rewardProtectionForUsers(profileRows.map((profile) => profile.id));
   const profilesById = new Map(
     profileRows.map((profile) => [
       profile.id,
@@ -706,7 +713,7 @@ export async function getGroups(): Promise<CareerGroup[]> {
         school: profile.school ?? "Student",
         schoolLogoUrl: resolveSchoolLogoUrl(profile.school, profile.school_logo_url),
         xp: getLeaderboardXp({ xp: profile.xp, total_xp: getOptionalTotalXp(profile) }),
-        streak: getVisibleStreak(profile.last_applied_on ?? null, profile.streak_count ?? 0),
+        streak: getVisibleStreak(profile.last_applied_on ?? null, profile.streak_count ?? 0, protection.get(profile.id)),
         applicationsApplied: profile.applications_applied ?? 0,
       } satisfies LeaderboardUser
     ])
@@ -773,6 +780,7 @@ export async function getPublicProfile(profileId: string): Promise<PublicProfile
     return null;
   }
 
+  const protection = await rewardProtectionForUsers([data.id]);
   return {
     id: data.id,
     name: data.full_name ?? "CareerUp Student",
@@ -783,7 +791,7 @@ export async function getPublicProfile(profileId: string): Promise<PublicProfile
     targetRoles: data.target_roles ?? [],
     targetLocations: data.target_locations ?? [],
     xp: getLeaderboardXp({ xp: data.xp, total_xp: getOptionalTotalXp(data) }),
-    streak: getVisibleStreak(data.last_applied_on ?? null, data.streak_count ?? 0),
+    streak: getVisibleStreak(data.last_applied_on ?? null, data.streak_count ?? 0, protection.get(data.id)),
     applicationsApplied: data.applications_applied ?? 0
   };
 }

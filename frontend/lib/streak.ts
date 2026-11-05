@@ -53,35 +53,48 @@ export function getDateKeyDiff(fromDateKey: string | null, toDateKey = getTodayK
   return Math.round((dateKeyToUtcTime(toDateKey) - dateKeyToUtcTime(fromDateKey)) / 86_400_000);
 }
 
-export function getVisibleStreak(lastAppliedOn: string | null, currentStreak: number) {
+export function isProtectedStreakGap(lastAppliedOn: string | null, today: string, protectedDays: string[] = []) {
+  const diff = getDateKeyDiff(lastAppliedOn, today);
+  if (diff === null) return false;
+  if (diff <= 1) return true;
+  if (diff > 8) return false;
+  const covered = new Set(protectedDays);
+  for (let day = 1; day < diff; day++) {
+    const key = new Date(dateKeyToUtcTime(lastAppliedOn!) + day * 86400000).toISOString().slice(0, 10);
+    if (!covered.has(key)) return false;
+  }
+  return true;
+}
+
+export function getVisibleStreak(lastAppliedOn: string | null, currentStreak: number, protectedDays: string[] = []) {
   const dayDiff = getDateKeyDiff(lastAppliedOn);
 
   if (dayDiff === null) {
     return 0;
   }
 
-  if (dayDiff <= 1) {
+  if (isProtectedStreakGap(lastAppliedOn, getTodayKey(), protectedDays)) {
     return currentStreak;
   }
 
   return 0;
 }
 
-export function getNextStreak(lastAppliedOn: string | null, currentStreak: number) {
+export function getNextStreak(lastAppliedOn: string | null, currentStreak: number, protectedDays: string[] = []) {
   const dayDiff = getDateKeyDiff(lastAppliedOn);
 
   if (dayDiff === 0) {
     return currentStreak;
   }
 
-  if (dayDiff === 1) {
+  if (dayDiff !== null && dayDiff > 0 && isProtectedStreakGap(lastAppliedOn, getTodayKey(), protectedDays)) {
     return currentStreak + 1;
   }
 
   return 1;
 }
 
-export function isBrokenStreak(lastAppliedOn: string | null, currentStreak: number) {
+export function isBrokenStreak(lastAppliedOn: string | null, currentStreak: number, protectedDays: string[] = []) {
   const dayDiff = getDateKeyDiff(lastAppliedOn);
-  return currentStreak > 0 && dayDiff !== null && dayDiff > 1;
+  return currentStreak > 0 && dayDiff !== null && dayDiff > 1 && !isProtectedStreakGap(lastAppliedOn, getTodayKey(), protectedDays);
 }

@@ -9,5 +9,6 @@ coverage/
 *.log
 *.tsbuildinfo
 .vercel
+supabase/.temp/
 .route-backup/
 .careerup-ui-fixture.local.json

@@ -4,19 +4,23 @@ import { UserRound, Users, User, Mail, Settings, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { LogoutForm } from "@/components/LogoutForm";
+import { RewardAvatar } from "@/components/rewards/RewardUI";
+import type { RewardPreferences } from "@/lib/rewards/store";
 
 export function ProfileDropdown({
   initials,
   displayName,
   loggedIn,
   schoolLogoUrl = "",
-  unreadMessages = 0
+  unreadMessages = 0,
+  avatar
 }: {
   initials: string;
   displayName?: string;
   loggedIn: boolean;
   schoolLogoUrl?: string;
   unreadMessages?: number;
+  avatar?: RewardPreferences["avatar"];
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -50,12 +54,12 @@ export function ProfileDropdown({
         aria-label="Open profile menu"
         aria-expanded={open}
       >
-        {schoolLogoUrl ? (
+        {avatar ? <span className="flex h-6 w-6 shrink-0 items-center justify-center text-[11px]"><RewardAvatar avatar={avatar} name={initials} size={20} /></span> : schoolLogoUrl ? (
           <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white">
             <img src={schoolLogoUrl} alt="" className="h-full w-full object-contain p-0.5" />
           </span>
-        ) : null}
-        <span className="truncate">{displayName || initials}</span>
+        ) : <span className="text-xs sm:hidden">{initials}</span>}
+        <span className="hidden truncate sm:inline">{displayName || initials}</span>
       </button>
 
       {open && (

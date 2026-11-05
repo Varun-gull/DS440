@@ -1,8 +1,9 @@
-import { Flame, TrendingUp } from "lucide-react";
+import { Coins, Flame, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
 import { getCurrentProfile, getCurrentUser, getLeaderboard, getUnreadPeerMessageCount } from "@/lib/data";
 import { getRank, getRankProgress } from "@/lib/rank";
+import { rewardsSnapshot } from "@/lib/rewards/server";
 
 function getInitials(name: string) {
   const initials = name
@@ -21,6 +22,7 @@ function getFirstName(name: string) {
 
 export async function TopBar() {
   const user = await getCurrentUser();
+  const appearance = user ? await rewardsSnapshot(user.id) : null;
   const [profile, unreadMessages, leaderboard] = user ? await Promise.all([getCurrentProfile(), getUnreadPeerMessageCount(), getLeaderboard()]) : [null, 0, []];
   const rank = getRank(profile?.xp ?? 0);
   const progress = getRankProgress(profile?.xp ?? 0);
@@ -38,6 +40,7 @@ export async function TopBar() {
       </Link>
 
       <div className="flex items-center gap-3">
+        {user && <Link href="/rewards" aria-label={`${profile?.rewardPoints ?? 0} Reward Points. Open rewards`} className="metric inline-flex h-10 items-center gap-1.5 rounded-xl bg-white/5 px-2.5 text-xs font-bold text-[#C3E7D5] ring-1 ring-white/10 transition hover:bg-white/10"><Coins size={15} /><span>{(profile?.rewardPoints ?? 0).toLocaleString()}<span className="ml-1 hidden md:inline">RP</span></span></Link>}
         {/* A dead streak should look dead — otherwise zero reads the same as twelve. */}
         <span
           className={
@@ -76,6 +79,7 @@ export async function TopBar() {
           loggedIn={!!user}
           schoolLogoUrl={profile?.schoolLogoUrl ?? ""}
           unreadMessages={unreadMessages}
+          avatar={appearance?.customized ? appearance.preferences.avatar : undefined}
         />
       </div>
     </header>
