@@ -199,7 +199,32 @@ export async function getCurrentProfile(): Promise<Profile> {
   const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single<DbProfile>();
 
   if (!data) {
-    return mockProfile;
+    // A signed in account must never inherit sample XP, points, or activity.
+    return {
+      name: typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name : user.email ?? "Student",
+      school: "CareerUp Student",
+      schoolLogoUrl: "",
+      major: "",
+      graduationYear: "",
+      targetRoles: [],
+      targetLocations: [],
+      resumeText: "",
+      resumeKeywords: [],
+      resumeFileName: "",
+      resumeUpdatedAt: "",
+      shareApplicationBoard: false,
+      privacyPromptAnswered: false,
+      xp: 0,
+      totalXp: 0,
+      rewardPoints: 0,
+      streak: 0,
+      streakBroken: false,
+      streakFreeReviveUsed: false,
+      streakPaidRevives: 0,
+      streakReviveRequiredApplications: 0,
+      protectedStreakDays: [],
+      applicationsApplied: 0
+    };
   }
 
   const permanentXp = Math.max(data.xp ?? 0, data.total_xp ?? data.xp ?? 0);

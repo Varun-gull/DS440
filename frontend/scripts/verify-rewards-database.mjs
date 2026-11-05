@@ -84,7 +84,9 @@ try {
     await new Promise((r) => setTimeout(r, 200));
   }
   sql(`create role anon;create role authenticated;create role service_role bypassrls;
- create table public.profiles(id uuid primary key,xp integer default 25,full_name text,school text,major text,graduation_year text,target_roles text[],target_locations text[],resume_text text,resume_updated_at timestamptz,applications_applied integer default 0,created_at timestamptz default now());
+ create schema auth;
+ create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb default '{}');
+ create table public.profiles(id uuid primary key,xp integer default 25,full_name text,email text,school text,major text,graduation_year text,target_roles text[],target_locations text[],resume_text text,resume_updated_at timestamptz,applications_applied integer default 0,created_at timestamptz default now());
  create table public.applications(id uuid primary key default gen_random_uuid(),user_id uuid references profiles(id) on delete cascade,company text,role text,location text,application_year integer,status text,created_at timestamptz default now(),updated_at timestamptz default now());
  create table public.interview_answers(id uuid primary key default gen_random_uuid(),user_id uuid references profiles(id) on delete cascade,prompt text,situation text,task text,action_taken text,result_outcome text,created_at timestamptz default now());
  create table public.user_rewards(id uuid primary key default gen_random_uuid(),user_id uuid references profiles(id) on delete cascade,reward_id text,unlocked_at timestamptz default now(),unique(user_id,reward_id));
@@ -141,6 +143,36 @@ try {
       ),
       "1",
     ),
+  );
+  check(
+    "missing account profiles recover once with normal welcome credit",
+    () => {
+      const orphan = id();
+      sql(
+        `insert into auth.users(id,email,raw_user_meta_data) values('${orphan}','recovered@example.invalid','{"full_name":"Recovered Student"}');`,
+      );
+      const repair = readFileSync(
+        new URL(
+          "../supabase/migrations/20261105002038_restore_missing_account_profiles.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      );
+      sql(repair);
+      sql(repair);
+      assert.equal(balance(orphan), 25);
+      assert.equal(
+        sql(`select xp from public.profiles where id='${orphan}'`),
+        "25",
+      );
+      assert.equal(
+        sql(
+          `select count(*) from public.reward_ledger where user_id='${orphan}' and kind='opening'`,
+        ),
+        "1",
+      );
+      assert.equal(balance(alice), 430);
+    },
   );
   check("browser cannot read or write the wallet or invoke redemption", () => {
     for (const role of ["anon", "authenticated"]) {

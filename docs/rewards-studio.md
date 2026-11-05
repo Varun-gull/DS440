@@ -54,6 +54,9 @@ Apply the additive migrations in order:
 1. `supabase/migrations/20261104232035_rewards_studio.sql`
 2. `supabase/migrations/20261104235817_reward_pool_member_cleanup.sql`
 3. `supabase/migrations/20261105001028_private_reward_balances.sql`
+4. `supabase/migrations/20261105002038_restore_missing_account_profiles.sql`
+
+The fourth migration restores missing account profiles with normal signup defaults and one welcome credit. It preserves existing records. Signed in accounts never fall back to sample XP or activity.
 
 The existing Supabase and Gemini server variables are used. No new paid service is required. Both production projects use the original CareerUp repository. The DS440 copy contains the same reward logic with its existing layout preserved.
 
