@@ -2,16 +2,162 @@
 import { Download, TrendingUp } from "lucide-react";
 import type { RewardInsights as Insights } from "@/lib/rewards/store";
 export function RewardInsights({ report }: { report: Insights }) {
-  const peak = Math.max(1, ...report.weeks.map((w) => w.saved + w.applied + w.practice + w.skill));
+  const peak = Math.max(
+    1,
+    ...report.weeks.map((w) => w.saved + w.applied + w.practice + w.skill),
+  );
   function download() {
-    const rows = [["CareerUp personal activity report"], ["Generated", report.generatedAt], ["Tracked roles", report.total], ["STAR practice activities", report.practice], [], ["Current application stage", "Count"], ...report.stages.map((s) => [s.label, s.value]), [], ["Week starting", "Roles saved", "Applications recorded", "STAR practice", "Skill exercises"], ...report.weeks.map((w) => [w.label, w.saved, w.applied, w.practice, w.skill])];
-    const csv = rows.map((row) => row.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(",")).join("\r\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); const a = document.createElement("a"); a.href = url; a.download = "CareerUp progress report.csv"; a.click(); URL.revokeObjectURL(url);
+    const rows = [
+      ["CareerUp personal activity report"],
+      ["Generated", report.generatedAt],
+      ["Tracked roles", report.total],
+      ["STAR practice activities", report.practice],
+      [],
+      ["Current application stage", "Count"],
+      ...report.stages.map((s) => [s.label, s.value]),
+      [],
+      [
+        "Week starting",
+        "Roles saved",
+        "Applications recorded",
+        "STAR practice",
+        "Skill exercises",
+      ],
+      ...report.weeks.map((w) => [
+        w.label,
+        w.saved,
+        w.applied,
+        w.practice,
+        w.skill,
+      ]),
+    ];
+    const csv = rows
+      .map((row) =>
+        row.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(","),
+      )
+      .join("\r\n");
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8" }),
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "CareerUp progress report.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   }
-  return <section className="reward-insights" aria-labelledby="reward-insights-title"><div className="reward-section-heading"><div><p className="reward-kicker">Your personal report</p><h2 id="reward-insights-title">Progress you can see.</h2></div><button type="button" className="reward-secondary" onClick={download}><Download size={16} />Export report</button></div>
-    <div className="reward-report-stats"><div><span>{report.total}</span><p>roles tracked</p></div><div><span>{report.practice}</span><p>STAR practice activities</p></div><div><TrendingUp size={23} /><p>Live data, refreshed when opened</p></div></div>
-    <div className="reward-report-grid"><div className="reward-report-panel"><h3>Four weeks of momentum</h3><div className="reward-chart" role="img" aria-label={report.weeks.map((w) => `${w.label}: ${w.saved} saved, ${w.applied} applications, ${w.practice} practice activities, ${w.skill} skill exercises`).join(". ")}>{report.weeks.map((week) => <div key={week.label} className="reward-chart-column"><div className="reward-chart-bar">{(["skill", "practice", "applied", "saved"] as const).map((kind) => <span key={kind} className={`reward-chart-${kind}`} style={{ height: `${week[kind] / peak * 130}px` }} />)}</div><span>{week.label}</span></div>)}</div><div className="reward-chart-key"><span>Saved</span><span>Applications</span><span>Practice</span><span>Skills</span></div><p className="reward-footnote">Weeks start Monday in Eastern time. Activity counts reflect recorded actions.</p></div>
-    <div className="reward-report-panel"><h3>Where things stand</h3>{report.stages.map((stage) => <div key={stage.label} className="reward-stage"><span className="capitalize">{stage.label}</span><div><span style={{ width: `${stage.value / Math.max(report.total, 1) * 100}%` }} /></div><strong>{stage.value}</strong></div>)}<p className="reward-footnote">Current statuses, not historical conversion rates. Application activity is self reported.</p></div></div>
-    <div className="reward-report-grid">{[["Most tracked companies", report.companies], ["Locations in your search", report.locations]].map(([title, values]) => <div key={title as string} className="reward-report-panel"><h3>{title as string}</h3>{(values as Insights["companies"]).length ? (values as Insights["companies"]).map((row) => <div className="reward-rank-row" key={row.label}><span>{row.label}</span><strong>{row.value}</strong></div>) : <p className="reward-footnote">Your report will grow as you track opportunities.</p>}</div>)}</div>
-  </section>;
+  return (
+    <section
+      className="reward-insights"
+      aria-labelledby="reward-insights-title"
+    >
+      <div className="reward-section-heading">
+        <div>
+          <p className="reward-kicker">Your personal report</p>
+          <h2 id="reward-insights-title">Progress you can see.</h2>
+        </div>
+        <button type="button" className="reward-secondary" onClick={download}>
+          <Download size={16} />
+          Export report
+        </button>
+      </div>
+      <div className="reward-report-stats">
+        <div>
+          <span>{report.total}</span>
+          <p>roles tracked</p>
+        </div>
+        <div>
+          <span>{report.practice}</span>
+          <p>STAR practice activities</p>
+        </div>
+        <div>
+          <TrendingUp size={23} />
+          <p>Live data, refreshed when opened</p>
+        </div>
+      </div>
+      <div className="reward-report-grid">
+        <div className="reward-report-panel">
+          <h3>Four weeks of momentum</h3>
+          <div
+            className="reward-chart"
+            role="img"
+            aria-label={report.weeks
+              .map(
+                (w) =>
+                  `${w.label}: ${w.saved} saved, ${w.applied} applications, ${w.practice} practice activities, ${w.skill} skill exercises`,
+              )
+              .join(". ")}
+          >
+            {report.weeks.map((week) => (
+              <div key={week.label} className="reward-chart-column">
+                <div className="reward-chart-bar">
+                  {(["skill", "practice", "applied", "saved"] as const).map(
+                    (kind) => (
+                      <span
+                        key={kind}
+                        className={`reward-chart-${kind}`}
+                        style={{ height: `${(week[kind] / peak) * 130}px` }}
+                      />
+                    ),
+                  )}
+                </div>
+                <span>{week.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="reward-chart-key">
+            <span>Saved</span>
+            <span>Applications</span>
+            <span>Practice</span>
+            <span>Skills</span>
+          </div>
+          <p className="reward-footnote">
+            Weeks start Monday in Eastern time. Activity counts reflect recorded
+            actions.
+          </p>
+        </div>
+        <div className="reward-report-panel">
+          <h3>Where things stand</h3>
+          {report.stages.map((stage) => (
+            <div key={stage.label} className="reward-stage">
+              <span className="capitalize">{stage.label}</span>
+              <div>
+                <span
+                  style={{
+                    width: `${(stage.value / Math.max(report.total, 1)) * 100}%`,
+                  }}
+                />
+              </div>
+              <strong>{stage.value}</strong>
+            </div>
+          ))}
+          <p className="reward-footnote">
+            Current statuses, not historical conversion rates. Application
+            activity is self reported.
+          </p>
+        </div>
+      </div>
+      <div className="reward-report-grid">
+        {[
+          ["Most tracked companies", report.companies],
+          ["Locations in your search", report.locations],
+        ].map(([title, values]) => (
+          <div key={title as string} className="reward-report-panel">
+            <h3>{title as string}</h3>
+            {(values as Insights["companies"]).length ? (
+              (values as Insights["companies"]).map((row) => (
+                <div className="reward-rank-row" key={row.label}>
+                  <span>{row.label}</span>
+                  <strong>{row.value}</strong>
+                </div>
+              ))
+            ) : (
+              <p className="reward-footnote">
+                Your report will grow as you track opportunities.
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
