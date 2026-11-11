@@ -59,6 +59,9 @@ export async function POST(request: Request) {
   }
 
   const normalizedText = normalizeResumeText(resumeText);
+  if (fileReadFailed || !normalizedText) {
+    return NextResponse.json({ error: "CareerUp could not read text from this file. Use a text based PDF or DOCX, or paste your resume text. Your saved resume was kept." }, { status: 422 });
+  }
   const keywords = extractResumeKeywords(normalizedText);
 
   let { data: currentProfile, error: resumeAwardColumnError } = await supabase
@@ -106,9 +109,7 @@ export async function POST(request: Request) {
     fileName: resumeFile.name,
     extractedText: normalizedText.length > 0,
     keywords,
-    message: fileReadFailed || !normalizedText
-      ? "Resume file saved, but CareerUp could not read the text for matching."
-      : shouldAwardResumeXp
+    message: shouldAwardResumeXp
         ? "Resume saved. You earned 40 XP. Check Rewards for the points recorded from your activity."
         : "Resume saved.",
   });

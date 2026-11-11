@@ -38,7 +38,7 @@ export function CareerAssistant() {
   const [dictationAvailable, setDictationAvailable] = useState(false);
   const [dictating, setDictating] = useState(false);
   const [fit, setFit] = useState<AssistantContext["fit"]>(null);
-  const [voiceState, setVoiceState] = useState<"off" | "connecting" | "live">("off");
+  const [voiceState, setVoiceState] = useState<"off" | "connecting" | "queued" | "live">("off");
   const [muted, setMuted] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [captions, setCaptions] = useState<ChatMessage[]>([]);
@@ -124,18 +124,42 @@ export function CareerAssistant() {
     if (voiceState !== "off" || working || !voiceConsent) return;
     setVoiceState("connecting"); setError(""); setNotice(""); setSeconds(0); setMuted(false);
     recognition.current?.abort(); window.speechSynthesis?.cancel();
-    voiceAbort.current = new AbortController();
-    const controller = voiceAbort.current;
+    const controller = new AbortController(); voiceAbort.current = controller;
+    const requestId = crypto.randomUUID();
     let microphoneStream: MediaStream | null = null;
+    let released = false;
+    const release = () => {
+      if (released) return; released = true;
+      void fetch("/api/assistant/voice", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "leave", requestId }) }).catch(() => undefined);
+    };
+    controller.signal.addEventListener("abort", release, { once: true });
+    const wait = (ms: number) => new Promise<void>((resolve, reject) => {
+      if (controller.signal.aborted) { reject(new DOMException("Cancelled", "AbortError")); return; }
+      const abort = () => { clearTimeout(timer); reject(new DOMException("Cancelled", "AbortError")); };
+      const timer = setTimeout(() => { controller.signal.removeEventListener("abort", abort); resolve(); }, ms);
+      controller.signal.addEventListener("abort", abort, { once: true });
+    });
     try {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.AudioWorkletNode) throw new Error("Live voice needs HTTPS or localhost, a microphone, and AudioWorklet support.");
-      // Get permission before reserving a paid credit or a daily session.
       microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
       if (controller.signal.aborted || !mounted.current) return;
-      const response = await fetch("/api/assistant/voice", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
-        body: JSON.stringify({ consent: voiceConsent, ...contextFields() }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Could not start voice.");
+      let result;
+      while (!controller.signal.aborted && mounted.current) {
+        const response = await fetch("/api/assistant/voice", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
+          body: JSON.stringify({ requestId, consent: voiceConsent, ...contextFields() }) });
+        result = await response.json();
+        if (!response.ok) throw new Error(result.error ?? "Could not start voice.");
+        if (!result.queued) break;
+        // Permission is checked before a credit is spent, but no audio is kept
+        // running while the student waits for shared provider capacity.
+        microphoneStream?.getTracks().forEach((track) => track.stop()); microphoneStream = null;
+        setVoiceState("queued");
+        setNotice(`You are number ${result.position} in the live practice queue. Three students can practise at once. Your microphone is off and no session or credit is used while you wait. Keep this page open, or choose Leave queue.`);
+        await wait(5000);
+      }
+      if (controller.signal.aborted || !mounted.current || !result) return;
+      setVoiceState("connecting"); setNotice("");
+      microphoneStream ??= await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
       if (controller.signal.aborted || !mounted.current) return;
       const { startLiveInterview } = await import("@/lib/assistant/live-client");
       const connected = await startLiveInterview({ ...result, microphoneStream,
@@ -144,16 +168,17 @@ export function CareerAssistant() {
           if (complete) { setCaptions((items) => [...items, { role: speaker, text }].slice(-40)); setPartial((current) => ({ ...current, [speaker]: "" })); }
           else setPartial((current) => ({ ...current, [speaker]: text }));
         },
-        onEnded: (reason) => { if (mounted.current) { setVoiceState("off"); setMuted(false); setNotice(reason); void refresh().catch(() => undefined); } },
+        onEnded: (reason) => { release(); if (mounted.current) { setVoiceState("off"); setMuted(false); setNotice(reason); void refresh().catch(() => undefined); } },
       }, controller.signal);
-      microphoneStream = null; // The live client now owns and stops these tracks.
+      microphoneStream = null;
       if (controller.signal.aborted || !mounted.current) { connected.stop(); return; }
       voice.current = connected; setVoiceState("live");
     } catch (failure) {
+      release();
       if (mounted.current) { setVoiceState("off"); if (!controller.signal.aborted) setError(failure instanceof Error ? failure.message : "Voice connection failed."); }
     } finally {
       microphoneStream?.getTracks().forEach((track) => track.stop());
-      if (controller.signal.aborted && mounted.current) setVoiceState("off");
+      if (controller.signal.aborted || !mounted.current) { release(); if (mounted.current) { setVoiceState("off"); setNotice("You left live practice. Your microphone is off."); } }
       if (mounted.current) void refresh().catch(() => undefined);
     }
   }
@@ -172,7 +197,7 @@ export function CareerAssistant() {
           <p className="mt-2 text-xs leading-5 text-slate-500">Resume context is off by default. Contact patterns are removed where possible; review your resume for other private details. <Link className="font-semibold text-[#2A6384] underline" href="/profile">Manage resume</Link></p>
         </section>
         <section className="card p-5"><div className="flex items-center gap-2"><ShieldCheck size={19} className="text-[#2A6384]" /><h2 className="font-bold text-slate-950">Privacy and usage</h2></div><p className="mt-3 text-sm leading-6 text-slate-600">Chats and captions stay in this page’s memory, not your CareerUp database. Google processes AI chat and live voice data under its service terms. Avoid sensitive information, especially on a free API tier.</p>
-          <p className="mt-3 text-xs leading-5 text-slate-500">Each day includes 50 AI messages and 3 voice sessions of up to 5 minutes. Reward Points can unlock extra voice credits, with a safety cap of 10 sessions per day. Daily counts reset at midnight UTC.</p>
+          <p className="mt-3 text-xs leading-5 text-slate-500">Each account has a daily allowance of 50 AI messages and 3 voice sessions of up to 5 minutes. Reward Points can unlock extra voice credits, with a safety cap of 10 sessions per day. Daily account counts reset at midnight UTC. AI text requests also share the app’s free provider allowance of 500 per day and may wait in a queue.</p>
           {ready && <p className="mt-3 text-xs font-semibold text-[#2A6384]">{ready.textRemaining} AI messages and {ready.voiceRemaining} voice sessions remaining</p>}
           {ready && <Link href="/rewards?tab=library" className="mt-3 inline-flex text-xs font-bold text-[#2A6384] underline">{ready.rewardVoiceCredits || 0} extra voice credits · Visit rewards</Link>}
         </section>
@@ -198,9 +223,9 @@ export function CareerAssistant() {
       </section>
     </div>
 
-    <section className="card p-5 sm:p-6" aria-labelledby="voice-title"><div className="flex flex-wrap items-start justify-between gap-4"><div><h2 id="voice-title" className="text-xl font-bold text-slate-950">Live interview practice</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Talk with an AI interviewer using your selected job and optional resume context. You can interrupt, mute, or stop. Switching tabs stops the microphone.</p></div><span className={`rounded-full px-3 py-1.5 text-xs font-bold ${voiceState === "live" ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>{voiceState === "live" ? `${muted ? "Muted" : "Microphone on"} · ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}` : voiceState === "connecting" ? "Connecting" : "Microphone off"}</span></div>
+    <section className="card p-5 sm:p-6" aria-labelledby="voice-title"><div className="flex flex-wrap items-start justify-between gap-4"><div><h2 id="voice-title" className="text-xl font-bold text-slate-950">Live interview practice</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Talk with an AI interviewer using your selected job and optional resume context. You can interrupt, mute, or stop. Switching tabs stops the microphone and leaves the queue. Three live interviews can run at once; other students wait their turn without using a session or credit.</p></div><span className={`rounded-full px-3 py-1.5 text-xs font-bold ${voiceState === "live" ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>{voiceState === "live" ? `${muted ? "Muted" : "Microphone on"} · ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}` : voiceState === "connecting" ? "Connecting" : voiceState === "queued" ? "Waiting · microphone off" : "Microphone off"}</span></div>
       <label className="mt-4 flex max-w-4xl items-start gap-3 rounded-xl bg-slate-50 p-4 text-xs leading-6 text-slate-600"><input type="checkbox" className="mt-1.5" checked={voiceConsent} disabled={voiceState !== "off"} onChange={(event) => setVoiceConsent(event.target.checked)} />I agree to send microphone audio and selected career context to Google for live AI practice. CareerUp does not store audio. Live captions stay on this page and may be inaccurate. Provider data handling depends on the API account’s terms and tier.</label>
-      <div className="mt-4 flex flex-wrap gap-3">{voiceState === "off" ? <button className="primary-button gap-2 disabled:opacity-50" disabled={!ready?.voiceReady || !voiceConsent || working} onClick={() => void startVoice()}><Mic size={17} />Start live practice</button> : <><button className={secondary} disabled={voiceState !== "live"} onClick={() => { voice.current?.setMuted(!muted); setMuted((value) => !value); }}>{muted ? <Mic size={17} /> : <MicOff size={17} />}{muted ? "Unmute" : "Mute microphone"}</button><button className={secondary} onClick={() => voiceAbort.current?.abort()}><Square size={16} />Stop voice</button></>}</div>
+      <div className="mt-4 flex flex-wrap gap-3">{voiceState === "off" ? <button className="primary-button gap-2 disabled:opacity-50" disabled={!ready?.voiceReady || !voiceConsent || working} onClick={() => void startVoice()}><Mic size={17} />Start live practice</button> : <><button className={secondary} disabled={voiceState !== "live"} onClick={() => { voice.current?.setMuted(!muted); setMuted((value) => !value); }}>{muted ? <Mic size={17} /> : <MicOff size={17} />}{muted ? "Unmute" : "Mute microphone"}</button><button className={secondary} onClick={() => voiceAbort.current?.abort()}><Square size={16} />{voiceState === "queued" ? "Leave queue" : "Stop voice"}</button></>}</div>
       {!loading && !ready?.voiceReady && <p className="mt-3 text-xs text-amber-800">Live voice requires Gemini access, the usage limit migration, and the owner’s voice feature setting.</p>}
       {(captions.length > 0 || partial.user || partial.assistant) && <div className="mt-5 max-h-72 space-y-3 overflow-y-auto rounded-xl border border-slate-200 p-4" role="log" aria-label="Live voice captions" aria-live="polite">{captions.map((item, index) => <p key={index} className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-700"><strong>{item.role === "user" ? "You" : "Interviewer"}:</strong> {item.text}</p>)}{partial.user && <p className="text-sm text-slate-500">You: {partial.user}</p>}{partial.assistant && <p className="text-sm text-slate-500">Interviewer: {partial.assistant}</p>}</div>}
     </section>

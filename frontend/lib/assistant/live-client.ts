@@ -18,6 +18,8 @@ export async function startLiveInterview(options: LiveOptions, signal: AbortSign
   let microphone: AudioWorkletNode | null = null;
   let source: MediaStreamAudioSourceNode | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let connectTimer: ReturnType<typeof setTimeout> | null = null;
+  let rejectConnection: ((error: Error) => void) | null = null;
   let closed = false;
   let playbackEnd = 0;
   const playing = new Set<AudioBufferSourceNode>();
@@ -37,6 +39,8 @@ export async function startLiveInterview(options: LiveOptions, signal: AbortSign
     if (closed) return;
     closed = true;
     if (timer) clearTimeout(timer);
+    if (connectTimer) clearTimeout(connectTimer);
+    rejectConnection?.(new Error(reason)); rejectConnection = null;
     signal.removeEventListener("abort", aborted);
     microphone?.disconnect(); source?.disconnect(); stream?.getTracks().forEach((track) => track.stop());
     session?.close(); stopPlayback(); flushCaptions();
@@ -86,12 +90,16 @@ export async function startLiveInterview(options: LiveOptions, signal: AbortSign
     if (closed || signal.aborted) { stream.getTracks().forEach((track) => track.stop()); throw new Error("Voice start cancelled."); }
     await context.audioWorklet.addModule("/careerup-microphone.js");
     if (closed || signal.aborted) throw new Error("Voice start cancelled.");
-    const ai = new GoogleGenAI({ apiKey: options.token, httpOptions: { apiVersion: "v1beta" } });
-    const connected = await ai.live.connect({ model: options.model, config: { responseModalities: [Modality.AUDIO] }, callbacks: {
+    const ai = new GoogleGenAI({ apiKey: options.token, httpOptions: { apiVersion: "v1alpha" } });
+    const connectionFailed = new Promise<never>((_, reject) => { rejectConnection = reject; });
+    connectTimer = setTimeout(() => stop("Voice could not connect in time. Your microphone is off. Please try again."), 20000);
+    const connecting = ai.live.connect({ model: options.model, config: { responseModalities: [Modality.AUDIO] }, callbacks: {
       onmessage: (event) => { try { message(event); } catch { stop("Voice audio could not be decoded. Please try again."); } },
       onerror: () => stop("The voice connection failed. Your microphone has been stopped."),
       onclose: () => stop("Voice connection closed. Your microphone is off."),
-    } });
+    } }).then((connected) => { if (closed || signal.aborted) connected.close(); return connected; });
+    const connected = await Promise.race([connecting, connectionFailed]);
+    clearTimeout(connectTimer); connectTimer = null; rejectConnection = null;
     if (closed || signal.aborted) { connected.close(); throw new Error("Voice start cancelled."); }
     session = connected;
     source = context.createMediaStreamSource(stream);

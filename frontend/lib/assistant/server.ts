@@ -111,25 +111,39 @@ export async function generateAssistantReply(session: Session, messages: ChatMes
   return text.slice(0, 10000);
 }
 
-export async function createVoiceToken(session: Session, context: AssistantContext) {
+export async function createVoiceToken(session: Session, loadContext: () => Promise<AssistantContext>, requestId: string) {
   const config = assistantConfig();
   if (!config.voiceEnabled) throw new AssistantError("Live voice is not enabled by the project owner.", 503);
   const ai = googleClient();
-  const reservation = await reserve(session, "voice");
+  const admin = getSupabaseAdminClient();
+  if (!admin) throw new AssistantError("Voice capacity could not be checked.", 503);
+  const claimed = await admin.rpc("claim_careerup_voice_turn", { p_user_id: session.user.id, p_request_id: requestId });
+  if (claimed.error || !claimed.data) throw new AssistantError("Voice capacity could not be checked. Try again shortly.", 503);
+  if (claimed.data.state === "queued") return { queued: true as const, position: Number(claimed.data.position), pollAfterSeconds: 5, requestId };
+  if (claimed.data.state === "active") throw new AssistantError("A live interview is already active for your account. Stop it or wait for it to expire.", 409);
+  if (claimed.data.state !== "ready") throw new AssistantError("Your voice allowance is used up, or another session is still reserved. Check your remaining sessions and Reward Points.", 429);
+  const reservation = claimed.data as { reservationId: string; rewardUsed: boolean };
   const expiresAt = new Date(Date.now() + VOICE_SECONDS * 1000).toISOString();
+  let result;
+  try {
+  const context = await loadContext();
   const liveConfig = { responseModalities: [Modality.AUDIO], maxOutputTokens: 256,
     systemInstruction: buildAssistantInstructions(context, true), inputAudioTranscription: {}, outputAudioTranscription: {},
     speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } };
-  let result;
-  try {
     result = await providerRequest(() => ai.authTokens.create({ config: { uses: 1, expireTime: expiresAt,
       newSessionExpireTime: new Date(Date.now() + 60000).toISOString(), liveConnectConstraints: { model: config.voiceModel, config: liveConfig } } }));
     if (!result.name) throw new AssistantError("A voice session could not be created.", 502);
   } catch (error) {
+    await admin.rpc("leave_careerup_voice_turn", { p_user_id: session.user.id, p_request_id: requestId });
     await getSupabaseAdminClient()?.rpc("cancel_careerup_voice", { p_user_id: session.user.id, p_reservation: reservation.reservationId });
     throw error;
   }
   // Only this single use, five minute token is returned. The permanent key and
   // selected resume context stay on the trusted server/provider boundary.
-  return { token: result.name, model: config.voiceModel, expiresAt, durationSeconds: VOICE_SECONDS };
+  return { queued: false as const, token: result.name, model: config.voiceModel, expiresAt, durationSeconds: VOICE_SECONDS, reservationId: reservation.reservationId, requestId };
+}
+
+export async function leaveVoiceTurn(session: Session, requestId: string) {
+  const result = await getSupabaseAdminClient()?.rpc("leave_careerup_voice_turn", { p_user_id: session.user.id, p_request_id: requestId });
+  if (!result || result.error) throw new AssistantError("Your place could not be released. It will expire automatically.", 503);
 }

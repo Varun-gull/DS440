@@ -175,6 +175,7 @@ export async function saveResumeProfile(formData: FormData) {
       resumeText = await extractResumeTextFromFile(resumeFile);
     } catch {
       fileReadFailed = true;
+      fileName = "";
       resumeText = pastedText;
     }
   }
@@ -182,10 +183,12 @@ export async function saveResumeProfile(formData: FormData) {
   const normalizedText = normalizeResumeText(resumeText);
   const keywords = extractResumeKeywords(normalizedText);
 
-  if (!normalizedText && !uploadedFile) {
+  if (!normalizedText) {
     redirectWithMessage(
       "/profile",
-      "Upload a resume file or paste resume text before saving."
+      uploadedFile
+        ? "CareerUp could not read text from this file. Use a text based PDF or DOCX, or paste your resume text. Your saved resume was kept."
+        : "Upload a resume file or paste resume text before saving."
     );
   }
 
