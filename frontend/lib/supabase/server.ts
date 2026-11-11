@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "./env";
 
-export async function getSupabaseServerClient() {
+export const getSupabaseServerClient = cache(async () => {
   if (!isSupabaseConfigured() || !supabaseUrl || !supabaseAnonKey) {
     return null;
   }
@@ -23,4 +24,4 @@ export async function getSupabaseServerClient() {
       }
     }
   });
-}
+});

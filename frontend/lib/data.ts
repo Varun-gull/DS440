@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { publicProfileReader } from "@/lib/security/session";
 import { applications as mockApplications, challenges as mockChallenges, leaderboard as mockLeaderboard, profile as mockProfile } from "./mock-data";
 import { rewardCatalog } from "./rewards/catalog";
 import { tieredChallenges, oneOffChallenges } from "./challenges/catalog";
@@ -174,7 +176,7 @@ type DbInterviewAnswer = {
   created_at: string;
 };
 
-export async function getCurrentUser() {
+export const getCurrentUser = cache(async () => {
   const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
@@ -186,9 +188,9 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   return user;
-}
+});
 
-export async function getCurrentProfile(): Promise<Profile> {
+export const getCurrentProfile = cache(async (): Promise<Profile> => {
   const supabase = await getSupabaseServerClient();
   const user = await getCurrentUser();
 
@@ -256,7 +258,7 @@ export async function getCurrentProfile(): Promise<Profile> {
     protectedStreakDays: wallet?.protectedDays ?? [],
     applicationsApplied: data.applications_applied ?? 0
   };
-}
+});
 
 export async function getCurrentResumeForOptimization() {
   const supabase = await getSupabaseServerClient();
@@ -457,7 +459,7 @@ export async function getPeerMessages(): Promise<PeerMessage[]> {
 
   const [{ data: profiles }, { data: applications }] = await Promise.all([
     profileIds.length > 0
-      ? supabase
+      ? (await publicProfileReader())
           .from("profiles")
           .select("id, full_name, school, school_logo_url")
           .in("id", profileIds)
@@ -538,7 +540,7 @@ export async function getLeaderboard(): Promise<LeaderboardUser[]> {
     return mockLeaderboard;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await (await publicProfileReader())
     .from("profiles")
     .select("id, full_name, school, school_logo_url, xp, total_xp, streak_count, last_applied_on, applications_applied")
     .order("total_xp", { ascending: false })
@@ -548,7 +550,7 @@ export async function getLeaderboard(): Promise<LeaderboardUser[]> {
   const rows =
     error || !data
       ? (
-          await supabase
+          await (await publicProfileReader())
             .from("profiles")
             .select("id, full_name, school, school_logo_url, xp, streak_count, last_applied_on, applications_applied")
             .order("xp", { ascending: false })
@@ -593,11 +595,11 @@ export async function getFriends(): Promise<Friend[]> {
 
   const profileIds = Array.from(new Set(friendships.map((friendship) => (friendship.requester_id === user.id ? friendship.addressee_id : friendship.requester_id))));
 
-  const { data: profiles, error: profilesError } = await supabase
+  const { data: profiles, error: profilesError } = await (await publicProfileReader())
     .from("profiles")
-    .select("id, full_name, email, school, school_logo_url, xp, total_xp, streak_count, last_applied_on")
+    .select("id, full_name, school, school_logo_url, xp, total_xp, streak_count, last_applied_on")
     .in("id", profileIds)
-    .returns<Array<Pick<DbProfile, "id" | "full_name" | "email" | "school" | "school_logo_url" | "xp" | "total_xp" | "streak_count" | "last_applied_on">>>();
+    .returns<Array<Pick<DbProfile, "id" | "full_name" | "school" | "school_logo_url" | "xp" | "total_xp" | "streak_count" | "last_applied_on">>>();
 
   if (profilesError || !profiles) {
     return [];
@@ -618,8 +620,8 @@ export async function getFriends(): Promise<Friend[]> {
       return {
         id: friendship.id,
         userId: friendId,
-        name: profile.full_name ?? profile.email ?? "CareerUp Student",
-        email: profile.email ?? "",
+        name: profile.full_name ?? "CareerUp Student",
+        email: "",
         school: profile.school ?? "Student",
         schoolLogoUrl: resolveSchoolLogoUrl(profile.school, profile.school_logo_url),
         xp: getLeaderboardXp({ xp: profile.xp, total_xp: getOptionalTotalXp(profile) }),
@@ -643,7 +645,7 @@ export async function getFriendLeaderboard(): Promise<LeaderboardUser[]> {
   const acceptedFriendIds = friends.filter((friend) => friend.status === "accepted").map((friend) => friend.userId);
   const ids = [user.id, ...acceptedFriendIds];
 
-  const { data, error } = await supabase
+  const { data, error } = await (await publicProfileReader())
     .from("profiles")
     .select("id, full_name, school, school_logo_url, xp, total_xp, streak_count, last_applied_on, applications_applied")
     .in("id", ids)
@@ -653,7 +655,7 @@ export async function getFriendLeaderboard(): Promise<LeaderboardUser[]> {
   const rows =
     error || !data
       ? (
-          await supabase
+          await (await publicProfileReader())
             .from("profiles")
             .select("id, full_name, school, school_logo_url, xp, streak_count, last_applied_on, applications_applied")
             .in("id", ids)
@@ -707,7 +709,7 @@ export async function getGroups(): Promise<CareerGroup[]> {
   }
 
   const memberIds = Array.from(new Set(allMembers.map((member) => member.user_id)));
-  const { data: profiles, error: profilesError } = await supabase
+  const { data: profiles, error: profilesError } = await (await publicProfileReader())
     .from("profiles")
     .select("id, full_name, school, school_logo_url, xp, total_xp, streak_count, last_applied_on, applications_applied")
     .in("id", memberIds)
@@ -716,7 +718,7 @@ export async function getGroups(): Promise<CareerGroup[]> {
   const profileRows =
     profilesError || !profiles
       ? (
-          await supabase
+          await (await publicProfileReader())
             .from("profiles")
             .select("id, full_name, school, school_logo_url, xp, streak_count, last_applied_on, applications_applied")
             .in("id", memberIds)
@@ -795,7 +797,7 @@ export async function getPublicProfile(profileId: string): Promise<PublicProfile
     return null;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await (await publicProfileReader())
     .from("profiles")
     .select("id, full_name, school, school_logo_url, major, graduation_year, target_roles, target_locations, xp, total_xp, streak_count, last_applied_on, applications_applied")
     .eq("id", profileId)
@@ -863,7 +865,7 @@ export async function getSharedApplicationBoard(profileId: string): Promise<{ ap
   let shareEnabled = isOwnProfile;
 
   if (!isOwnProfile) {
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await (await publicProfileReader())
       .from("profiles")
       .select("share_application_board")
       .eq("id", profileId)
@@ -877,17 +879,13 @@ export async function getSharedApplicationBoard(profileId: string): Promise<{ ap
   }
 
   const { data, error } = await supabase
-    .from("applications")
-    .select("*")
-    .eq("user_id", profileId)
-    .order("updated_at", { ascending: false })
-    .returns<DbApplication[]>();
+    .rpc("shared_application_board", { p_owner: profileId });
 
   if (error || !data) {
     return { applications: [], canView: false, shareEnabled };
   }
 
-  return { applications: data.map(mapDbApplication), canView: true, shareEnabled };
+  return { applications: (data as DbApplication[]).map(mapDbApplication), canView: true, shareEnabled };
 }
 
 export async function getMutualFriends(profileId: string): Promise<MutualFriend[]> {
@@ -925,7 +923,7 @@ export async function getMutualFriends(profileId: string): Promise<MutualFriend[
     return [];
   }
 
-  const { data: profiles, error } = await supabase
+  const { data: profiles, error } = await (await publicProfileReader())
     .from("profiles")
     .select("id, full_name, school, school_logo_url, xp, total_xp")
     .in("id", mutualIds)

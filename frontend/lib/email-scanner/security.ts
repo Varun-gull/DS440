@@ -16,6 +16,8 @@ export async function requireScannerUser() {
   if (mfaError || !data || requiresMfaChallenge(data.currentLevel, data.nextLevel)) {
     throw new ScannerError("Complete two factor authentication before accessing email settings.", 403);
   }
+  const { data: active, error: sessionError } = await supabase.rpc("careerup_session_valid");
+  if (sessionError || active !== true) throw new ScannerError("Your session expired. Sign in again.", 401);
   return { supabase, user };
 }
 

@@ -1,4 +1,5 @@
 "use server";
+import { publicProfileReader } from "@/lib/security/session";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -85,7 +86,7 @@ async function canSendPeerMessage({
       return false;
     }
 
-    const { data: recipient, error } = await supabase.from("profiles").select("id").eq("id", recipientId).maybeSingle<{ id: string }>();
+    const { data: recipient, error } = await (await publicProfileReader()).from("profiles").select("id").eq("id", recipientId).maybeSingle<{ id: string }>();
     return !error && Boolean(recipient);
   }
 

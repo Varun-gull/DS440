@@ -20,8 +20,8 @@ export async function signUp(formData: FormData) {
     redirectWithMessage("/signup", "Connect Supabase env vars before creating real accounts.");
   }
 
-  if (!fullName || !email || password.length < 6) {
-    redirectWithMessage("/signup", "Add your name, email, and a password with at least 6 characters.");
+  if (!fullName || fullName.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || password.length < 8 || password.length > 128) {
+    redirectWithMessage("/signup", "Add your name, a valid email, and a password between 8 and 128 characters.");
   }
 
   const { data, error } = await supabase.auth.signUp({

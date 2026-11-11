@@ -28,9 +28,9 @@ export default async function SignupPage({ searchParams: searchParamsInput }: { 
       )}
       {searchParams?.message && <p className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-bold text-slate-700">{searchParams.message}</p>}
       <form action={signUp} className="mt-6 grid gap-4">
-        <input name="fullName" className="field min-h-12" placeholder="Name" required />
+        <input name="fullName" className="field min-h-12" placeholder="Name" maxLength={120} autoComplete="name" required />
         <input name="email" className="field min-h-12" placeholder="Email" type="email" required />
-        <input name="password" className="field min-h-12" placeholder="Password" type="password" minLength={6} required />
+        <input name="password" className="field min-h-12" placeholder="Password" type="password" minLength={8} maxLength={128} autoComplete="new-password" required />
         <label className="flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-bold text-slate-700">
           <input name="shareApplicationBoard" type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-600 text-[#2A6384] focus:ring-[#2A6384]" />
           <span>
@@ -40,6 +40,7 @@ export default async function SignupPage({ searchParams: searchParamsInput }: { 
         </label>
         <button type="submit" className="primary-button mt-1 w-full">Create account</button>
         <p className="text-xs leading-5 text-slate-500">Use a different email to create a separate account. Registering again will not change an existing password.</p>
+        <p className="text-xs leading-5 text-slate-500">Your name, school, career interests and progress are visible to signed in CareerUp users. Your email and resume stay private. Gmail access and AI processing each require your separate permission.</p>
       </form>
       <p className="mt-5 text-sm text-slate-600">
         Already have an account?{" "}

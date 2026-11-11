@@ -440,6 +440,7 @@ function parseZapplyReadme(markdown: string, source: string, profile?: Profile) 
 
 async function fetchText(url: string) {
   const response = await fetch(url, {
+    signal: AbortSignal.timeout(10000),
     next: { revalidate: 1800 }
   });
 

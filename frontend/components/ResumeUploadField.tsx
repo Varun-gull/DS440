@@ -3,14 +3,18 @@
 import { CheckCircle2, Loader2, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { MAX_RESUME_BYTES, RESUME_SIZE_MESSAGE } from "@/lib/resume-upload-limits";
 
 export function ResumeUploadField() {
   const router = useRouter();
   const [fileName, setFileName] = useState("");
   const [status, setStatus] = useState<"idle" | "uploading" | "saved" | "error">("idle");
-  const [message, setMessage] = useState("PDF, DOCX, TXT, MD, and CSV. Text-based PDFs work best.");
+  const [message, setMessage] = useState("PDF, DOCX, TXT, MD, and CSV under 4 MB. Text based PDFs work best.");
 
   async function uploadResume(file: File) {
+    if (file.size > MAX_RESUME_BYTES) {
+      setStatus("error"); setMessage(RESUME_SIZE_MESSAGE); return;
+    }
     const formData = new FormData();
     formData.append("resumeFile", file);
     setStatus("uploading");

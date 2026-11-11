@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "verify:class:database": "node scripts/verify-class-database.mjs",
+    "verify:class:load": "node scripts/verify-class-load.mjs",
     "dev": "next dev",
     "build": "next build",
     "evaluate:resume-scanner": "node scripts/evaluate-resume-scanner.mjs",

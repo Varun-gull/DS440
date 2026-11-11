@@ -6,6 +6,7 @@ import { requiresMfaChallenge } from "@/lib/auth/mfa";
 import { getFitScoreBreakdown } from "@/lib/fit-score";
 import { buildAssistantInstructions, redactResumeContact, VOICE_SECONDS, type AssistantContext, type AssistantJob, type ChatMessage } from "./core";
 import { geminiFailure } from "./provider-errors";
+import { ProviderCapacityError, waitForProviderSlot } from "./provider-pacing";
 
 export class AssistantError extends Error {
   constructor(message: string, public status = 400) { super(message); }
@@ -18,6 +19,8 @@ export async function assistantUser() {
   if (error || !user) throw new AssistantError("Sign in to use the career assistant.", 401);
   const { data, error: mfaError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (mfaError || !data || requiresMfaChallenge(data.currentLevel, data.nextLevel)) throw new AssistantError("Complete two factor authentication first.", 403);
+  const { data: active, error: sessionError } = await supabase.rpc("careerup_session_valid");
+  if (sessionError || active !== true) throw new AssistantError("Your session expired. Sign in again.", 401);
   return { supabase, user };
 }
 type Session = Awaited<ReturnType<typeof assistantUser>>;
@@ -94,6 +97,11 @@ async function providerRequest<T>(request: () => Promise<T>): Promise<T> {
 export async function generateAssistantReply(session: Session, messages: ChatMessage[], context: AssistantContext) {
   const ai = googleClient();
   await reserve(session, "text");
+  try { await waitForProviderSlot(assistantConfig().model); }
+  catch (error) { if (error instanceof ProviderCapacityError) throw new AssistantError(error.message, error.status); throw error; }
+  // The student may have signed out or revoked this session while queued.
+  const { data: active, error: sessionError } = await session.supabase.rpc("careerup_session_valid");
+  if (sessionError || active !== true) throw new AssistantError("Your session expired. Sign in again.", 401);
   const result = await providerRequest(() => ai.models.generateContent({ model: assistantConfig().model,
     contents: messages.map((message) => ({ role: message.role === "assistant" ? "model" : "user", parts: [{ text: message.text }] })),
     config: { systemInstruction: buildAssistantInstructions(context), maxOutputTokens: 700, temperature: 0.4 },

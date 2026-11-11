@@ -5,7 +5,7 @@ import { offlineGuidance, validateMessages } from "@/lib/assistant/core";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 240;
 const headers = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" };
 
 function failure(error: unknown) {

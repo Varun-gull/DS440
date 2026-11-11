@@ -1,5 +1,6 @@
 "use server";
 
+import { publicProfileReader } from "@/lib/security/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { awardEligibleChallenges, awardXp, pointValues } from "@/lib/gamification";
@@ -26,15 +27,15 @@ export async function sendFriendRequest(formData: FormData) {
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
 
-  if (!email) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
     redirectWithMessage("/friends", "Enter your friend's account email.");
   }
 
-  const { data: targetProfile, error: targetError } = await supabase
+  const { data: targetProfile, error: targetError } = await (await publicProfileReader())
     .from("profiles")
-    .select("id, email")
-    .ilike("email", email)
-    .maybeSingle<{ id: string; email: string | null }>();
+    .select("id")
+    .eq("email", email)
+    .maybeSingle<{ id: string }>();
 
   if (targetError || !targetProfile) {
     redirectWithMessage("/friends", "No CareerUp account found with that email.");
@@ -99,7 +100,7 @@ export async function sendFriendRequestById(formData: FormData) {
     redirectWithMessage("/friends", "This is your own invite link.");
   }
 
-  const { data: targetProfile, error: targetError } = await supabase.from("profiles").select("id").eq("id", profileId).maybeSingle<{ id: string }>();
+  const { data: targetProfile, error: targetError } = await (await publicProfileReader()).from("profiles").select("id").eq("id", profileId).maybeSingle<{ id: string }>();
 
   if (targetError || !targetProfile) {
     redirectWithMessage("/friends", "That CareerUp profile could not be found.");

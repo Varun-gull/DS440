@@ -345,10 +345,12 @@ try {
     !(
       await a.client
         .from("friends")
-        .insert({ requester_id: a.id, addressee_id: b.id, status: "accepted" })
+        .insert({ requester_id: a.id, addressee_id: b.id, status: "pending" })
     ).error,
     "Synthetic friendship could not be created",
   );
+  assert.ok(!(await b.client.from("friends").update({status: "accepted"}).eq("requester_id",a.id).eq("addressee_id",b.id)).error,
+    "Synthetic invitation could not be accepted by its recipient");
   await check("friend goal invites share only opted in progress", async () => {
     const pass = await buy(a, "friend-challenge-pass");
     const made = await req(a, {

@@ -42,6 +42,7 @@ export async function middleware(request: NextRequest) {
     "/friends",
     "/leaderboard",
     "/resume-optimization",
+    "/u/",
   ];
   const isProtectedRoute = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
 
@@ -53,9 +54,9 @@ export async function middleware(request: NextRequest) {
   }
 
   if (user && isProtectedRoute) {
-    const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
-    if (assurance && requiresMfaChallenge(assurance.currentLevel, assurance.nextLevel)) {
+    if (assuranceError || !assurance || requiresMfaChallenge(assurance.currentLevel, assurance.nextLevel)) {
       const url = request.nextUrl.clone();
       const destination = `${request.nextUrl.pathname}${request.nextUrl.search}`;
       url.pathname = "/mfa";

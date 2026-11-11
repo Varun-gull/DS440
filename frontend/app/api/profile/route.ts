@@ -1,18 +1,22 @@
 import { NextResponse } from "next/server";
+import { ownedProfileWriter } from "@/lib/security/session";
 import { revalidatePath } from "next/cache";
 import { awardEligibleChallenges, awardXp, pointValues } from "@/lib/gamification";
 import { getSchoolLogoUrl } from "@/lib/schools";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { requireSameOrigin, requireScannerUser, readScannerJson, ScannerError } from "@/lib/email-scanner/security";
 
 export const runtime = "nodejs";
 
 function cleanList(value: unknown) {
   return Array.isArray(value)
-    ? value.map((item) => String(item).trim()).filter(Boolean).slice(0, 8)
+    ? value.map((item) => String(item).trim().slice(0, 120)).filter(Boolean).slice(0, 8)
     : [];
 }
 
 export async function POST(request: Request) {
+  try { requireSameOrigin(request); await requireScannerUser(); }
+  catch (error) { return NextResponse.json({error: error instanceof ScannerError ? error.message : "Sign in to continue."}, {status: error instanceof ScannerError ? error.status : 401}); }
   const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
@@ -27,7 +31,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Log in before updating your profile." }, { status: 401 });
   }
 
-  const body = await request.json();
+  let body: Record<string, unknown>;
+  try { body = await readScannerJson(request); }
+  catch (error) { return NextResponse.json({error: error instanceof ScannerError ? error.message : "Invalid profile request."}, {status: error instanceof ScannerError ? error.status : 400}); }
   const fullName = String(body.fullName ?? "").trim();
   const school = String(body.school ?? "").trim();
   const major = String(body.major ?? "").trim();
@@ -36,8 +42,8 @@ export async function POST(request: Request) {
   const targetLocations = cleanList(body.targetLocations);
   const shareApplicationBoard = Boolean(body.shareApplicationBoard);
 
-  if (!fullName) {
-    return NextResponse.json({ error: "Your name is required." }, { status: 400 });
+  if (!fullName || fullName.length > 120 || school.length > 160 || major.length > 160 || graduationYear.length > 12) {
+    return NextResponse.json({ error: "Add a name up to 120 characters and keep profile fields brief." }, { status: 400 });
   }
 
   const { data: currentProfile } = await supabase
@@ -49,7 +55,7 @@ export async function POST(request: Request) {
   const isComplete = Boolean(school && major && graduationYear && targetRoles.length > 0 && targetLocations.length > 0);
   const shouldAwardProfileXp = isComplete && !currentProfile?.profile_completed_awarded;
 
-  const { error } = await supabase
+  const { error } = await (await ownedProfileWriter(user.id))
     .from("profiles")
     .update({
       full_name: fullName,

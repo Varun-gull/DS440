@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { ownedProfileWriter } from "@/lib/security/session";
 import { revalidatePath } from "next/cache";
 import { awardEligibleChallenges, awardXp, pointValues } from "@/lib/gamification";
 import { extractResumeKeywords, extractResumeTextFromFile, normalizeResumeText } from "@/lib/resume";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { requireSameOrigin, requireScannerUser, ScannerError } from "@/lib/email-scanner/security";
+import { MAX_RESUME_BYTES, RESUME_SIZE_MESSAGE } from "@/lib/resume-upload-limits";
 
 export const runtime = "nodejs";
 
@@ -19,6 +22,8 @@ function isUploadedFile(value: FormDataEntryValue | null): value is File {
 }
 
 export async function POST(request: Request) {
+  try { requireSameOrigin(request); await requireScannerUser(); }
+  catch (error) { return NextResponse.json({error: error instanceof ScannerError ? error.message : "Sign in to continue."}, {status: error instanceof ScannerError ? error.status : 401}); }
   const supabase = await getSupabaseServerClient();
 
   if (!supabase) {
@@ -40,8 +45,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose a resume file before saving." }, { status: 400 });
   }
 
-  if (Number(resumeFile.size) > 8 * 1024 * 1024) {
-    return NextResponse.json({ error: "Resume file is too large. Upload a file under 8 MB." }, { status: 400 });
+  if (Number(resumeFile.size) > MAX_RESUME_BYTES) {
+    return NextResponse.json({ error: RESUME_SIZE_MESSAGE }, { status: 400 });
   }
 
   let fileReadFailed = false;
@@ -76,11 +81,11 @@ export async function POST(request: Request) {
     resume_uploaded_awarded: shouldAwardResumeXp ? true : currentProfile?.resume_uploaded_awarded ?? false,
   };
 
-  let { error } = await supabase.from("profiles").update(updatePayload).eq("id", user.id);
+  let { error } = await (await ownedProfileWriter(user.id)).from("profiles").update(updatePayload).eq("id", user.id);
 
   if (error && /resume_uploaded_awarded/i.test(error.message)) {
     const { resume_uploaded_awarded, ...legacyPayload } = updatePayload;
-    const retry = await supabase.from("profiles").update(legacyPayload).eq("id", user.id);
+    const retry = await (await ownedProfileWriter(user.id)).from("profiles").update(legacyPayload).eq("id", user.id);
     error = retry.error;
   }
 

@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { GoogleGenAI, Modality } from "@google/genai";
 
-process.loadEnvFile(new URL("../.env.local",import.meta.url));
+process.loadEnvFile(process.env.CAREERUP_PRIVATE_ENV || new URL("../.env.local",import.meta.url));
 const base = process.env.CAREERUP_TEST_BASE_URL || "http://127.0.0.1:3210";
 const origin=new URL(base).origin;
 if(!["localhost","127.0.0.1"].includes(new URL(base).hostname) && process.env.CAREERUP_ALLOW_DEPLOYED_TESTS!=="true")throw new Error("Set CAREERUP_ALLOW_DEPLOYED_TESTS=true explicitly before testing a deployed site.");
@@ -42,7 +42,7 @@ try{
   const company=`ExampleCo ${nonce}`;
   const created=await alice.client.from("applications").insert({user_id:alice.id,company,role:"AI Engineer Internship",status:"applied",updated_at:new Date(Date.now()-60000).toISOString()}).select("id,status,updated_at").single();
   assert.ok(!created.error,`Test application could not be created: ${created.error?.message ?? "unknown error"}`);
-  const profile=await alice.client.from("profiles").update({resume_text:"Built a forecasting model with Python and SQL.",target_roles:["AI Engineer"]}).eq("id",alice.id);
+  const profile=await admin.from("profiles").update({resume_text:"Built a forecasting model with Python and SQL.",target_roles:["AI Engineer"]}).eq("id",alice.id);
   assert.ok(!profile.error,"Synthetic resume context could not be saved");
   let updateId;
   await check("scanner storage is ready for signed in user",async()=>{const r=await request(alice,"/api/email-scanner");assert.equal(r.status,200);assert.equal(r.data.databaseReady,true);});

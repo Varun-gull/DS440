@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import clsx from "clsx";
-import { rankBonuses } from "@/lib/gamification";
-import { getRankProgress, ranks } from "@/lib/rank";
+
+import { getRankProgress, ranks, rankBonuses } from "@/lib/rank";
 
 export function XpProgressBar({ xp }: { xp: number }) {
   const progress = getRankProgress(xp);

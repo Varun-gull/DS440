@@ -1,4 +1,5 @@
-import { getRank, ranks } from "@/lib/rank";
+import { getRank, ranks, rankBonuses } from "@/lib/rank";
+import { ownedProfileWriter } from "@/lib/security/session";
 import { getDateKeyStartUtcIso, getTodayKey } from "@/lib/streak";
 import type { ApplicationStatus } from "@/lib/types";
 import type { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -23,12 +24,7 @@ export function getRewardPointsForXp(amount: number) {
   return safeAmount === 0 ? 0 : Math.max(1, Math.round(safeAmount * 0.2));
 }
 
-export const rankBonuses = [
-  { rankName: "Manager", legacyNames: ["Active Applicant", "Silver Strategist"], xp: 50 },
-  { rankName: "Director", legacyNames: ["Qualified Candidate", "Gold Climber"], xp: 100 },
-  { rankName: "Vice President", legacyNames: ["Interview Ready", "Platinum Candidate"], xp: 175 },
-  { rankName: "CEO", legacyNames: ["Offer Ready", "Elite Intern"], xp: 300 },
-] as const;
+
 
 type DbChallenge = {
   id: string;
@@ -69,43 +65,10 @@ export async function awardXp({
     return { awarded: 0, rankBonus: 0, reachedRanks: [] as string[] };
   }
 
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single<{ xp: number | null; total_xp?: number | null; reward_points?: number | null; rank_bonus_awarded?: string[] | null }>();
-
-  if (error || !profile) {
-    await supabase.rpc("award_xp", { amount: safeAmount });
-    return { awarded: safeAmount, rankBonus: 0, reachedRanks: [] as string[] };
-  }
-
-  const previousPermanentXp = Math.max(profile.xp ?? 0, profile.total_xp ?? profile.xp ?? 0);
-  const rankBonusAwarded = profile.rank_bonus_awarded ?? [];
-  const reachedRanks = getNewlyReachedRankNames(previousPermanentXp, previousPermanentXp + safeAmount, rankBonusAwarded);
-  const rankBonus = reachedRanks.reduce((sum, rankName) => sum + (rankBonuses.find((bonus) => bonus.rankName === rankName)?.xp ?? 0), 0);
-
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({
-      xp: previousPermanentXp + safeAmount + rankBonus,
-      total_xp: previousPermanentXp + safeAmount + rankBonus,
-      rank_bonus_awarded: Array.from(new Set([...rankBonusAwarded, ...reachedRanks])),
-    })
-    .eq("id", userId);
-
-  if (updateError) {
-    await supabase
-      .from("profiles")
-      .update({
-        xp: previousPermanentXp + safeAmount + rankBonus,
-        total_xp: previousPermanentXp + safeAmount + rankBonus,
-        rank_bonus_awarded: Array.from(new Set([...rankBonusAwarded, ...reachedRanks])),
-      })
-      .eq("id", userId);
-  }
-
-  return { awarded: safeAmount, rankBonus, reachedRanks };
+  const admin = await ownedProfileWriter(userId);
+  const { data, error } = await admin.rpc("award_careerup_xp", { p_user_id: userId, p_amount: safeAmount });
+  if (error) throw new Error("Your progress could not be saved. Please try again.");
+  return data as { awarded: number; rankBonus: number; reachedRanks: string[] };
 }
 
 async function countApplications(supabase: SupabaseServer, userId: string, status?: ApplicationStatus, sinceToday = false) {
@@ -201,7 +164,7 @@ export async function awardEligibleChallenges(supabase: SupabaseServer, userId: 
       continue;
     }
 
-    const { error: insertError } = await supabase.from("completed_challenges").insert({
+    const { error: insertError } = await (await ownedProfileWriter(userId)).from("completed_challenges").insert({
       user_id: userId,
       challenge_id: challenge.id,
       completed_on: today,

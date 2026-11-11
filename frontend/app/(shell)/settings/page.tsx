@@ -24,6 +24,11 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
           ]}
         />
 
+        <section className="card mt-6 max-w-3xl p-6">
+          <h2 className="text-xl font-bold text-ink">What other students can see</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Your profile name, school, career interests and progress appear to signed in CareerUp users. Your email, resume, preparation answers, reward balance and email scanner history stay private. Your application board starts private. Sharing it with accepted friends never shares your private application notes.</p>
+        </section>
+
         {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#2A6384] shadow-sm ring-1 ring-[#2A6384]/20">{searchParams.message}</p>}
 
         <section className="card mt-6 max-w-3xl p-6">

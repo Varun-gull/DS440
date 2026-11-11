@@ -1,5 +1,6 @@
 "use server";
 
+import { ownedProfileWriter } from "@/lib/security/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -116,7 +117,7 @@ async function updateAppliedStreakAndStats({
     updates.streak_revive_required_applications = null;
   }
 
-  const { error } = await supabase.from("profiles").update(updates).eq("id", userId);
+  const { error } = await (await ownedProfileWriter(userId)).from("profiles").update(updates).eq("id", userId);
   return error;
 }
 
@@ -145,7 +146,7 @@ async function awardDailyApplyChallenge(supabase: NonNullable<Awaited<ReturnType
     return;
   }
 
-  const { error: insertError } = await supabase.from("completed_challenges").insert({
+  const { error: insertError } = await (await ownedProfileWriter(userId)).from("completed_challenges").insert({
     user_id: userId,
     challenge_id: challenge.id,
     completed_on: today
