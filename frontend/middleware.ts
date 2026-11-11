@@ -50,7 +50,11 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("message", "Log in to keep building your internship streak.");
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+    // Preserve cleared/refreshed session cookies on redirects too. Otherwise
+    // an expired refresh token can remain in the browser on every visit.
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+    return redirectResponse;
   }
 
   if (user && isProtectedRoute) {

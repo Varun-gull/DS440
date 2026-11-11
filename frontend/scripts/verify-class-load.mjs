@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {createClient} from '@supabase/supabase-js';
 import {createServerClient} from '@supabase/ssr';
+import {GoogleGenAI,Modality} from '@google/genai';
 process.loadEnvFile(process.env.CAREERUP_PRIVATE_ENV || new URL('../.env.local',import.meta.url));
 const base=process.env.CAREERUP_CLASS_TEST_URL || 'http://127.0.0.1:3215',origin=new URL(base).origin;
 if(!['127.0.0.1','localhost'].includes(new URL(base).hostname)&&process.env.CAREERUP_ALLOW_DEPLOYED_TESTS!=='true')throw new Error('Explicitly enable deployed tests first.');
@@ -42,6 +43,33 @@ try{
  await stage('concurrent reward purchases and duplicate submit protection',async()=>{await settled(users.map(async u=>{const requestKey=randomUUID(),payload={action:'redeem',rewardId:'extra-voice-session',requestKey};const before=await req(u,'/api/rewards');assert.equal(before.status,200);const replies=await settled([req(u,'/api/rewards',payload),req(u,'/api/rewards',payload)]);for(const r of replies)assert.equal(r.status,200,r.data?.error);const after=await req(u,'/api/rewards');assert.equal(after.data.balance,before.data.balance-25);assert.equal(after.data.redemptions.filter(x=>x.reward_id==='extra-voice-session').length,1);}));});
  await stage('concurrent contextual resume matching',async()=>{await settled(users.map(async u=>{const r=await req(u,'/api/assistant',{mode:'guide',includeResume:true,jobTitle:'AI Engineer Internship',jobDescription:'Required: Python, SQL, model evaluation and forecasting.',messages:[{role:'user',text:'Explain my fit score.'}]});assert.equal(r.status,200,r.data?.error);assert.ok(r.data.fit?.score>0);}));});
  if(process.env.CAREERUP_CLASS_TEST_AI==='true')await stage('concurrent real Gemini replies',async()=>{await settled(users.map(async u=>{const r=await req(u,'/api/assistant',{mode:'ai',consent:true,messages:[{role:'user',text:'Ask one short interview question about evaluating a Python forecasting model. Reply with one question only.'}]},{timeoutMs:210000});assert.equal(r.status,200,r.data?.error);assert.equal(r.data.provider,'Google Gemini');assert.ok(r.data.text.length>10);}));});
+
+ if(process.env.CAREERUP_CLASS_TEST_VOICE==='true')await stage('concurrent restricted voice sessions receive real audio',async()=>{
+  let release,failBarrier,connected=0,active=0,peak=0;
+  const allReady=new Promise((resolve,reject)=>{release=resolve;failBarrier=reject;});allReady.catch(()=>{});
+  const barrierTimer=setTimeout(()=>failBarrier(new Error('Voice sessions did not all connect within 45 seconds')),45000);
+  try{await settled(users.map(async u=>{
+  const r=await req(u,'/api/assistant/voice',{consent:true,jobTitle:'AI Engineer Internship',jobDescription:'Build and evaluate Python forecasting models.'});
+  assert.equal(r.status,200,r.data?.error);assert.ok(r.data.token&&!r.data.token.includes(process.env.GEMINI_API_KEY));
+  const ai=new GoogleGenAI({apiKey:r.data.token,httpOptions:{apiVersion:'v1alpha'}});
+  let accept,reject;const heard=new Promise((resolve,fail)=>{accept=resolve;reject=fail;});heard.catch(()=>{});
+  const timer=setTimeout(()=>reject(new Error('Voice audio was not received within 45 seconds')),45000);let connection;
+  try{
+   connection=await ai.live.connect({model:r.data.model,config:{responseModalities:[Modality.AUDIO]},callbacks:{onmessage:event=>{if(event.serverContent?.modelTurn?.parts?.some(p=>p.inlineData?.mimeType?.startsWith('audio/')&&p.inlineData.data?.length>100))accept();},onerror:()=>reject(new Error('Voice connection failed')),onclose:()=>reject(new Error('Voice closed before audio'))}});
+   connected++;active++;peak=Math.max(peak,active);if(connected===count)release();await allReady;
+   connection.sendClientContent({turns:[{role:'user',parts:[{text:'Say hello to CareerUp in one short sentence.'}]}],turnComplete:true});await heard;
+  }catch(error){failBarrier(error);throw error;}finally{clearTimeout(timer);if(connection){active--;connection.close();}}
+ }));report.voice={connections:connected,peakConcurrentSessions:peak,audioResponses:count,physicalMicrophoneTested:false};}finally{clearTimeout(barrierTimer);}
+ });
+ await stage('expired refresh tokens are cleared on protected redirects',async()=>{
+  const u=users[0],cookies=new Map(u.cookies),names=[...cookies.keys()].filter(n=>/^sb-.*-auth-token(?:\.\d+)?$/.test(n)).sort();assert.ok(names.length);
+  const encoded=names.map(n=>cookies.get(n)).join('');assert.ok(encoded.startsWith('base64-'));
+  const stored=JSON.parse(Buffer.from(encoded.slice(7),'base64url').toString());stored.expires_at=1;
+  const baseName=names[0].replace(/\.\d+$/,'');for(const n of names)cookies.delete(n);cookies.set(baseName,'base64-'+Buffer.from(JSON.stringify(stored)).toString('base64url'));
+  await u.client.auth.signOut({scope:'local'});
+  const r=await req({...u,cookies},'/settings');assert.equal(r.status,307);assert.ok(r.headers.get('location')?.includes('/login'));
+  assert.ok(r.headers.getSetCookie().some(c=>c.includes(baseName)&&/Max-Age=0/i.test(c)),'Redirect did not clear expired auth cookies');
+ });
 
  report.passed=true;
 }catch(error){report.passed=false;report.error=error.message;console.error('FAIL '+error.message);process.exitCode=1;}

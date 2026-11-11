@@ -1,7 +1,7 @@
 import { existsSync,readFileSync,writeFileSync,unlinkSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-process.loadEnvFile(new URL("../.env.local",import.meta.url));
+process.loadEnvFile(process.env.CAREERUP_PRIVATE_ENV || new URL("../.env.local",import.meta.url));
 const file=new URL("../.careerup-ui-fixture.local.json",import.meta.url);
 const admin=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 if(process.argv[2]==="delete"){
@@ -20,6 +20,7 @@ if(process.argv[2]==="delete"){
   writeFileSync(file,JSON.stringify({id:result.data.user.id,email,password}),{mode:0o600});
   const client=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,{auth:{persistSession:false}});
   const login=await client.auth.signInWithPassword({email,password});if(login.error)throw new Error("UI fixture login failed.");
-  await client.from("profiles").update({full_name:"CareerUp test student",privacy_prompt_answered:true,target_roles:["AI Engineer"],resume_text:"Built a forecasting model with Python and SQL for a university project."}).eq("id",result.data.user.id);
+  const profile=await admin.from("profiles").update({full_name:"CareerUp test student",privacy_prompt_answered:true,target_roles:["AI Engineer"],resume_text:"Built a forecasting model with Python and SQL for a university project."}).eq("id",result.data.user.id);
+  if(profile.error)throw new Error("Could not seed disposable UI profile.");
   console.log("Disposable UI account prepared. Credentials are stored only in the ignored local fixture file.");
 }

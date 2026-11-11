@@ -439,16 +439,16 @@ function parseZapplyReadme(markdown: string, source: string, profile?: Profile) 
 }
 
 async function fetchText(url: string) {
-  const response = await fetch(url, {
-    signal: AbortSignal.timeout(10000),
-    next: { revalidate: 1800 }
-  });
-
-  if (!response.ok) {
+  try {
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(10000),
+      next: { revalidate: 1800 }
+    });
+    return response.ok ? await response.text() : "";
+  } catch {
+    // An unavailable public source must not discard other healthy sources.
     return "";
   }
-
-  return response.text();
 }
 
 async function searchCuratedGithubPostings(searchQuery: string, targetLocation: string, profile?: Profile, kind: PostingKind = "internship"): Promise<PostingSearchResult | null> {
@@ -860,8 +860,10 @@ export async function searchInternshipPostings({ query, location, profile, kind 
   const targetLocation = rawLocation || (hasSubmittedSearch || rawQuery ? "" : profile?.targetLocations[0] || "");
 
   try {
-    const jobrightResults = await searchJobrightPostings(searchQuery, targetLocation, profile, kind);
-    const curatedResults = await searchCuratedGithubPostings(searchQuery, targetLocation, profile, kind);
+    const [jobrightResults, curatedResults] = await Promise.all([
+      searchJobrightPostings(searchQuery, targetLocation, profile, kind),
+      searchCuratedGithubPostings(searchQuery, targetLocation, profile, kind),
+    ]);
 
     if (jobrightResults && curatedResults) {
       return {

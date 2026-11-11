@@ -40,3 +40,11 @@ The provider scheduler stores only a model bucket and next dispatch time in a pr
 This pacing addresses request bursts. It cannot increase Google's daily limit or guarantee provider availability. A class using more than 500 combined chat and report requests per day needs an appropriate Google project quota. Public signup and Gmail audience configuration remain independent release requirements.
 
 Resume uploads are limited to 4 MB in the browser and server, leaving multipart overhead below Vercel's 4.5 MB request limit. Text can also be pasted on the profile.
+
+## Browser and provider checks
+
+The deployed browser was checked using a disposable account: sign in reached the dashboard, the floating coach required consent, logout returned to sign in, and opening settings after logout was denied. Expired refresh token tests also require the redirect to clear the obsolete authentication cookies.
+
+Set `CAREERUP_CLASS_TEST_AI=true` for real queued text replies. Set `CAREERUP_CLASS_TEST_VOICE=true` for live voice provider testing. The voice test holds all requested sessions open at a barrier before asking each session for a short audio reply. It records peak concurrent sessions and closes every connection. These checks do not exercise a physical microphone, student device permissions, long conversations or real Gmail inboxes. Synthetic email review tests must not be described as full Gmail OAuth verification.
+
+Public job sources are fetched independently with a ten second timeout. One failed source no longer discards healthy sources. Cache and live search can run in parallel for submitted searches; source groups also fetch in parallel.

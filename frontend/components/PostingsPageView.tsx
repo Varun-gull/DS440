@@ -170,7 +170,7 @@ async function searchPostingsWithFallback({
   sort: PostingSort;
 }) {
   const hasSubmittedSearch = Boolean(query || location);
-  const cachedSearchResult = await searchCachedPostings({
+  const cachedSearch = searchCachedPostings({
     query,
     location,
     profile,
@@ -182,12 +182,10 @@ async function searchPostingsWithFallback({
   });
 
   if (hasSubmittedSearch) {
-    const liveSearchResult = await searchInternshipPostings({
-      query,
-      location,
-      profile,
-      kind
-    });
+    const [cachedSearchResult, liveSearchResult] = await Promise.all([
+      cachedSearch,
+      searchInternshipPostings({ query, location, profile, kind }),
+    ]);
     const livePostings = liveSearchResult.usingFallback ? [] : liveSearchResult.postings;
     const mergedPostings = mergePostings([...(cachedSearchResult?.postings ?? []), ...livePostings]);
 
@@ -198,6 +196,7 @@ async function searchPostingsWithFallback({
     };
   }
 
+  const cachedSearchResult = await cachedSearch;
   if (cachedSearchResult?.postings.length) {
     return cachedSearchResult;
   }
