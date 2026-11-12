@@ -24,10 +24,12 @@ export async function signUp(formData: FormData) {
     redirectWithMessage("/signup", "Add your name, a valid email, and a password between 8 and 128 characters.");
   }
 
+  const origin = new URL(process.env.APP_BASE_URL || "https://careerup-smoky.vercel.app").origin;
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
+      emailRedirectTo: `${origin}/auth/callback`,
       data: {
         full_name: fullName,
         share_application_board: shareApplicationBoard,
