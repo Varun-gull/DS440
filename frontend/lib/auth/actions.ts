@@ -46,7 +46,7 @@ export async function signUp(formData: FormData) {
     redirect("/dashboard");
   }
 
-  redirectWithMessage("/login", "If this email is new, check your inbox for a confirmation link. If you already registered, log in with your existing password. Signing up again does not reset it.");
+  redirectWithMessage("/login", "If this email is new, check your inbox and spam folder for a confirmation link. Open the latest link in this browser. If you already registered, log in with your existing password. Signing up again does not reset it.");
 }
 
 export async function logIn(formData: FormData) {
