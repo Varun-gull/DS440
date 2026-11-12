@@ -16,7 +16,7 @@ function redirectWithMessage(path: string, message: string): never {
 function parseList(value: FormDataEntryValue | null) {
   return String(value ?? "")
     .split(",")
-    .map((item) => item.trim())
+    .map((item) => item.trim().slice(0, 120))
     .filter(Boolean)
     .slice(0, 8);
 }
@@ -59,8 +59,8 @@ export async function updateProfile(formData: FormData) {
   const targetLocations = parseList(formData.get("targetLocations"));
   const shareApplicationBoard = formData.get("shareApplicationBoard") === "on";
 
-  if (!fullName) {
-    redirectWithMessage("/profile", "Your name is required.");
+  if (!fullName || fullName.length > 120 || school.length > 160 || major.length > 160 || graduationYear.length > 12) {
+    redirectWithMessage("/profile", "Add a name up to 120 characters and keep profile fields brief.");
   }
 
   const { data: currentProfile } = await supabase

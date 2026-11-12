@@ -130,7 +130,12 @@ export function CareerAssistant() {
     let released = false;
     const release = () => {
       if (released) return; released = true;
-      void fetch("/api/assistant/voice", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "leave", requestId }) }).catch(() => undefined);
+      void (async () => {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try { await fetch("/api/assistant/voice", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "leave", requestId }) }); return; }
+          catch { if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 500)); }
+        }
+      })();
     };
     controller.signal.addEventListener("abort", release, { once: true });
     const wait = (ms: number) => new Promise<void>((resolve, reject) => {
@@ -143,19 +148,29 @@ export function CareerAssistant() {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.AudioWorkletNode) throw new Error("Live voice needs HTTPS or localhost, a microphone, and AudioWorklet support.");
       microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
       if (controller.signal.aborted || !mounted.current) return;
-      let result;
+      let result; let networkRetries = 0;
       while (!controller.signal.aborted && mounted.current) {
-        const response = await fetch("/api/assistant/voice", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
-          body: JSON.stringify({ requestId, consent: voiceConsent, ...contextFields() }) });
-        result = await response.json();
+        let response;
+        try {
+          response = await fetch("/api/assistant/voice", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
+            body: JSON.stringify({ requestId, consent: voiceConsent, ...contextFields() }) });
+          result = await response.json();
+          networkRetries = 0;
+        } catch (failure) {
+          if (controller.signal.aborted) throw failure;
+          if (++networkRetries > 2) throw new Error("The connection was interrupted. Your microphone is off. Please try live practice again.");
+          microphoneStream?.getTracks().forEach((track) => track.stop()); microphoneStream = null;
+          setVoiceState("queued"); setNotice("Connection interrupted. Retrying your place with the microphone off…");
+          await wait(1500); continue;
+        }
         if (!response.ok) throw new Error(result.error ?? "Could not start voice.");
         if (!result.queued) break;
         // Permission is checked before a credit is spent, but no audio is kept
         // running while the student waits for shared provider capacity.
         microphoneStream?.getTracks().forEach((track) => track.stop()); microphoneStream = null;
         setVoiceState("queued");
-        setNotice(`You are number ${result.position} in the live practice queue. Three students can practise at once. Your microphone is off and no session or credit is used while you wait. Keep this page open, or choose Leave queue.`);
-        await wait(5000);
+        setNotice(result.position > 0 ? `You are number ${result.position} in the live practice queue. Three students can practise at once. Your microphone is off and no session or credit is used while you wait. Keep this page open, or choose Leave queue.` : "Preparing your live interview. Your microphone is off until the connection is ready…");
+        await wait(result.pollAfterSeconds === 2 ? 2000 : 5000);
       }
       if (controller.signal.aborted || !mounted.current || !result) return;
       setVoiceState("connecting"); setNotice("");

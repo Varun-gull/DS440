@@ -5,6 +5,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requiresMfaChallenge } from "@/lib/auth/mfa";
 import { getFitScoreBreakdown } from "@/lib/fit-score";
 import { buildAssistantInstructions, redactResumeContact, VOICE_SECONDS, type AssistantContext, type AssistantJob, type ChatMessage } from "./core";
+import { encryptToken, decryptToken } from "@/lib/email-scanner/crypto";
 import { geminiFailure } from "./provider-errors";
 import { ProviderCapacityError, waitForProviderSlot } from "./provider-pacing";
 
@@ -117,13 +118,20 @@ export async function createVoiceToken(session: Session, loadContext: () => Prom
   const ai = googleClient();
   const admin = getSupabaseAdminClient();
   if (!admin) throw new AssistantError("Voice capacity could not be checked.", 503);
+  const encryptionKey = process.env.EMAIL_SCANNER_ENCRYPTION_KEY?.trim() || "";
+  if (!/^[A-Za-z0-9+/]{43}=$/.test(encryptionKey) || Buffer.from(encryptionKey, "base64").length !== 32) throw new AssistantError("The project owner needs to configure secure voice delivery.", 503);
   const claimed = await admin.rpc("claim_careerup_voice_turn", { p_user_id: session.user.id, p_request_id: requestId });
   if (claimed.error || !claimed.data) throw new AssistantError("Voice capacity could not be checked. Try again shortly.", 503);
+  if (claimed.data.state === "cached") {
+    return { queued: false as const, token: decryptToken(claimed.data.encryptedCredential, encryptionKey, `${session.user.id}:${requestId}`, "voice"), model: claimed.data.model as string, expiresAt: claimed.data.expiresAt as string, durationSeconds: VOICE_SECONDS, reservationId: claimed.data.reservationId as string, requestId };
+  }
+  if (claimed.data.state === "preparing") return { queued: true as const, position: 0, pollAfterSeconds: 2, requestId };
   if (claimed.data.state === "queued") return { queued: true as const, position: Number(claimed.data.position), pollAfterSeconds: 5, requestId };
   if (claimed.data.state === "active") throw new AssistantError("A live interview is already active for your account. Stop it or wait for it to expire.", 409);
   if (claimed.data.state !== "ready") throw new AssistantError("Your voice allowance is used up, or another session is still reserved. Check your remaining sessions and Reward Points.", 429);
   const reservation = claimed.data as { reservationId: string; rewardUsed: boolean };
   const expiresAt = new Date(Date.now() + VOICE_SECONDS * 1000).toISOString();
+  const newSessionExpiresAt = new Date(Date.now() + 60000).toISOString();
   let result;
   try {
   const context = await loadContext();
@@ -131,8 +139,12 @@ export async function createVoiceToken(session: Session, loadContext: () => Prom
     systemInstruction: buildAssistantInstructions(context, true), inputAudioTranscription: {}, outputAudioTranscription: {},
     speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } };
     result = await providerRequest(() => ai.authTokens.create({ config: { uses: 1, expireTime: expiresAt,
-      newSessionExpireTime: new Date(Date.now() + 60000).toISOString(), liveConnectConstraints: { model: config.voiceModel, config: liveConfig } } }));
+      newSessionExpireTime: newSessionExpiresAt, liveConnectConstraints: { model: config.voiceModel, config: liveConfig } } }));
     if (!result.name) throw new AssistantError("A voice session could not be created.", 502);
+    const stored = await admin.rpc("store_careerup_voice_credential", { p_user_id: session.user.id, p_request_id: requestId, p_reservation: reservation.reservationId,
+      p_credential: encryptToken(result.name, encryptionKey, `${session.user.id}:${requestId}`, "voice"), p_model: config.voiceModel, p_expires_at: expiresAt,
+      p_connect_until: new Date(Date.parse(newSessionExpiresAt) - 5000).toISOString() });
+    if (stored.error || stored.data !== true) throw new AssistantError("Your voice turn could not be delivered securely. Please try again.", 503);
   } catch (error) {
     await admin.rpc("leave_careerup_voice_turn", { p_user_id: session.user.id, p_request_id: requestId });
     await getSupabaseAdminClient()?.rpc("cancel_careerup_voice", { p_user_id: session.user.id, p_reservation: reservation.reservationId });

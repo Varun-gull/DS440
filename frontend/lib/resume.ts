@@ -116,7 +116,9 @@ async function extractPdfTextWithPdfParse(buffer: Buffer) {
 
   try {
     const result = await parser.getText();
-    return normalizeResumeText(result.text ?? "");
+    // Aggregate actual page text; the library's combined text also contains
+    // page counters, which must not make an empty/scanned PDF look readable.
+    return normalizeResumeText(result.pages.map((page) => page.text).join("\n"));
   } finally {
     await parser.destroy();
   }

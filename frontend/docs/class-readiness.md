@@ -56,3 +56,11 @@ The free voice provider accepted three concurrent sessions in a direct test and 
 Waiting students see their position, can leave the queue, and keep their microphones off. Changing tabs or leaving the page stops voice and requests queue cleanup. A busy class may wait substantially longer for live voice than for text chat: if everyone uses a full five minute interview, the last students in a group of 25 can wait about 40 minutes. This release does not promise 25 simultaneous provider voice sessions.
 
 Use `CAREERUP_CLASS_TEST_RESUME_FORMAT=pdf` to test actual PDF extraction through the running application. The PDF parser and native canvas package are external server dependencies, with worker and native binary files explicitly included in the deployment trace. An unreadable upload is rejected and preserves the previous resume and progress. A successful HTTP response without extracted text is a test failure.
+
+## Recovery and private database actions
+
+Voice delivery retries reuse the same request ID and recover the same single use provider credential rather than spending another daily session or minting another token. The short lived delivery credential is encrypted with AES GCM, bound to its owner, request and voice purpose, and accessible only to trusted server code. Gmail credentials keep their existing encryption context. Delivery stops being recoverable after its provider connection deadline, and ending a turn clears its stored credential. Network retry evidence records recovered transport failures separately from application errors.
+
+The email confirmation and direct message database functions check the active Auth session and enrolled MFA inside the function itself, including calls made directly through the Data API. Application ownership, confirmation concurrency checks and recipient validation still apply. Tests cover a revoked JWT and a first factor session trying these actions.
+
+PDF extraction reads actual page text rather than the library's combined page counters. Empty, image only or unreadable resumes do not overwrite a saved resume or earn upload points. Users can paste text when extraction is unavailable.

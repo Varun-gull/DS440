@@ -48,6 +48,10 @@ check("credentials are bound to their owner", () => assert.throws(() => decryptT
 check("tampered credential is rejected", () => { const parts = sealed.split("."); const bytes = Buffer.from(parts[3], "base64url"); bytes[0] ^= 1; parts[3] = bytes.toString("base64url"); assert.throws(() => decryptToken(parts.join("."), key, "user-a")); });
 check("weak encryption keys rejected", () => assert.throws(() => encryptToken("secret", "bad-key", "user-a")));
 
+const voiceCredential = encryptToken("synthetic voice credential", key, "user-a:request-a", "voice");
+check("voice credentials recover only for their original request", () => { assert.equal(decryptToken(voiceCredential, key, "user-a:request-a", "voice"), "synthetic voice credential"); assert.throws(() => decryptToken(voiceCredential, key, "user-a:request-b", "voice")); });
+check("Gmail and voice encryption purposes cannot be exchanged", () => { assert.throws(() => decryptToken(voiceCredential, key, "user-a:request-a")); assert.throws(() => decryptToken(sealed, key, "user-a", "voice")); });
+
 const encoded = (value) => Buffer.from(value).toString("base64url");
 const gmail = { id: "mail-a", threadId: "thread-a", internalDate: "1793188800000", payload: { mimeType: "multipart/mixed", headers: [{ name: "Subject", value: "Application received" }, { name: "From", value: "jobs@exampleco.com" }], parts: [
   { mimeType: "multipart/alternative", parts: [{ mimeType: "text/plain", body: { data: encoded("Thank you for applying.") } }, { mimeType: "text/html", body: { data: encoded("<p>Alternative duplicate text.</p>") } }] },

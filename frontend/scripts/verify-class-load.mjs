@@ -22,15 +22,31 @@ async function settled(tasks){const results=await Promise.allSettled(tasks);cons
 async function stage(name,fn){const start=performance.now();try{await fn();stages.push({name,passed:true,elapsedMs:Math.round(performance.now()-start)});console.log('PASS '+name);}catch(error){stages.push({name,passed:false,elapsedMs:Math.round(performance.now()-start),error:error.message});throw error;}}
 async function req(user,path,body,options={}){
  const start=performance.now();
- const response=await fetch(base+path,{method:options.method || (body?'POST':'GET'),redirect:'manual',signal:AbortSignal.timeout(options.timeoutMs || 60000),headers:{Origin:origin,...(user?{Cookie:[...user.cookies].map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('; ')}:{}),...(body&&!(body instanceof FormData)?{'Content-Type':'application/json'}:{}),...options.headers},...(body?{body:body instanceof FormData?body:JSON.stringify(body)}:{})});
- const text=await response.text();let data;try{data=JSON.parse(text);}catch{}
- measurements.push({path:path.split('?')[0],status:response.status,expectedRejection:response.status>=400&&response.status===options.expectedStatus,ms:Math.round(performance.now()-start)});
- return{status:response.status,text,data,headers:response.headers};
+ try{
+  const response=await fetch(base+path,{method:options.method || (body?'POST':'GET'),redirect:'manual',signal:AbortSignal.timeout(options.timeoutMs || 60000),headers:{Origin:origin,...(user?{Cookie:[...user.cookies].map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('; ')}:{}),...(body&&!(body instanceof FormData)?{'Content-Type':'application/json'}:{}),...options.headers},...(body?{body:body instanceof FormData?body:JSON.stringify(body)}:{})});
+  const text=await response.text();let data;try{data=JSON.parse(text);}catch{}
+  measurements.push({path:path.split('?')[0],status:response.status,expectedRejection:response.status>=400&&response.status===options.expectedStatus,ms:Math.round(performance.now()-start)});
+  return{status:response.status,text,data,headers:response.headers};
+ }catch(cause){
+  const code=/^[A-Z0-9_]{1,64}$/.test(cause.cause?.code||'')?cause.cause.code:cause.name;
+  const measurement=measurements.push({path:path.split('?')[0],status:0,ms:Math.round(performance.now()-start),networkFailure:true,code})-1;
+  const error=new Error(`Request ${path.split('?')[0]} failed (${code})`);error.networkFailure=true;error.measurement=measurement;throw error;
+ }
 }
+// This retry policy is limited to the idempotent voice request protocol, and
+// records recovered transport failures instead of hiding them from evidence.
+async function voiceReq(user,payload){
+ const failures=[];
+ for(let attempt=0;attempt<3;attempt++){
+  try{const r=await req(user,'/api/assistant/voice',payload);failures.forEach(i=>measurements[i].recovered=true);return r;}
+  catch(error){if(!error.networkFailure||attempt===2)throw error;failures.push(error.measurement);await new Promise(resolve=>setTimeout(resolve,1500));}
+ }
+}
+
 async function page(user,path){const r=await req(user,path);assert.equal(r.status,200,`Page ${path} returned ${r.status}`);assert.ok(!/"digest":"\d+"/.test(r.text),`Server rendering failed on ${path}`);for(let i=0;i<users.length;i++)if(users[i].id!==user.id)assert.ok(!r.text.includes(users[i].resumeMarker),'Another account resume appeared in rendered HTML');return r;}
-function resumeUpload(text){
+function resumeUpload(text,blank=false){
  if(resumeFormat==='txt')return new File([text],'synthetic-resume.txt',{type:'text/plain'});
- const lines=[text.split('\n')[0],'Computer science student. Built Python forecasting models with SQL,',
+ const lines=blank?[]:[text.split('\n')[0],'Computer science student. Built Python forecasting models with SQL,',
   'pandas and scikit-learn. Used a held out test set and evaluated predictions.'];
  const stream='BT /F1 11 Tf 50 740 Td 16 TL '+lines.map((line,i)=>(i?'T* ':'')+'('+line.replace(/[\\()]/g,'\\$&')+') Tj').join(' ')+' ET';
  const objects=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
@@ -51,9 +67,11 @@ try{
  await stage('concurrent resume uploads through the app API',async()=>{await settled(users.map(async u=>{const form=new FormData();form.set('resumeFile',resumeUpload(`${u.resumeMarker}\nComputer science student. Built and evaluated Python forecasting models with SQL, pandas and scikit-learn. Used a held out test set and reported prediction error.`));const r=await req(u,'/api/profile/resume',form);assert.equal(r.status,200,r.data?.error);assert.equal(r.data.extractedText,true);}));});
  if(resumeFormat==='pdf')await stage('unreadable PDFs preserve saved resume and progress',async()=>{
   const u=users[0],before=await u.client.from('profiles').select('resume_text,resume_file_name,total_xp').eq('id',u.id).single();assert.equal(before.error,null);
-  const form=new FormData();form.set('resumeFile',new File(['This is not a PDF.'],'corrupt.pdf',{type:'application/pdf'}));
-  const r=await req(u,'/api/profile/resume',form,{expectedStatus:422});assert.equal(r.status,422);
-  const after=await u.client.from('profiles').select('resume_text,resume_file_name,total_xp').eq('id',u.id).single();assert.deepEqual(after.data,before.data);
+  for(const file of [new File(['This is not a PDF.'],'corrupt.pdf',{type:'application/pdf'}),resumeUpload('',true)]){
+   const form=new FormData();form.set('resumeFile',file);
+   const r=await req(u,'/api/profile/resume',form,{expectedStatus:422});assert.equal(r.status,422);
+   const after=await u.client.from('profiles').select('resume_text,resume_file_name,total_xp').eq('id',u.id).single();assert.deepEqual(after.data,before.data);
+  }
  });
  await stage('private profile isolation and progress write denial',async()=>{await settled(users.map(async(u,i)=>{const other=users[(i+1)%count];const r=await u.client.from('profiles').select('id,resume_text,email').eq('id',other.id);assert.equal(r.error,null);assert.equal(r.data.length,0);const w=await u.client.from('profiles').update({xp:999999}).eq('id',u.id);assert.ok(w.error,'Browser role changed XP');}));});
  await stage('concurrent application saves using the rendered website form',async()=>{await settled(users.map(async u=>{const p=await page(u,'/applications/new');const action=p.text.match(/name="(\$ACTION_ID_[^"]+)"/);assert.ok(action,'Application form has no server action');const form=new FormData();form.set(action[1],'');form.set('company',`SyntheticCo ${nonce} ${u.index}`);form.set('role','AI Engineer Internship');form.set('location','New York');form.set('sourceUrl','https://example.com/synthetic-role');const r=await req(u,'/applications/new',form);assert.equal(r.status,303,'Application action did not redirect successfully');assert.ok(/^\/applications(?:\?|$)/.test(r.headers.get('location') || ''),'Application action returned an error');const a=await u.client.from('applications').select('id,status,updated_at').eq('company',`SyntheticCo ${nonce} ${u.index}`).single();assert.equal(a.error,null);u.application=a.data;}));});
@@ -74,13 +92,14 @@ try{
    try{
     let response;
     do{
-     response=await req(u,'/api/assistant/voice',{requestId,consent:true,jobTitle:'AI Engineer Internship',jobDescription:'Build and evaluate Python forecasting models.'});
+     response=await voiceReq(u,{requestId,consent:true,jobTitle:'AI Engineer Internship',jobDescription:'Build and evaluate Python forecasting models.'});
      if(response.status!==202)break;
-     assert.equal(response.data.queued,true);assert.ok(response.data.position>0);queued.add(u.id);
+     assert.equal(response.data.queued,true);assert.ok(response.data.position>=0);queued.add(u.id);
      assert.ok(Date.now()<deadline,'Voice waiting queue did not advance within the test window');
      await new Promise(resolve=>setTimeout(resolve,5000));
     }while(true);
     assert.equal(response.status,200,response.data?.error);assert.ok(response.data.token&&!response.data.token.includes(process.env.GEMINI_API_KEY));
+    if(u.index===0){const replay=await voiceReq(u,{requestId,consent:true});assert.equal(replay.status,200);assert.ok(replay.data.token===response.data.token,'A retried voice request did not recover its original token');const usage=await admin.from('assistant_usage').select('voice_sessions').eq('user_id',u.id).eq('usage_day',new Date().toISOString().slice(0,10)).single();assert.equal(usage.data.voice_sessions,1);report.voiceDeliveryRecoveryVerified=true;}
     const ai=new GoogleGenAI({apiKey:response.data.token,httpOptions:{apiVersion:'v1alpha'}});
     let accept,reject,abandoned=false;const heard=new Promise((resolve,fail)=>{accept=resolve;reject=fail;});heard.catch(()=>{});
     const failed=heard.then(()=>new Promise(()=>{}));const timer=setTimeout(()=>reject(new Error('Voice did not respond within 30 seconds')),30000);
@@ -90,7 +109,7 @@ try{
      connection.sendClientContent({turns:[{role:'user',parts:[{text:'Say hello to CareerUp in one short sentence.'}]}],turnComplete:true});await heard;audioResponses++;
     }finally{abandoned=true;clearTimeout(timer);if(connection){active--;connection.close();}}
    }finally{
-    const ended=await req(u,'/api/assistant/voice',{action:'leave',requestId});assert.equal(ended.status,200,ended.data?.error);
+    const ended=await voiceReq(u,{action:'leave',requestId});assert.equal(ended.status,200,ended.data?.error);
    }
   }));assert.equal(audioResponses,count);
   }finally{report.voice={connections,peakConcurrentSessions:peak,audioResponses,studentsWhoWaited:queued.size,physicalMicrophoneTested:false};}
@@ -113,6 +132,8 @@ finally{
  report.routes=Object.fromEntries([...new Set(measurements.map(x=>x.path))].map(path=>{const m=measurements.filter(x=>x.path===path),v=m.map(x=>x.ms).sort((a,b)=>a-b);return[path,{requests:m.length,p95Ms:v[Math.ceil(v.length*.95)-1],maxMs:v.at(-1),serverErrors:m.filter(x=>x.status>=500).length}];}));
  report.unexpectedHttpErrors=measurements.filter(x=>x.status>=400&&!x.expectedRejection).length;
  report.expectedRejections=measurements.filter(x=>x.expectedRejection).length;
+ report.recoveredNetworkFailures=measurements.filter(x=>x.networkFailure&&x.recovered).length;
+ report.unrecoveredNetworkFailures=measurements.filter(x=>x.networkFailure&&!x.recovered).length;
  let clean=true;
  for(const id of ids){const r=await admin.auth.admin.deleteUser(id);if(r.error)clean=false;}
  if(clean)fs.rmSync(manifestPath,{force:true});

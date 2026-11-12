@@ -7,19 +7,19 @@ function decodeKey(key: string) {
   return Buffer.from(key, "base64");
 }
 
-export function encryptToken(value: string, key: string, userId: string) {
+export function encryptToken(value: string, key: string, userId: string, purpose: "gmail" | "voice" = "gmail") {
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", decodeKey(key), iv);
-  cipher.setAAD(Buffer.from(`careerup:gmail:${userId}`));
+  cipher.setAAD(Buffer.from(`careerup:${purpose}:${userId}`));
   const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
   return ["v1", iv.toString("base64url"), cipher.getAuthTag().toString("base64url"), encrypted.toString("base64url")].join(".");
 }
 
-export function decryptToken(value: string, key: string, userId: string) {
+export function decryptToken(value: string, key: string, userId: string, purpose: "gmail" | "voice" = "gmail") {
   const [version, iv, tag, encrypted, extra] = value.split(".");
   if (version !== "v1" || !iv || !tag || !encrypted || extra) throw new Error("Invalid stored credential.");
   const decipher = createDecipheriv("aes-256-gcm", decodeKey(key), Buffer.from(iv, "base64url"));
-  decipher.setAAD(Buffer.from(`careerup:gmail:${userId}`));
+  decipher.setAAD(Buffer.from(`careerup:${purpose}:${userId}`));
   decipher.setAuthTag(Buffer.from(tag, "base64url"));
   return Buffer.concat([decipher.update(Buffer.from(encrypted, "base64url")), decipher.final()]).toString("utf8");
 }
