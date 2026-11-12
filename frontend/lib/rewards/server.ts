@@ -1,4 +1,4 @@
-import { ProviderCapacityError, waitForProviderSlot } from "@/lib/assistant/provider-pacing";
+import { ProviderCapacityError, withQueuedProviderRequest } from "@/lib/assistant/provider-pacing";
 import "server-only";
 import { GoogleGenAI } from "@google/genai";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -369,17 +369,16 @@ export async function generateReward(
       "Create one achievable skill exercise addressing a relevant gap or job skill. Use four sections: Goal and why it matters; Concrete steps and a 30 to 60 minute timebox; Deliverables the student can produce using freely available tools; Self assessment criteria and reflection questions. Keep scope feasible. Do not claim exercise completion proves professional competence.",
   };
   try {
-    try { await waitForProviderSlot(assistantConfig().model); }
-    catch (error) { if (error instanceof ProviderCapacityError) throw new AssistantError(error.message, error.status); throw error; }
-    const { data: active, error: sessionError } = await session.supabase.rpc("careerup_session_valid");
-    if (sessionError || active !== true) throw new AssistantError("Your session expired. Sign in again.", 401);
     const ai = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY!.trim(),
       httpOptions: { apiVersion: "v1beta", timeout: 35000 },
     });
     let response;
     try {
-      response = await ai.models.generateContent({
+      response = await withQueuedProviderRequest(assistantConfig().model, async () => {
+        const { data: active, error: sessionError } = await session.supabase.rpc("careerup_session_valid");
+        if (sessionError || active !== true) throw new AssistantError("Your session expired. Sign in again.", 401);
+      }, () => ai.models.generateContent({
         model: assistantConfig().model,
         contents: `${tasks[definition.kind]} Student skill focus, if provided: ${JSON.stringify(body.skillFocus || "Choose a relevant skill from the provided context")}. Keep the report practical and under 700 words. Each array item is one unnumbered plain text point; do not add bullet markers, numbering, or markdown.`,
         config: {
@@ -389,8 +388,10 @@ export async function generateReward(
           maxOutputTokens: 2500,
           temperature: 0.3,
         },
-      });
+      }), 35000);
     } catch (error) {
+      if (error instanceof AssistantError) throw error;
+      if (error instanceof ProviderCapacityError) throw new AssistantError(error.message, error.status);
       const failure = geminiFailure(error);
       throw new AssistantError(failure.message, failure.status);
     }

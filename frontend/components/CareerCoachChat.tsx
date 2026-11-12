@@ -115,7 +115,7 @@ export default function CareerCoachChat() {
           <p className="mb-1 text-[11px] font-bold opacity-70">{message.role === "user" ? "You" : mode === "ai" ? "CareerUp AI" : "Offline guide"}</p>
           <p className="whitespace-pre-wrap break-words text-sm leading-6">{message.text}</p>
         </div>)}
-        {working && <p role="status" className="flex items-center gap-2 text-xs text-[#2A6384]"><LoaderCircle size={15} className="animate-spin" aria-hidden />Preparing your reply. Busy requests may take up to three minutes…</p>}
+        {working && <p role="status" className="flex items-center gap-2 text-xs text-[#2A6384]"><LoaderCircle size={15} className="animate-spin" aria-hidden />Preparing your reply. Busy requests may take up to four minutes…</p>}
         {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs leading-5 text-red-800">{error}</p>}
         {access && <Link className="inline-flex rounded-xl bg-[#2A6384] px-4 py-2.5 text-sm font-semibold text-white" href={access === "login" ? "/login" : "/mfa?next=%2Finterview%2Fassistant"}>{access === "login" ? "Sign in to chat" : "Complete two factor verification"}</Link>}
         {!loading && !ready && !access && <button type="button" className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-[#2A6384]" onClick={() => setConnectionAttempt((current) => current + 1)}>Try connecting again</button>}

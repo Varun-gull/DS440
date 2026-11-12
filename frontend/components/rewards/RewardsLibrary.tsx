@@ -519,7 +519,7 @@ export function RewardsLibrary({
               </label>
               <p className="reward-footnote">
                 Your reward pays for one saved report. Preparing it does not
-                spend more points or use your daily chat messages. Busy requests may take up to three minutes. You can retry
+                spend more points or use your daily chat messages. Busy requests may take up to four minutes. You can retry
                 an unsuccessful request.
               </p>
               <button
