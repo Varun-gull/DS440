@@ -35,7 +35,7 @@ export function FloatingCareerCoach() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, close]);
 
-  if (pathname.startsWith("/coach") || pathname.startsWith("/interview/assistant")) return null;
+  if (pathname.startsWith("/coach") || pathname.startsWith("/interview")) return null;
 
   return (
     <div className="career-coach-widget">

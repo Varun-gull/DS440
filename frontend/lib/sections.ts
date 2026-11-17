@@ -19,7 +19,7 @@ export const sections: Section[] = [
   { href: "/applications", label: "Applications", icon: ClipboardList },
   { href: "/postings/internships", label: "Postings", icon: Search, match: "/postings" },
   { href: "/messages", label: "Messages", icon: Mail },
-  { href: "/interview", label: "Prep", icon: MessagesSquare },
+  { href: "/interview", label: "STAR Builder", icon: MessagesSquare },
   { href: "/coach", label: "AI Coach", icon: Bot },
   { href: "/rewards", label: "Rewards", icon: Gift }
 ];

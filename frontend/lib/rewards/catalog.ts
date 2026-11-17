@@ -4,7 +4,7 @@ export const rewardCatalog: Array<Omit<Reward, "unlocked">> = [
   {
     id: "behavioral-interview-pack",
     title: "Behavioral Interview Prep Kit",
-    description: "Unlock STAR prompts, answer structure, and story checkpoints for behavioral interviews.",
+    description: "Additional behavioral prompts, timing tips, and story checkpoints. The STAR Answer Builder is free for everyone.",
     category: "Interview prep",
     xpCost: 28,
     contents: [
