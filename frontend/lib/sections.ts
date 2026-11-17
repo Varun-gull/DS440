@@ -1,4 +1,4 @@
-import { CalendarDays, ClipboardList, Gift, Home, Mail, MessagesSquare, Search } from "lucide-react";
+import { Bot, ClipboardList, Gift, Home, Mail, MessagesSquare, Search } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type Section = {
@@ -11,7 +11,7 @@ export type Section = {
 
 /**
  * The app read as one document, top to bottom: check the day, work the board,
- * find new roles, answer people, prepare, look ahead, then spend what you earned.
+ * find new roles, answer people, prepare, work with the coach, then use rewards.
  * This order is the dock's order and the order you travel by scrolling.
  */
 export const sections: Section[] = [
@@ -20,7 +20,7 @@ export const sections: Section[] = [
   { href: "/postings/internships", label: "Postings", icon: Search, match: "/postings" },
   { href: "/messages", label: "Messages", icon: Mail },
   { href: "/interview", label: "Prep", icon: MessagesSquare },
-  { href: "/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/coach", label: "AI Coach", icon: Bot },
   { href: "/rewards", label: "Rewards", icon: Gift }
 ];
 

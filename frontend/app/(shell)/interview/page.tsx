@@ -19,7 +19,7 @@ export default async function InterviewPage({ searchParams: searchParamsInput }:
           title="Interview Prep"
           description="Draft STAR answers for behavioral interviews and keep your best stories ready."
           tabs={[
-            { label: "AI coach", href: "/interview/assistant" },
+            { label: "AI coach", href: "/coach" },
             { label: "STAR builder", href: "/interview", active: true },
             { label: "Rewards", href: "/rewards" }
           ]}

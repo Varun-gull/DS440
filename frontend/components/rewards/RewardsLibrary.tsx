@@ -123,7 +123,7 @@ export function RewardsLibrary({
           <AudioLines size={22} />
           <strong>{state.voiceCredits}</strong>
           <span>extra interview credits</span>
-          <Link href="/interview/assistant">
+          <Link href="/coach/live">
             Start practicing <ArrowRight size={15} />
           </Link>
         </div>
@@ -197,7 +197,7 @@ export function RewardsLibrary({
                       (reward.kind === "voice" ? (
                         <Link
                           className="reward-text-button"
-                          href="/interview/assistant"
+                          href="/coach/live"
                         >
                           Open interview practice <ArrowRight size={14} />
                         </Link>

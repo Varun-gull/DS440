@@ -7,6 +7,7 @@ export type LiveOptions = {
   token: string; model: string; expiresAt: string;
   microphoneStream?: MediaStream;
   onCaption: (speaker: "user" | "assistant", text: string, complete: boolean) => void;
+  onSpeakingChange?: (speaking: boolean) => void;
   onEnded: (reason: string) => void;
 };
 
@@ -25,10 +26,18 @@ export async function startLiveInterview(options: LiveOptions, signal: AbortSign
   const playing = new Set<AudioBufferSourceNode>();
   const captions = { user: "", assistant: "" };
   let muted = false;
+  let speaking = false;
+
+  function setSpeaking(value: boolean) {
+    if (speaking === value) return;
+    speaking = value;
+    options.onSpeakingChange?.(value);
+  }
 
   function stopPlayback() {
     for (const node of playing) { try { node.stop(); } catch { /* already ended */ } }
     playing.clear(); playbackEnd = 0;
+    setSpeaking(false);
   }
   function flushCaptions() {
     for (const speaker of ["user", "assistant"] as const) if (captions[speaker]) {
@@ -80,7 +89,8 @@ export async function startLiveInterview(options: LiveOptions, signal: AbortSign
       buffer.copyToChannel(new Float32Array(floats), 0);
       const node = context.createBufferSource(); node.buffer = buffer; node.connect(context.destination);
       node.start(playbackEnd); playbackEnd += buffer.duration;
-      playing.add(node); node.onended = () => playing.delete(node);
+      playing.add(node); setSpeaking(true);
+      node.onended = () => { playing.delete(node); if (playing.size === 0) setSpeaking(false); };
     }
     if (content?.turnComplete) flushCaptions();
     if (event.goAway) stop("The provider ended this session. Start another session when available.");

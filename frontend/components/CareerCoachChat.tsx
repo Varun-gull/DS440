@@ -117,7 +117,7 @@ export default function CareerCoachChat() {
         </div>)}
         {working && <p role="status" className="flex items-center gap-2 text-xs text-[#2A6384]"><LoaderCircle size={15} className="animate-spin" aria-hidden />Preparing your reply. Busy requests may take up to four minutes…</p>}
         {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs leading-5 text-red-800">{error}</p>}
-        {access && <Link className="inline-flex rounded-xl bg-[#2A6384] px-4 py-2.5 text-sm font-semibold text-white" href={access === "login" ? "/login" : "/mfa?next=%2Finterview%2Fassistant"}>{access === "login" ? "Sign in to chat" : "Complete two factor verification"}</Link>}
+        {access && <Link className="inline-flex rounded-xl bg-[#2A6384] px-4 py-2.5 text-sm font-semibold text-white" href={access === "login" ? "/login" : "/mfa?next=%2Fcoach"}>{access === "login" ? "Sign in to chat" : "Complete two factor verification"}</Link>}
         {!loading && !ready && !access && <button type="button" className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-[#2A6384]" onClick={() => setConnectionAttempt((current) => current + 1)}>Try connecting again</button>}
       </div>
 
@@ -129,7 +129,7 @@ export default function CareerCoachChat() {
           <textarea ref={input} id="careerup-quick-question" rows={2} maxLength={2500} value={question} onChange={(event) => setQuestion(event.target.value)} disabled={working} placeholder={mode === "ai" && !consent ? "Approve AI guidance above to start" : "Ask your career coach…"} className="max-h-28 min-h-11 min-w-0 flex-1 resize-none border-0 bg-transparent px-1 py-1 text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-60" onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} />
           <button type="submit" aria-label="Send message" disabled={!canSend || !question.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2A6384] text-white transition-colors hover:bg-[#214E69] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2A6384] disabled:cursor-not-allowed disabled:opacity-40">{working ? <LoaderCircle size={17} className="animate-spin" aria-hidden /> : <Send size={17} aria-hidden />}</button>
         </div>
-        <p className="flex items-center justify-center gap-1 text-[10px] leading-4 text-slate-500"><ShieldCheck size={12} aria-hidden />Saved resumes and emails aren’t included. <Link className="font-semibold text-[#2A6384] underline" href="/interview/assistant">Full coach</Link></p>
+        <p className="flex items-center justify-center gap-1 text-[10px] leading-4 text-slate-500"><ShieldCheck size={12} aria-hidden />Saved resumes and emails aren’t included. <Link className="font-semibold text-[#2A6384] underline" href="/coach">Full coach</Link></p>
       </form>}
     </div>
   );

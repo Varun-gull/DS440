@@ -15,7 +15,7 @@ let passed = 0;
 async function check(label, run) { await run(); passed++; console.log(`PASS ${label}`); }
 
 async function browser() {
-  const nodes = [], captions = [], ended = [], input = [];
+  const nodes = [], captions = [], ended = [], input = [], speaking = [];
   const track = { enabled: true, stopped: false, stop() { this.stopped = true; } };
   const stream = { getTracks: () => [track], getAudioTracks: () => [track] };
   let context, callbacks, permissionRequests = 0, connectionClosed = false, worklet;
@@ -52,10 +52,11 @@ async function browser() {
   const controller = new AbortController();
   const live = await exports.startLiveInterview({ token: "synthetic-token", model: "synthetic-model", expiresAt: new Date(Date.now() + 300000).toISOString(), microphoneStream: stream,
     onCaption: (speaker, text, complete) => captions.push({ speaker, text, complete }), onEnded: (reason) => ended.push(reason),
+    onSpeakingChange: value => speaking.push(value),
   }, controller.signal);
   const chunk = (seconds = 1) => ({ inlineData: { mimeType: "audio/pcm;rate=24000", data: Buffer.alloc(24000 * 2 * seconds).toString("base64") } });
   const message = (content) => callbacks.onmessage({ serverContent: content });
-  return { live, controller, context, nodes, track, captions, ended, input, worklet, chunk, message,
+  return { live, controller, context, nodes, track, captions, ended, input, speaking, worklet, chunk, message,
     permissionRequests: () => permissionRequests, connectionClosed: () => connectionClosed };
 }
 
@@ -76,6 +77,25 @@ await check("turn completion preserves queued audio and the final caption", asyn
     assert.equal(b.nodes[0].stopped, false);
     assert.ok(b.captions.some(c => c.complete && c.text === "What tools did you use?"));
     assert.equal(b.ended.length, 0);
+  } finally { b.live.stop(); }
+});
+await check("the interviewer stays visibly speaking until its last audio chunk ends", async () => {
+  const b = await browser();
+  try {
+    b.message({ modelTurn: { parts: [b.chunk(), b.chunk()] } });
+    assert.deepEqual(b.speaking, [true]);
+    b.message({ turnComplete: true });
+    b.nodes[0].onended(); assert.deepEqual(b.speaking, [true]);
+    b.nodes[1].onended(); assert.deepEqual(b.speaking, [true, false]);
+  } finally { b.live.stop(); }
+});
+await check("an interruption immediately clears the speaking avatar state", async () => {
+  const b = await browser();
+  try {
+    b.message({ modelTurn: { parts: [b.chunk()] } });
+    b.message({ interrupted: true }); assert.deepEqual(b.speaking, [true, false]);
+    b.message({ modelTurn: { parts: [b.chunk()] } });
+    b.nodes[0].onended(); assert.deepEqual(b.speaking, [true, false, true]);
   } finally { b.live.stop(); }
 });
 await check("a real interruption clears old speech and starts the next reply at the current time", async () => {

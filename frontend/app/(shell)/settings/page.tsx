@@ -34,7 +34,7 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
         <section className="card mt-6 max-w-3xl p-6">
           <h2 className="text-xl font-bold text-ink">Career assistant and voice practice</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">Use career chat, resume evidence explanations, and optional live interview practice. You choose the context shared with the AI provider.</p>
-          <Link href="/interview/assistant" className="primary-button mt-4 w-fit">Open career assistant</Link>
+          <Link href="/coach" className="primary-button mt-4 w-fit">Open career assistant</Link>
         </section>
 
         <section className="card mt-6 max-w-3xl p-6">

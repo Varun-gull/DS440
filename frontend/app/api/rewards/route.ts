@@ -243,7 +243,8 @@ export async function POST(request: Request) {
     revalidatePath("/rewards");
     revalidatePath("/dashboard");
     revalidatePath("/profile");
-    revalidatePath("/interview/assistant");
+    revalidatePath("/coach");
+    revalidatePath("/coach/live");
     return NextResponse.json(await rewardState(session), { headers });
   } catch (error) {
     return failure(error);

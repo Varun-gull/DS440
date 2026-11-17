@@ -35,7 +35,7 @@ export function FloatingCareerCoach() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, close]);
 
-  if (pathname.startsWith("/interview/assistant")) return null;
+  if (pathname.startsWith("/coach") || pathname.startsWith("/interview/assistant")) return null;
 
   return (
     <div className="career-coach-widget">
@@ -60,7 +60,7 @@ export function FloatingCareerCoach() {
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1">
-              <Link href="/interview/assistant" onClick={close} className="career-coach-icon-button" aria-label="Open full AI coach" title="Open full coach">
+              <Link href="/coach" onClick={close} className="career-coach-icon-button" aria-label="Open full AI coach" title="Open full coach">
                 <ArrowUpRight size={19} aria-hidden />
               </Link>
               <button ref={closeButton} type="button" onClick={close} className="career-coach-icon-button" aria-label="Close AI coach">
