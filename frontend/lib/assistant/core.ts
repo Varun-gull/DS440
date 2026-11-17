@@ -8,6 +8,8 @@ export type AssistantContext = {
 };
 export const MAX_CHAT_MESSAGES = 12;
 export const VOICE_SECONDS = 300;
+// Native speech uses output tokens too. Leave room for a complete spoken reply.
+export const VOICE_MAX_OUTPUT_TOKENS = 2048;
 
 // Retain complete recent turns while keeping long model replies within the API budget.
 // The full replies remain visible in the UI; only the next request is shortened.

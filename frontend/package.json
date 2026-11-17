@@ -14,6 +14,8 @@
     "verify:fit-score": "node scripts/verify-fit-score.mjs",
     "verify:email-scanner": "node scripts/verify-email-scanner.mjs",
     "verify:assistant": "node scripts/verify-career-assistant.mjs",
+    "verify:voice-playback": "node scripts/verify-voice-playback.mjs",
+    "verify:voice-completion": "node scripts/verify-voice-completion-live.mjs",
     "verify:integrations": "node scripts/verify-integrations-live.mjs",
     "verify:email-scanner:database": "node scripts/verify-email-scanner-database.mjs",
     "verify:profile-messages": "node scripts/verify-profile-messages.mjs",

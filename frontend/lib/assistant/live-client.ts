@@ -69,11 +69,16 @@ export async function startLiveInterview(options: LiveOptions, signal: AbortSign
       const floats = pcm16Floats(raw);
       const sampleRate = Number(data.mimeType.match(/rate=(\d+)/)?.[1] ?? 24000);
       if (sampleRate < 8000 || sampleRate > 48000 || floats.length > 240000) continue;
+      playbackEnd = Math.max(playbackEnd, context.currentTime);
+      // Generation can outrun real time. Keep queued speech instead of dropping
+      // the beginning of a reply whenever it grows beyond fifteen seconds.
+      if (playbackEnd - context.currentTime > 120) {
+        stop("Voice playback fell too far behind. Your microphone is off. Start a new session to continue.");
+        return;
+      }
       const buffer = context.createBuffer(1, floats.length, sampleRate);
       buffer.copyToChannel(new Float32Array(floats), 0);
       const node = context.createBufferSource(); node.buffer = buffer; node.connect(context.destination);
-      playbackEnd = Math.max(playbackEnd, context.currentTime);
-      if (playbackEnd - context.currentTime > 15) { stopPlayback(); playbackEnd = context.currentTime; }
       node.start(playbackEnd); playbackEnd += buffer.duration;
       playing.add(node); node.onended = () => playing.delete(node);
     }

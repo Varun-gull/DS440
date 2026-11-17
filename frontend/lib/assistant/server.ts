@@ -4,7 +4,7 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requiresMfaChallenge } from "@/lib/auth/mfa";
 import { getFitScoreBreakdown } from "@/lib/fit-score";
-import { buildAssistantInstructions, redactResumeContact, VOICE_SECONDS, type AssistantContext, type AssistantJob, type ChatMessage } from "./core";
+import { buildAssistantInstructions, redactResumeContact, VOICE_SECONDS, VOICE_MAX_OUTPUT_TOKENS, type AssistantContext, type AssistantJob, type ChatMessage } from "./core";
 import { encryptToken, decryptToken } from "@/lib/email-scanner/crypto";
 import { geminiFailure } from "./provider-errors";
 import { ProviderCapacityError, withQueuedProviderRequest } from "./provider-pacing";
@@ -140,7 +140,7 @@ export async function createVoiceToken(session: Session, loadContext: () => Prom
   let result;
   try {
   const context = await loadContext();
-  const liveConfig = { responseModalities: [Modality.AUDIO], maxOutputTokens: 256,
+  const liveConfig = { responseModalities: [Modality.AUDIO], maxOutputTokens: VOICE_MAX_OUTPUT_TOKENS,
     systemInstruction: buildAssistantInstructions(context, true), inputAudioTranscription: {}, outputAudioTranscription: {},
     speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } };
     result = await providerRequest(() => ai.authTokens.create({ config: { uses: 1, expireTime: expiresAt,
