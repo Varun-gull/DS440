@@ -26,7 +26,8 @@ for(const [name,input,company,role,status] of [
 check('Competing roles are held for review',!analyzeEmail(email('Application received: Developer or Analyst at ExampleCo','Thank you for applying.')).identityComplete);
 check('A season alone is not a job title',!analyzeEmail(email('Application received: Winter 2027 at ExampleCo','Thank you for applying.')).identityComplete);
 check('Offer congratulations are recognized',analyzeEmail(email('Congratulations on your offer with ExampleCo!','Congratulations on your offer! Please review your offer letter.')).status==='offer');
-check('A different explicit role cannot hijack an existing company card',analyzeEmail(email('Application received: Senior Data Analyst at ExampleCo','Thank you for applying.'),[{id:'existing',company:'ExampleCo',role:'Data Analyst',status:'applied',updated_at:'2026-08-01T12:00:00Z'}]).suggestedApplicationId===null);
+const similar=analyzeEmail(email('Application received: Senior Data Analyst at ExampleCo','Thank you for applying.'),[{id:'existing',company:'ExampleCo',role:'Data Analyst',status:'applied',updated_at:'2026-08-01T12:00:00Z'}]);
+check('Similar different roles stay for review instead of updating or duplicating a card',similar.suggestedApplicationId===null&&!similar.identityComplete);
 
 const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const admin=createClient(url,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});

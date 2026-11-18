@@ -136,6 +136,7 @@ export function analyzeEmail(email: EmailInput, applications: TrackedApplication
   const best = candidates[0];
   const identity = extractApplicationIdentity(email);
   const roleKey = (role: string) => normalized(role).split(" ").filter(word => !roleStopWords.has(word)).join(" ");
+  const similarDifferentRole = Boolean(identity && best && best.score >= 0.85 && roleKey(identity.role) !== roleKey(best.role));
   // Shared words must not attach a different explicit job title to an old card.
   const clearMatch = best && best.score >= 0.85 && (!identity || roleKey(identity.role) === roleKey(best.role))
     && (!candidates[1] || best.score - candidates[1].score >= 0.15);
@@ -143,7 +144,7 @@ export function analyzeEmail(email: EmailInput, applications: TrackedApplication
   const roleMatch = body.match(/\b(?:for the|for our)\s+([^\n.!?]{2,100}?)\s+(?:position|role)\b/i);
   const actionDate = body.match(/\b\d{4}-\d{2}-\d{2}\b|\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:,?\s+20\d{2})?\b/i);
   return {
-    identityComplete: Boolean(identity),
+    identityComplete: Boolean(identity) && !similarDifferentRole,
     status: hit?.status ?? null,
     confidence: hit && clearMatch ? "high" : hit ? "review" : "unknown",
     evidence: (hit?.evidence ?? terminal.map((item) => item.evidence).join(" ")).slice(0, 400),
