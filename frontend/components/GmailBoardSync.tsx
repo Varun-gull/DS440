@@ -17,6 +17,7 @@ export function GmailBoardSync() {
     let active = true, running = false;
     let timer: ReturnType<typeof setTimeout>;
     const controller = new AbortController();
+    let force = retry > 0;
     async function run() {
       if (running || document.visibilityState !== "visible") return;
       running = true;
@@ -31,9 +32,13 @@ export function GmailBoardSync() {
         if (current.connected && current.enabled && !current.reconnectRequired) {
           setBusy(true);
           const synced = await fetch("/api/email-scanner", { method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "auto-sync" }), signal: controller.signal });
+            body: JSON.stringify({ action: "auto-sync", force }), signal: controller.signal });
           const result = await synced.json();
-          if (!synced.ok) throw new Error(synced.status === 429 ? "A Gmail sync is already running. Checking again shortly." : result.error || "Gmail sync could not finish.");
+          if (!synced.ok) {
+            if (synced.status === 429) hasMore = true;
+            throw new Error(synced.status === 429 ? "A Gmail sync is running or just finished. Checking again in 30 seconds." : result.error || "Gmail sync could not finish.");
+          }
+          force = false;
           if (!active) return;
           setMessage(result.message);
           hasMore = result.hasMore === true;

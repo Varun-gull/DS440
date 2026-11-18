@@ -10,7 +10,7 @@ const must=({data,error})=>{if(error)throw error;return data;};
 const check=(name,truth)=>{assert.ok(truth,name);checks.push({name,passed:true});console.log('PASS '+name);};
 const date=(hours)=>new Date(Date.now()-hours*3600000).toISOString();
 const mail=(company,role,status,receivedAt)=>({source_key:randomUUID(),thread_key:randomUUID(),subject:`Application update: ${role} at ${company}`,sender:`Recruiting <careers@example.invalid>`,received_at:receivedAt,proposed_status:status,evidence:status==='applied'?'Thank you for applying.':'We invite you to interview.',extracted_company:company,extracted_role:role,action_date_text:'',confidence:'review',suggested_application_id:null,identity_complete:true});
-async function save(user,rows){const lease=must(await admin.rpc('claim_email_scan',{p_user_id:user.id}));assert.ok(lease);must(await admin.rpc('save_gmail_updates',{p_user_id:user.id,p_lease:lease,p_updates:rows,p_next_page:null,p_query:'synthetic fixture only',p_days:30}));}
+async function save(user,rows){assert.ok(users.some(u=>u.id===user.id));must(await admin.from('email_connections').update({last_scan_attempt_at:null}).eq('user_id',user.id));const lease=must(await admin.rpc('claim_email_scan',{p_user_id:user.id}));assert.ok(lease);must(await admin.rpc('save_gmail_updates',{p_user_id:user.id,p_lease:lease,p_updates:rows,p_next_page:null,p_query:'synthetic fixture only',p_days:30}));}
 try{
  for(let i=0;i<2;i++){
   const email=`careerup-privacy-auto-${randomUUID()}@example.invalid`,password='Aa!'+randomUUID()+'2';
@@ -58,6 +58,28 @@ try{
  const classified=analyzeEmail(input,[]);check('Parser extracts explicit company and role for new cards',classified.identityComplete&&classified.company==='ExampleCo'&&classified.role==='AI Engineer');
  check('Company-only receipt does not invent a job title',!extractApplicationIdentity({...input,subject:'Application received',body:'Thank you for applying to ExampleCo.'}));
  check('Generic newsletter does not become an application',analyzeEmail({...input,subject:'Jobs for you',body:'Apply for the AI Engineer position at ExampleCo today.'},[]).status===null);
+ // Old pending records must improve after a parser upgrade, while completed
+ // reviews and unchanged chronology holds remain immutable.
+ const retry=mail('RetryCo','AI Enablement Engineer','applied',date(3));
+ must(await admin.from('email_updates').insert({...retry,user_id:a.id,source:'gmail',extracted_company:'',extracted_role:'',identity_complete:false,automation_note:'Company and role are not clear enough for an automatic change.'}));
+ await save(a,[{...retry,parser_version:2}]);
+ let rechecked=must(await ca.from('email_updates').select('*').eq('source_key',retry.source_key).single());
+ check('New parser revisits a previously held record in place',rechecked.parser_version===2&&rechecked.identity_complete&&rechecked.automation_note==='');
+ must(await admin.from('email_connections').update({auto_sync_enabled:true,auto_sync_consented_at:date(1)}).eq('user_id',a.id));
+ check('Improved pending identity creates the missing board card',must(await ca.rpc('apply_gmail_board_updates')).added===2); // RetryCo and the earlier paused fixture
+ await save(a,[{...retry,parser_version:3,proposed_status:'rejected'}]);
+ rechecked=must(await ca.from('email_updates').select('*').eq('source_key',retry.source_key).single());
+ check('Reanalysis never overwrites a confirmed email decision',rechecked.decision==='confirmed'&&rechecked.proposed_status==='applied'&&rechecked.parser_version===2);
+ const held={...mail('HeldCo','Analyst','applied',date(4)),parser_version:2};
+ must(await admin.from('email_updates').insert({...held,user_id:a.id,source:'gmail',automation_note:'Older than the latest board change. Review it first.'}));
+ await save(a,[held]);
+ check('Identical reanalysis preserves the existing review reason',must(await ca.from('email_updates').select('automation_note').eq('source_key',held.source_key).single()).automation_note.startsWith('Older'));
+ await save(a,[{...held,parser_version:1,extracted_company:'WrongCo'}]);
+ check('Older parser cannot replace a newer analysis',must(await ca.from('email_updates').select('extracted_company').eq('source_key',held.source_key).single()).extracted_company==='HeldCo');
+ const outgoing={...mail('OutgoingCo','Analyst','applied',date(1)),sender:`Student <${a.email}>`};
+ must(await admin.from('email_updates').insert({...outgoing,user_id:a.id,source:'gmail'}));await save(a,[]);
+ check('Previously saved outgoing replies are dismissed without board writes',must(await ca.from('email_updates').select('decision').eq('source_key',outgoing.source_key).single()).decision==='dismissed'&&must(await ca.from('applications').select('id').eq('company','OutgoingCo')).length===0);
+ check('Completed scan records its parser version',must(await admin.from('email_connections').select('scan_parser_version').eq('user_id',a.id).single()).scan_parser_version===2);
  const staleToken=(await ca.auth.getSession()).data.session.access_token;await ca.auth.signOut({scope:'local'});const stale=createClient(url,key,{global:{headers:{Authorization:'Bearer '+staleToken}},auth:{persistSession:false}});check('Revoked sessions cannot run automation',!!(await stale.rpc('apply_gmail_board_updates')).error);
 }finally{
  for(let i=0;i<users.length;i++){

@@ -3,8 +3,8 @@ import { createHash } from "node:crypto";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { scannerConfig } from "./config";
 import { decryptToken } from "./crypto";
-import { analyzeEmail } from "./scanner";
-import { decodeGmailMessage, type GmailMessage } from "./gmail-message";
+import { analyzeEmail, EMAIL_PARSER_VERSION } from "./scanner";
+import { decodeGmailMessage, isIncomingGmailMessage, type GmailMessage } from "./gmail-message";
 import { gmailRequest, googleTokenRequest, GoogleAccessError, revokeGoogleToken } from "./google";
 import { ScannerError, requireScannerUser } from "./security";
 import type { EmailInput, EmailUpdate, ScannerState, TrackedApplication } from "./types";
@@ -13,7 +13,7 @@ type Session = Awaited<ReturnType<typeof requireScannerUser>>;
 type Connection = {
   user_id: string; email: string; refresh_token_encrypted: string;
   last_scanned_at: string | null; scan_page_token: string | null; scan_query: string | null;
-  scan_days: number; reconnect_required: boolean;
+  scan_days: number; reconnect_required: boolean; scan_parser_version: number;
 };
 const updateColumns = "id,source,subject,sender,received_at,proposed_status,evidence,extracted_company,extracted_role,action_date_text,confidence,suggested_application_id,application_id,previous_status,decision,reviewed_at,created_at,automation_note,automatically_applied";
 const hash = (text: string) => createHash("sha256").update(text).digest("hex");
@@ -62,15 +62,23 @@ function suggestion(email: EmailInput, applications: TrackedApplication[]) {
   return { subject: email.subject.slice(0, 300), sender: email.sender.slice(0, 300), received_at: email.receivedAt,
     proposed_status: result.status, evidence: result.evidence, extracted_company: result.company,
     extracted_role: result.role, action_date_text: result.actionDateText, confidence: result.confidence,
-    suggested_application_id: result.suggestedApplicationId, identity_complete: result.identityComplete };
+    suggested_application_id: result.suggestedApplicationId, identity_complete: result.identityComplete, parser_version: EMAIL_PARSER_VERSION };
 }
 
 export async function boardSyncState(session: Session) {
   const { data, error } = await scannerAdmin().from("email_connections")
-    .select("auto_sync_enabled,reconnect_required,last_scanned_at,scan_page_token,scan_days").eq("user_id", session.user.id).maybeSingle();
+    .select("auto_sync_enabled,reconnect_required,last_scanned_at,scan_page_token,scan_days,scan_parser_version").eq("user_id", session.user.id).maybeSingle();
   if (error) throw databaseError();
   return { connected: Boolean(data), enabled: data?.auto_sync_enabled ?? false, reconnectRequired: data?.reconnect_required ?? false,
-    lastScannedAt: data?.last_scanned_at ?? null, hasMore: Boolean(data?.scan_page_token), days: data?.scan_days ?? 30 };
+    lastScannedAt: data?.last_scanned_at ?? null, hasMore: Boolean(data?.scan_page_token), days: data?.scan_days ?? 30,
+    parserOutdated: (data?.scan_parser_version ?? 1) < EMAIL_PARSER_VERSION };
+}
+
+async function pendingGmailCount(session: Session) {
+  const { count, error } = await session.supabase.from("email_updates").select("id", { count: "exact", head: true })
+    .eq("user_id", session.user.id).eq("source", "gmail").eq("decision", "pending");
+  if (error) throw databaseError();
+  return count ?? 0;
 }
 
 export async function setGmailAutomation(session: Session, body: Record<string, unknown>) {
@@ -82,15 +90,16 @@ export async function setGmailAutomation(session: Session, body: Record<string, 
   return { message: body.enabled ? "Automatic Gmail sync enabled. Open your application board to start. Clear emails can add and update applications; uncertain matches stay for review." : "Automatic Gmail sync disabled. You can still scan and review emails manually." };
 }
 
-export async function autoSyncGmail(session: Session) {
+export async function autoSyncGmail(session: Session, body: Record<string, unknown> = {}) {
   const state = await boardSyncState(session);
   if (!state.connected || !state.enabled) throw new ScannerError("Enable automatic Gmail sync in the email scanner first.", 409);
-  if (!state.hasMore && state.lastScannedAt && Date.now() - Date.parse(state.lastScannedAt) < 300000) {
+  if (body.force !== true && !state.parserOutdated && !state.hasMore && state.lastScannedAt && Date.now() - Date.parse(state.lastScannedAt) < 300000) {
     const pending = await session.supabase.rpc("apply_gmail_board_updates");
     if (pending.error) throw new ScannerError("Saved email updates could not be applied. Retry sync.", 503);
-    return { message: "Gmail is up to date.", ...pending.data, hasMore: false };
+    const review = await pendingGmailCount(session);
+    return { ...pending.data, review, message: review ? `Last scan is current. ${review} email${review === 1 ? " needs" : "s need"} review before changing the board.` : "Last scan is current. No emails are waiting for review.", hasMore: false };
   }
-  return scanGmail(session, { days: state.days, continue: state.hasMore });
+  return scanGmail(session, { days: state.days, continue: state.hasMore && !state.parserOutdated, force: body.force === true });
 }
 
 export async function savePastedEmail(session: Session, body: Record<string, unknown>) {
@@ -134,30 +143,32 @@ export async function scanGmail(session: Session, body: Record<string, unknown>)
     const token = await googleTokenRequest(new URLSearchParams({ grant_type: "refresh_token",
       refresh_token: decryptToken(current.refresh_token_encrypted, config.encryptionKey, session.user.id) }));
     const access = token.access_token!;
-    const continuing = body.continue === true && current.scan_page_token && current.scan_query && days === current.scan_days;
+    const continuing = body.continue === true && current.scan_parser_version >= EMAIL_PARSER_VERSION && current.scan_page_token && current.scan_query && days === current.scan_days;
     const now = Math.floor(Date.now() / 1000);
-    const query = continuing ? current.scan_query! : `after:${now - days * 86400} before:${now + 1} {"application" "applying" "interview" "phone screen" "offer" "candidacy"} -in:spam -in:trash`;
+    const query = continuing ? current.scan_query! : `after:${now - days * 86400} before:${now + 1} {"application" "applying" "interview" "phone screen" "offer" "candidacy" "your interest"} -in:spam -in:trash -in:sent -in:drafts`;
     const params = new URLSearchParams({ q: query, maxResults: "20", fields: "messages(id,threadId),nextPageToken" });
     if (continuing) params.set("pageToken", current.scan_page_token!);
     const page = await gmailRequest<{ messages?: Array<{ id: string; threadId: string }>; nextPageToken?: string }>(access, `messages?${params}`);
     const messages = page.messages ?? [];
     const keys = messages.map((message) => hash(`${current.email.toLowerCase()}:${message.id}`));
-    const existing = keys.length ? await admin.from("email_updates").select("source_key").eq("user_id", session.user.id).eq("source", "gmail").in("source_key", keys) : { data: [], error: null };
+    const existing = keys.length ? await admin.from("email_updates").select("source_key,decision,parser_version").eq("user_id", session.user.id).eq("source", "gmail").in("source_key", keys) : { data: [], error: null };
     if (existing.error) throw databaseError();
-    const seen = new Set((existing.data ?? []).map((row) => row.source_key));
+    // Revisit pending records after a parser upgrade, and when the user explicitly
+    // syncs. Reviewed records are immutable; old uncertain matches are not lost.
+    const seen = new Set((existing.data ?? []).filter(row => row.decision !== "pending"
+      || (row.parser_version >= EMAIL_PARSER_VERSION && body.force !== true)).map(row => row.source_key));
     const applications = await scannerApplications(session);
     const rows: Array<Record<string, unknown>> = [];
-    let inspected = 0;
     const remaining = messages.filter((_, index) => !seen.has(keys[index]));
     for (let start = 0; start < remaining.length; start += 5) {
       const batch = await Promise.all(remaining.slice(start, start + 5).map(async (message) => {
-        const full = await gmailRequest<GmailMessage>(access, `messages/${encodeURIComponent(message.id)}?format=full&fields=id,threadId,internalDate,payload`);
+        const full = await gmailRequest<GmailMessage>(access, `messages/${encodeURIComponent(message.id)}?format=full&fields=id,threadId,internalDate,labelIds,payload`);
+        if (!isIncomingGmailMessage(full, current.email)) return null;
         const email = decodeGmailMessage(full);
         const result = suggestion(email, applications);
         return result ? { ...result, source_key: hash(`${current.email.toLowerCase()}:${full.id}`),
           thread_key: hash(`${current.email.toLowerCase()}:${full.threadId}`) } : null;
       }));
-      inspected += batch.length;
       for (const row of batch) if (row) rows.push(row);
     }
     const saved = await admin.rpc("save_gmail_updates", { p_user_id: session.user.id, p_lease: lease,
@@ -165,8 +176,8 @@ export async function scanGmail(session: Session, body: Record<string, unknown>)
     if (saved.error) throw new ScannerError("The scan could not be saved. Retry this batch; no checkpoint was advanced.", 409);
     const applied = await session.supabase.rpc("apply_gmail_board_updates");
     if (applied.error) throw new ScannerError("Emails were saved, but board sync could not finish. Retry sync to apply saved updates.", 503);
-    const counts = applied.data as { added: number; updated: number; review: number };
-    return { message: `Checked ${messages.length} emails. Added ${counts.added} applications, updated ${counts.updated}, and saved ${saved.data ?? 0} email records. ${page.nextPageToken ? "More emails remain." : "This search window is complete."}`,
+    const counts = { ...(applied.data as { added: number; updated: number }), review: await pendingGmailCount(session) };
+    return { message: `Checked ${messages.length} emails in the last ${days} days. Added ${counts.added} applications and updated ${counts.updated}. ${counts.review} email${counts.review === 1 ? " needs" : "s need"} review. ${page.nextPageToken ? "More emails remain; the next batch will continue automatically while this board is open." : "This search window is complete."}`,
       ...counts, hasMore: Boolean(page.nextPageToken) };
   } catch (error) {
     if (error instanceof GoogleAccessError && error.reconnect) {

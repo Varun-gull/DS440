@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     let result: { message: string };
     switch (body.action) {
       case "automation": result = await setGmailAutomation(session, body); break;
-      case "auto-sync": result = await autoSyncGmail(session); break;
+      case "auto-sync": result = await autoSyncGmail(session, body); break;
       case "paste": result = await savePastedEmail(session, body); break;
       case "scan": result = await scanGmail(session, body); break;
       case "confirm":

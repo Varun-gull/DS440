@@ -1,5 +1,7 @@
 import type { EmailAnalysis, EmailInput, EmailStatus, TrackedApplication } from "./types.ts";
 
+export const EMAIL_PARSER_VERSION = 2;
+
 // Deliberately deterministic: email text is never executed or sent to an LLM.
 // Only the new portion of a reply is classified, not quoted rejection/offer text.
 export function cleanEmailText(value: string) {
@@ -43,6 +45,8 @@ const companyStopWords = new Set(["inc", "llc", "ltd", "corp", "corporation", "c
 // Extract explicit company/role pairs, never infer a company from a mail vendor.
 export function extractApplicationIdentity(email: EmailInput) {
   const text = `${email.subject}\n${currentMessage(email.body)}`;
+  // ATS templates wrap titles across HTML elements and plain-text lines.
+  const flat = text.replace(/\s+/g, " ");
   const pairs: Array<{ company: string; role: string }> = [];
   const clean = (s: string) => s.trim().replace(/[.!,:;]+$/, "").trim();
   for (const line of text.split(/\n+/)) {
@@ -50,8 +54,9 @@ export function extractApplicationIdentity(email: EmailInput) {
       ?? line.match(/(?:for (?:the |our )?)(.{3,100}?)\s+(?:position|role)\s+(?:at|with)\s+([^.!?\n]{2,70})/i);
     if (pair) pairs.push({ role: clean(pair[1]), company: clean(pair[2]) });
   }
-  const company = text.match(/\b(?:thank you for applying to|your application (?:to|with))\s+([^\n.!?]{2,70}?)(?=\s+for\b|[.!?\n]|$)/i)?.[1];
-  const role = text.match(/\b(?:for the|for our)\s+([^\n.!?]{3,100}?)\s+(?:position|role)\b/i)?.[1]
+  const company = text.match(/\b(?:thank you for applying to|your application (?:to|with)|(?:thank you|thanks) for your interest in)\s+([^\n.!?]{2,70}?)(?=\s+for\b|[.!?\n]|$)/i)?.[1];
+  const role = flat.match(/\b(?:for (?:the|our)|interest in (?:the|our))\s+([^.!?]{3,100}?)\s+(?:position|role)\b/i)?.[1]
+    ?? flat.match(/\bfor the position of\s+([^.!?]{3,160})(?=[.!?]|$)/i)?.[1]
     ?? text.match(/\b(?:job title|position|role):\s*([^\n.!?]{3,100})/i)?.[1];
   if (company && role) pairs.push({ company: clean(company), role: clean(role) });
   const valid = pairs.filter(p => p.company.length >= 2 && p.company.length <= 70 && p.role.length >= 3 && p.role.length <= 100
@@ -79,7 +84,7 @@ export function matchApplications(email: EmailInput, applications: TrackedApplic
 
 const signals: Array<{ status: EmailStatus; patterns: RegExp[] }> = [
   { status: "rejected", patterns: [
-    /\b(?:not (?:be )?(?:moving|proceeding) forward|will not be (?:moving|proceeding)|decided (?:not to (?:move|proceed)|to (?:move|proceed) (?:forward )?with other)|(?:unable|not able) to offer|(?:application|candidacy).{0,50}(?:unsuccessful|not selected)|position has been filled|you (?:have |were )?not (?:been )?selected)\b/i,
+    /\b(?:not (?:be )?(?:moving|proceeding) forward|will not be (?:moving|proceeding)|decided (?:not to (?:move|proceed)|to (?:move|proceed) (?:forward )?with other)|(?:will be|are) (?:progressing|proceeding|moving forward) with other candidates|(?:unable|not able) to offer|(?:application|candidacy).{0,50}(?:unsuccessful|not selected)|position has been filled|you (?:have |were )?not (?:been )?selected)\b/i,
   ] },
   { status: "offer", patterns: [
     /\b(?:pleased|delighted|excited|happy) to (?:extend|offer|present).{0,65}\b(?:offer|employment|position|role|internship)\b/i,
@@ -92,7 +97,8 @@ const signals: Array<{ status: EmailStatus; patterns: RegExp[] }> = [
   ] },
   { status: "applied", patterns: [
     /\bthank you for (?:applying|your application)\b/i,
-    /\b(?:received|receiving|submitted).{0,35}\b(?:your|the) application\b/i,
+    /\b(?:received|receiving|submitted).{0,35}\b(?:your|the) application\b(?!\s+(?:invitation|link|request|form))/i,
+    /\bthank you for submitting (?:your|an) application\b/i,
     /\byour application (?:has been |was |is )?(?:received|submitted|under review)\b/i,
     /^application (?:received|confirmation)\b/i,
   ] },
@@ -102,7 +108,7 @@ export function analyzeEmail(email: EmailInput, applications: TrackedApplication
   const body = currentMessage(email.body);
   // A reply subject often describes an old status, not the new message.
   const subject = /^(?:re|fw|fwd)\s*:/i.test(email.subject.trim()) ? "" : email.subject;
-  const lines = `${body}\n${subject}`.split(/\n+|(?<=[.!?])\s+/).map((line) => line.trim()).filter(Boolean);
+  const lines = `${body.replace(/\s+/g, " ")}\n${subject}`.split(/\n+|(?<=[.!?])\s+/).map((line) => line.trim()).filter(Boolean);
   // A generic offer advertisement or invitation to APPLY is not an application update.
   const negative = /\b(?:not an? (?:offer|interview)|no (?:offer|interview)|(?:cannot|can't|unable to) (?:schedule|offer|invite)|not (?:inviting|offering)|offer (?:has been |was )?(?:withdrawn|rescinded)|interview (?:has been |was )?cancelled)\b/i;
   const hits = signals.flatMap(({ status, patterns }) => {

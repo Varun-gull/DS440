@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { analyzeEmail, cleanEmailText, matchApplications } from "../lib/email-scanner/scanner.ts";
 import { encryptToken, decryptToken } from "../lib/email-scanner/crypto.ts";
-import { decodeGmailMessage } from "../lib/email-scanner/gmail-message.ts";
+import { decodeGmailMessage, isIncomingGmailMessage } from "../lib/email-scanner/gmail-message.ts";
 
 let passed = 0;
 function check(name, fn) { fn(); passed++; console.log(`PASS ${name}`); }
@@ -63,4 +63,34 @@ check("MIME HTML fallback preserves quotes for classifier", () => {
   assert.equal(analyzeEmail(result).status, null);
 });
 check("invalid Gmail date is rejected", () => assert.throws(() => decodeGmailMessage({ ...gmail, internalDate: "not-a-date" })));
+
+// Redacted recruiting templates from the reported failure: no personal details,
+// message IDs, tracking links, tokens or complete private emails are included.
+check("SmartRecruiters position-of template creates an explicit identity", () => {
+  const r = analyzeEmail(email("Thank you for submitting your application for the position of AI Enablement Engineer. Your application will be reviewed.", "Thank you for applying to Revalize", "Revalize <notification@smartrecruiters.com>"));
+  assert.equal(r.status, "applied"); assert.equal(r.company, "Revalize"); assert.equal(r.role, "AI Enablement Engineer"); assert.equal(r.identityComplete, true);
+});
+check("company in body and HTML nonbreaking spaces are recognized", () => {
+  const r = analyzeEmail(email("Thank you for your interest in CapTech! We received your application for the&nbsp;Technical Business Systems Analyst&nbsp;position in Reston, VA, USA.", "Thank You for Your Application", "CapTech Consulting <notification@captechcareers.com>"));
+  assert.equal(r.status, "applied"); assert.equal(r.company, "CapTech"); assert.equal(r.role, "Technical Business Systems Analyst"); assert.equal(r.identityComplete, true);
+});
+check("Lever interest-in-our template links rejection to the correct role", () => {
+  const r = analyzeEmail(email("Thank you for your interest in our Data Engineer position. We've reviewed your application and have decided not to move forward at this time.", "Thanks for your interest in Alloy", "Alloy <no-reply@hire.lever.co>"));
+  assert.equal(r.status, "rejected"); assert.equal(r.company, "Alloy"); assert.equal(r.role, "Data Engineer"); assert.equal(r.identityComplete, true);
+});
+check("Workday rejection overrides generic applying subject across wrapped lines", () => {
+  const r = analyzeEmail(email("Thank you for your interest in the following position:\n\nIT Emerging Talent Program\n\nWe have reviewed your application. At this time, we\nwill be progressing with other candidates whose background better aligns.", "Thank You For Applying!", '"Workday Notify (Do Not Reply)" <employer@myworkday.com>'));
+  assert.equal(r.status, "rejected"); assert.equal(r.identityComplete, false); assert.notEqual(r.company, "Workday");
+});
+check("application invitation in a personal reply is not a receipt", () => {
+  assert.equal(analyzeEmail(email("I received the application invitation, but when I clicked the link it did not open.", "Re: Logistics for your upcoming interview")).status, null);
+});
+check("sent and draft Gmail messages are excluded", () => {
+  assert.equal(isIncomingGmailMessage({ ...gmail, labelIds: ["SENT"] }, "student@example.invalid"), false);
+  assert.equal(isIncomingGmailMessage({ ...gmail, labelIds: ["DRAFT"] }, "student@example.invalid"), false);
+});
+check("self-sent messages are excluded even without a sent label", () => {
+  assert.equal(isIncomingGmailMessage({ ...gmail, payload: { headers: [{ name: "From", value: 'Student <student@example.invalid>' }] } }, "STUDENT@example.invalid"), false);
+  assert.equal(isIncomingGmailMessage(gmail, "student@example.invalid"), true);
+});
 console.log(`${passed} email scanner checks passed. Synthetic data only; these are rule checks, not measured real world accuracy.`);

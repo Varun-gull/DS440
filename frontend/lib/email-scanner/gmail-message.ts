@@ -7,7 +7,13 @@ type Part = {
   headers?: Array<{ name: string; value: string }>;
   parts?: Part[];
 };
-export type GmailMessage = { id: string; threadId: string; internalDate?: string; payload?: Part };
+export type GmailMessage = { id: string; threadId: string; internalDate?: string; labelIds?: string[]; payload?: Part };
+
+export function isIncomingGmailMessage(message: GmailMessage, mailbox: string) {
+  const sender = message.payload?.headers?.find(h => h.name.toLowerCase() === "from")?.value ?? "";
+  const address = (sender.match(/<([^<>]+)>/)?.[1] ?? sender).trim().toLowerCase();
+  return !message.labelIds?.some(label => label === "SENT" || label === "DRAFT") && address !== mailbox.trim().toLowerCase();
+}
 
 function textParts(part: Part, wanted: string, depth = 0): string[] {
   if (depth > 10 || part.filename) return [];
