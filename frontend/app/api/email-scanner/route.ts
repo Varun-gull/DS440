@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       case "paste": result = await savePastedEmail(session, body); break;
       case "scan": result = await scanGmail(session, body); break;
       case "confirm":
+      case "create":
       case "dismiss": result = await reviewUpdate(session, body); break;
       case "disconnect": result = await disconnectGmail(session); break;
       case "clear": {
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
       }
       default: throw new ScannerError("Unknown email scanner action.");
     }
-    if (["confirm", "scan", "auto-sync"].includes(String(body.action))) {
+    if (["confirm", "create", "scan", "auto-sync"].includes(String(body.action))) {
       for (const path of ["/applications", "/dashboard", "/calendar", "/profile"]) revalidatePath(path);
     }
     return NextResponse.json(result, { headers });

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, RefreshCw } from "lucide-react";
 
-type SyncState = { connected: boolean; enabled: boolean; reconnectRequired: boolean; lastScannedAt: string | null; hasMore: boolean };
+type SyncState = { connected: boolean; enabled: boolean; reconnectRequired: boolean; lastScannedAt: string | null; hasMore: boolean; startDate: string; endDate: string; checked: number };
 
 export function GmailBoardSync() {
   const router = useRouter();
@@ -59,7 +59,7 @@ export function GmailBoardSync() {
 
   return <section className="card mt-5 flex flex-wrap items-center justify-between gap-4 p-5" aria-label="Gmail application sync">
     <div className="min-w-0 flex-1"><h2 className="flex items-center gap-2 text-sm font-bold text-slate-900"><Mail size={17} className="text-[#23675D]" />Gmail application sync{state?.enabled && <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs text-emerald-800">Automatic</span>}</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{state?.reconnectRequired ? "Reconnect Gmail to resume automatic updates." : state?.enabled ? "Reads application emails while this board is open. Clear matches add cards and update statuses; uncertain emails stay for review." : "Connect Gmail and enable automatic sync to add applications and keep their statuses up to date."}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{state?.reconnectRequired ? "Reconnect Gmail to resume automatic updates." : state?.enabled ? `Reads application emails from ${state.startDate} through ${state.endDate} while this board is open. Clear matches add cards and update statuses; uncertain emails stay for review.` : "Connect Gmail to import your recruiting cycle from July 1 and keep your application board up to date."}</p>
       {message && <p className="mt-2 text-xs leading-5 text-slate-500" role="status">{message}</p>}
     </div>
     <div className="flex flex-wrap gap-2">{state?.enabled && !state.reconnectRequired && <button type="button" className="secondary-button" disabled={busy} onClick={() => setRetry(value => value + 1)}><RefreshCw size={15} className={busy ? "animate-spin" : ""} />{busy ? "Syncing…" : "Sync Gmail"}</button>}<Link href="/applications/email-scanner" className="secondary-button">{state?.enabled ? "Review & settings" : "Set up Gmail sync"}</Link></div>

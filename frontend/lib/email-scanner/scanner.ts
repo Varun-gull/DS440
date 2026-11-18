@@ -1,6 +1,6 @@
 import type { EmailAnalysis, EmailInput, EmailStatus, TrackedApplication } from "./types.ts";
 
-export const EMAIL_PARSER_VERSION = 2;
+export const EMAIL_PARSER_VERSION = 3;
 
 // Deliberately deterministic: email text is never executed or sent to an LLM.
 // Only the new portion of a reply is classified, not quoted rejection/offer text.
@@ -14,6 +14,7 @@ export function cleanEmailText(value: string) {
     .replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&rsquo;|&#8217;/gi, "'").replace(/&ndash;|&#8211;/gi, "–").replace(/&mdash;|&#8212;/gi, "—")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
     .replace(/\r/g, "")
@@ -50,18 +51,26 @@ export function extractApplicationIdentity(email: EmailInput) {
   const pairs: Array<{ company: string; role: string }> = [];
   const clean = (s: string) => s.trim().replace(/[.!,:;]+$/, "").trim();
   for (const line of text.split(/\n+/)) {
-    const pair = line.match(/(?:application (?:received|confirmation)|interview invitation|application update|offer(?: letter)?)[\s:–—-]+(.{3,100}?)\s+(?:at|with)\s+([^.!?\n]{2,70})[.!?]?$/i)
-      ?? line.match(/(?:for (?:the |our )?)(.{3,100}?)\s+(?:position|role)\s+(?:at|with)\s+([^.!?\n]{2,70})/i);
+    const pair = line.match(/(?:application (?:received|confirmation)|interview invitation|application update|offer(?: letter)?)[\s:–—-]+(.{3,160}?)\s+(?:at|with)\s+([^.!?\n]{2,70})[.!?]?$/i)
+      ?? line.match(/(?:for (?:the |our )?|interest in (?:the |our )?)(.{3,160}?)\s+(?:position|role)\s+(?:at|with|for)\s+([^.!?\n]{2,70})/i);
     if (pair) pairs.push({ role: clean(pair[1]), company: clean(pair[2]) });
   }
-  const company = text.match(/\b(?:thank you for applying to|your application (?:to|with)|(?:thank you|thanks) for your interest in)\s+([^\n.!?]{2,70}?)(?=\s+for\b|[.!?\n]|$)/i)?.[1];
-  const role = flat.match(/\b(?:for (?:the|our)|interest in (?:the|our))\s+([^.!?]{3,100}?)\s+(?:position|role)\b/i)?.[1]
-    ?? flat.match(/\bfor the position of\s+([^.!?]{3,160})(?=[.!?]|$)/i)?.[1]
-    ?? text.match(/\b(?:job title|position|role):\s*([^\n.!?]{3,100})/i)?.[1];
+  const explicitCompany = text.match(/\b(?:thank you for applying to|your application (?:to|with)|(?:thank you(?: very much)?|thanks) for your interest in)\s+([^\n.!?]{2,70}?)(?=\s+for\b|[.!?\n]|$)/i)?.[1];
+  const subjectCompany = email.subject.match(/(?:interview|offer) with\s+([^.!?\n]{2,70})[.!?]?$/i)?.[1]
+    ?? email.subject.match(/^(.{2,70}?)\s+(?:job\s+)?application(?:\s+update|:)/i)?.[1];
+  const company = subjectCompany ?? (explicitCompany && !/\b(?:position|role|our|the|this)\b/i.test(explicitCompany) ? explicitCompany
+    : flat.match(/\b(?:a |the )?position at\s+([^.!?]{2,70})(?=[.!?]|$)/i)?.[1]);
+  const role = flat.match(/\bfor the position of\s+([^.!?]{3,160})(?=[.!?]|$)/i)?.[1]
+    ?? flat.match(/\bfor the following position:\s*([^.!?]{3,160})(?=[.!?]|$)/i)?.[1]
+    ?? flat.match(/\b(?:for (?:the|our)|interest in (?:the|our))\s+([^.!?]{3,160}?)\s+(?:position|role)\b/i)?.[1]
+    ?? text.match(/\b(?:job title|position|role):\s*([^\n.!?]{3,160})/i)?.[1]
+    ?? email.subject.match(/\b(?:thanks|thank you) for applying for\s+(.{3,160})$/i)?.[1]
+    ?? (subjectCompany ? flat.match(/\bthanks for applying to\s+([^.!?]{3,160})(?=[.!?]|$)/i)?.[1] : undefined);
   if (company && role) pairs.push({ company: clean(company), role: clean(role) });
-  const valid = pairs.filter(p => p.company.length >= 2 && p.company.length <= 70 && p.role.length >= 3 && p.role.length <= 100
+  const valid = pairs.filter(p => p.company.length >= 2 && p.company.length <= 70 && p.role.length >= 3 && p.role.length <= 160
     && !/\b(?:your|our|this|team|opportunities|position|role|application|recruiting)\b/i.test(p.company)
-    && !/\b(?:your|our|this|availability|interest|application)\b/i.test(p.role));
+    && !/\b(?:your|our|this|availability|interest|application|applying|received|submitted|or)\b/i.test(p.role)
+    && normalized(p.role).split(" ").some(word => !roleStopWords.has(word)));
   const unique = [...new Map(valid.map(p => [`${normalized(p.company)}::${normalized(p.role)}`, p])).values()];
   return unique.length === 1 ? unique[0] : null;
 }
@@ -90,10 +99,12 @@ const signals: Array<{ status: EmailStatus; patterns: RegExp[] }> = [
     /\b(?:pleased|delighted|excited|happy) to (?:extend|offer|present).{0,65}\b(?:offer|employment|position|role|internship)\b/i,
     /\b(?:formal|written|employment|job) offer\b.{0,65}\b(?:attached|accept|enclosed|pleased)\b/i,
     /\b(?:offer letter (?:is )?(?:attached|enclosed)|we would like to offer you|we are offering you)\b/i,
+    /\bcongratulations on your (?:job )?offer\b/i,
   ] },
   { status: "interviewing", patterns: [
     /\b(?:invite you to|invitation to|schedule (?:your|an|a)|arrange (?:your|an|a)|confirm (?:your|an|a)|selected for|move forward with|proceed with).{0,65}\b(?:interview|phone screen|technical screen|recruiter screen)\b/i,
     /\b(?:interview|phone screen|technical screen).{0,65}\b(?:invitation|scheduled|availability|confirmed)\b/i,
+    /\b(?:selected to interview|your interview (?:is|has been) confirmed)\b/i,
   ] },
   { status: "applied", patterns: [
     /\bthank you for (?:applying|your application)\b/i,
@@ -101,6 +112,7 @@ const signals: Array<{ status: EmailStatus; patterns: RegExp[] }> = [
     /\bthank you for submitting (?:your|an) application\b/i,
     /\byour application (?:has been |was |is )?(?:received|submitted|under review)\b/i,
     /^application (?:received|confirmation)\b/i,
+    /\b(?:our team is|we are) (?:carefully )?(?:evaluating|reviewing) (?:each candidate|your application)\b/i,
   ] },
 ];
 
@@ -122,8 +134,11 @@ export function analyzeEmail(email: EmailInput, applications: TrackedApplication
   const hit = conflict ? null : terminal[0] ?? hits[0] ?? null;
   const candidates = matchApplications({ ...email, body }, applications);
   const best = candidates[0];
-  const clearMatch = best && best.score >= 0.85 && (!candidates[1] || best.score - candidates[1].score >= 0.15);
   const identity = extractApplicationIdentity(email);
+  const roleKey = (role: string) => normalized(role).split(" ").filter(word => !roleStopWords.has(word)).join(" ");
+  // Shared words must not attach a different explicit job title to an old card.
+  const clearMatch = best && best.score >= 0.85 && (!identity || roleKey(identity.role) === roleKey(best.role))
+    && (!candidates[1] || best.score - candidates[1].score >= 0.15);
   const companyMatch = body.match(/\b(?:thank you for applying to|your application (?:to|with))\s+([^\n.!?]{2,70})/i);
   const roleMatch = body.match(/\b(?:for the|for our)\s+([^\n.!?]{2,100}?)\s+(?:position|role)\b/i);
   const actionDate = body.match(/\b\d{4}-\d{2}-\d{2}\b|\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:,?\s+20\d{2})?\b/i);

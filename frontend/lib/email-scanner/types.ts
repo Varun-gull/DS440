@@ -5,6 +5,7 @@ export type TrackedApplication = {
   role: string;
   status: string;
   updated_at: string;
+  application_year?: number | null;
 };
 
 export type EmailInput = {
@@ -28,6 +29,7 @@ export type EmailAnalysis = {
 };
 
 export type EmailUpdate = {
+  recruiting_cycle_year?: number | null;
   automation_note?: string;
   automatically_applied?: boolean;
   id: string;
@@ -54,7 +56,8 @@ export type ScannerState = {
   databaseReady: boolean;
   gmailReady: boolean;
   missingSettings: string[];
-  connection: { email: string; lastScannedAt: string | null; hasMore: boolean; scanDays: number; reconnectRequired: boolean; autoSyncEnabled: boolean } | null;
+  connection: { email: string; lastScannedAt: string | null; hasMore: boolean; scanDays: number; reconnectRequired: boolean; autoSyncEnabled: boolean;
+    mode: "cycle" | "custom" | "recent"; startDate: string; endDate: string; cycleYear: number; checked: number; completedAt: string | null } | null;
   applications: TrackedApplication[];
   updates: EmailUpdate[];
   error?: string;

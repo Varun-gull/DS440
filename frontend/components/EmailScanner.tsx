@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Check, ChevronRight, FileText, Inbox, LoaderCircle, Mail, RefreshCw, ShieldCheck, Unplug, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { analyzeEmail } from "@/lib/email-scanner/scanner";
+import { currentRecruitingCycle } from "@/lib/email-scanner/window";
 import type { EmailAnalysis, EmailUpdate, ScannerState, TrackedApplication } from "@/lib/email-scanner/types";
 
 const statusLabel: Record<string, string> = { saved: "Saved", applied: "Applied", interviewing: "Interviewing", offer: "Offer", rejected: "Rejected" };
@@ -19,7 +20,10 @@ function displayDate(value: string) {
 type Act = (body: Record<string, unknown>) => Promise<boolean>;
 
 function SuggestionCard({ update, applications, busy, act }: { update: EmailUpdate; applications: TrackedApplication[]; busy: boolean; act: Act }) {
-  const [selected, setSelected] = useState(update.suggested_application_id ?? "");
+  const [selected, setSelected] = useState(update.suggested_application_id ?? "__new");
+  const [company, setCompany] = useState(update.extracted_company);
+  const [role, setRole] = useState(update.extracted_role);
+  const [cycleYear, setCycleYear] = useState(update.recruiting_cycle_year ?? currentRecruitingCycle().cycleYear);
   const [acknowledgeOlder, setAcknowledgeOlder] = useState(false);
   const app = applications.find((item) => item.id === selected);
   const older = Boolean(app && Date.parse(update.received_at) < Date.parse(app.updated_at));
@@ -44,13 +48,18 @@ function SuggestionCard({ update, applications, busy, act }: { update: EmailUpda
       <label className="grid gap-2 text-sm font-semibold text-slate-700">
         Application to update
         <select value={selected} onChange={(event) => { setSelected(event.target.value); setAcknowledgeOlder(false); }} className={inputClass} disabled={busy}>
-          <option value="">Choose an application</option>
-          {applications.map((item) => <option key={item.id} value={item.id}>{item.company} · {item.role} · {statusLabel[item.status]}</option>)}
+          <option value="__new">Create a new application card</option>
+          {applications.map((item) => <option key={item.id} value={item.id}>{item.company} · {item.role} · {item.application_year ?? ""} · {statusLabel[item.status]}</option>)}
         </select>
       </label>
       {!update.suggested_application_id && <p className="text-xs leading-5 text-amber-800">No unique application match. Choose the correct company and role yourself.</p>}
       {update.automation_note && <p className="text-xs leading-5 text-amber-800">{update.automation_note}</p>}
-      {!applications.length && <p className="text-sm text-slate-600"><Link className="font-semibold text-[#23675D] underline" href="/applications/new">Add a tracked application</Link> before confirming.</p>}
+      {selected === "__new" && <div className="grid gap-3 rounded-xl bg-slate-50 p-4 sm:grid-cols-2">
+        <label className="grid gap-2 text-sm font-semibold text-slate-700">Company<input className={inputClass} value={company} maxLength={70} disabled={busy} onChange={event => setCompany(event.target.value)} /></label>
+        <label className="grid gap-2 text-sm font-semibold text-slate-700">Job title<input className={inputClass} value={role} maxLength={160} disabled={busy} onChange={event => setRole(event.target.value)} /></label>
+        <label className="grid gap-2 text-sm font-semibold text-slate-700">Recruiting cycle starts in<input className={inputClass} type="number" min={2000} max={new Date().getFullYear() + 1} value={cycleYear} disabled={busy} onChange={event => setCycleYear(Number(event.target.value))} /></label>
+        <p className="self-end text-xs leading-5 text-slate-500">Verify the company and job title in the original email. A cycle starting in 2026 covers July 2026–June 2027.</p>
+      </div>}
       {app && <p className="flex flex-wrap items-center gap-2 text-sm text-slate-600">{statusLabel[app.status]} <ChevronRight size={16} /> <strong className="text-[#23675D]">{statusLabel[update.proposed_status]}</strong></p>}
       {older && <label className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900">
         <input type="checkbox" checked={acknowledgeOlder} onChange={(event) => setAcknowledgeOlder(event.target.checked)} className="mt-1" />
@@ -58,8 +67,9 @@ function SuggestionCard({ update, applications, busy, act }: { update: EmailUpda
       </label>}
       <p className="text-xs leading-5 text-slate-500">Check the original email before confirming. A matching phrase does not verify the sender or guarantee an offer.</p>
       <div className="flex flex-wrap gap-2">
-        <button className="primary-button gap-2 disabled:opacity-50" disabled={busy || !app || (older && !acknowledgeOlder)} onClick={() => app && void act({ action: "confirm", updateId: update.id,
+        {selected === "__new" ? <button className="primary-button gap-2 disabled:opacity-50" disabled={busy || company.trim().length < 2 || role.trim().length < 3} onClick={() => void act({ action: "create", updateId: update.id, company, role, cycleYear })}><Check size={16} />Add to application board</button> : <button className="primary-button gap-2 disabled:opacity-50" disabled={busy || !app || (older && !acknowledgeOlder)} onClick={() => app && void act({ action: "confirm", updateId: update.id,
           applicationId: app.id, expectedStatus: app.status, expectedUpdatedAt: app.updated_at, acknowledgeOlder })}><Check size={16} />Confirm update</button>
+        }
         <button className={secondary} disabled={busy} onClick={() => void act({ action: "dismiss", updateId: update.id })}><X size={16} />Dismiss</button>
       </div>
     </div>
@@ -76,6 +86,10 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
   const [gmailConsent, setGmailConsent] = useState(false);
   const [pasteConsent, setPasteConsent] = useState(false);
   const [days, setDays] = useState(30);
+  const [mode, setMode] = useState<"cycle" | "custom" | "recent">("cycle");
+  const [startDate, setStartDate] = useState(() => currentRecruitingCycle().startDate);
+  const [endDate, setEndDate] = useState(() => currentRecruitingCycle().endDate);
+  const [backfillActive, setBackfillActive] = useState(false);
   const [subject, setSubject] = useState("");
   const [sender, setSender] = useState("");
   const [body, setBody] = useState("");
@@ -88,7 +102,10 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
     const result = await response.json();
     if (!response.ok) throw new Error(result.error ?? "Could not load email settings.");
     setState(result);
-    if (result.connection) setDays(result.connection.scanDays);
+    if (result.connection) {
+      setDays(result.connection.scanDays); setMode(result.connection.mode);
+      setStartDate(result.connection.startDate); setEndDate(result.connection.endDate);
+    }
   }, []);
   useEffect(() => {
     let active = true;
@@ -96,7 +113,7 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
     return () => { active = false; };
   }, [load]);
 
-  const act: Act = async (payload) => {
+  const act: Act = useCallback(async (payload) => {
     setBusy(true); setError(""); setMessage("");
     try {
       const response = await fetch("/api/email-scanner", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -104,11 +121,22 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
       if (!response.ok) throw new Error(result.error ?? "Could not complete the request.");
       setMessage(result.message);
       await load();
-      if (["confirm", "scan", "auto-sync"].includes(String(payload.action))) router.refresh();
+      if (["confirm", "create", "scan", "auto-sync"].includes(String(payload.action))) router.refresh();
       return true;
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Request failed. Try again."); return false; }
     finally { setBusy(false); }
-  };
+  }, [load, router]);
+
+  useEffect(() => {
+    if (!backfillActive || busy || !state?.connection?.hasMore) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const next = () => {
+      if (document.visibilityState !== "visible") { timer = setTimeout(next, 30000); return; }
+      void act({ action: "scan", mode, startDate, endDate, days, continue: true }).then(ok => { if (!ok) setBackfillActive(false); });
+    };
+    timer = setTimeout(next, 30000);
+    return () => clearTimeout(timer);
+  }, [backfillActive, busy, state?.connection?.hasMore, state?.connection?.lastScannedAt, act, mode, startDate, endDate, days]);
 
   async function connect() {
     setBusy(true); setError("");
@@ -146,7 +174,7 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
     </div>
 
     <section className="grid gap-4 sm:grid-cols-3" aria-label="How email scanning works">
-      {[{ icon: Mail, title: "1. Find updates", text: "Scan recent Gmail messages or paste one email." },
+      {[{ icon: Mail, title: "1. Find past applications", text: "Backfill your recruiting cycle from Gmail, starting July 1." },
         { icon: FileText, title: "2. Review the evidence", text: "Check the status phrase, company, role, and date." },
         { icon: ShieldCheck, title: "3. Keep your board updated", text: "Enable automatic sync for clear matches, or confirm each suggestion yourself." }].map((item) => <div key={item.title} className="card p-5">
         <item.icon size={20} className="text-[#23675D]" /><h2 className="mt-3 font-bold text-slate-900">{item.title}</h2><p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
@@ -164,10 +192,15 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
           <p className="mt-1 text-xs text-slate-500">Last completed batch: {state.connection.lastScannedAt ? displayDate(state.connection.lastScannedAt) : "Not scanned yet"}</p>
           {state.connection.reconnectRequired && <p className="mt-2 text-sm text-amber-800">Google access is no longer available. Disconnect, then connect again.</p>}</div>
         <div className="flex flex-wrap items-end gap-3">
-          <label className="grid gap-2 text-sm font-semibold text-slate-700">Search window<select className={inputClass} value={days} disabled={busy} onChange={(event) => setDays(Number(event.target.value))}>
-            <option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option></select></label>
-          <button className="primary-button gap-2 disabled:opacity-50" disabled={busy || !state.gmailReady || state.connection.reconnectRequired} onClick={() => void act({ action: "scan", days, continue: false })}><RefreshCw size={16} />Scan recent emails</button>
-          {state.connection.hasMore && days === state.connection.scanDays && <button className={secondary} disabled={busy || !state.gmailReady || state.connection.reconnectRequired} onClick={() => void act({ action: "scan", days, continue: true })}>Scan next batch</button>}
+          <label className="grid gap-2 text-sm font-semibold text-slate-700">Search window<select className={inputClass} value={mode} disabled={busy} onChange={event => { setBackfillActive(false); setMode(event.target.value as typeof mode); if (event.target.value === "cycle") { const c = currentRecruitingCycle(); setStartDate(c.startDate); setEndDate(c.endDate); } }}>
+            <option value="cycle">Current recruiting cycle · July 1–today</option><option value="custom">Custom dates</option><option value="recent">Recent emails</option></select></label>
+          {mode === "recent" ? <label className="grid gap-2 text-sm font-semibold text-slate-700">Recent window<select className={inputClass} value={days} disabled={busy} onChange={event => { setBackfillActive(false); setDays(Number(event.target.value)); }}><option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option></select></label> : <>
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">From<input className={inputClass} type="date" value={startDate} disabled={busy || mode === "cycle"} max={endDate} onChange={event => { setBackfillActive(false); setStartDate(event.target.value); }} /></label>
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">Through<input className={inputClass} type="date" value={endDate} disabled={busy || mode === "cycle"} min={startDate} max={currentRecruitingCycle().endDate} onChange={event => { setBackfillActive(false); setEndDate(event.target.value); }} /></label>
+          </>}
+          <button className="primary-button gap-2 disabled:opacity-50" disabled={busy || !state.gmailReady || state.connection.reconnectRequired} onClick={async () => { setBackfillActive(false); if (await act({ action: "scan", mode, startDate, endDate, days, continue: false, force: true })) setBackfillActive(true); }}><RefreshCw size={16} />{mode === "recent" ? "Scan emails" : "Import recruiting cycle"}</button>
+          {state.connection.hasMore && mode === state.connection.mode && <button className={secondary} disabled={busy || !state.gmailReady || state.connection.reconnectRequired} onClick={async () => { if (await act({ action: "scan", mode, startDate, endDate, days, continue: true })) setBackfillActive(true); }}>Resume backfill</button>}
+          {backfillActive && state.connection.hasMore && <button className={secondary} disabled={busy} onClick={() => setBackfillActive(false)}>Pause backfill</button>}
           <button className={secondary} disabled={busy} onClick={() => {
             if (window.confirm("Disconnect Gmail and delete imported Gmail records? Confirmed changes on your application board will remain.")) void act({ action: "disconnect" });
           }}><Unplug size={16} />Disconnect</button>
@@ -175,7 +208,7 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4"><h3 className="font-bold text-slate-900">Automatic application board sync</h3><p className="mt-2 text-sm leading-6 text-slate-600">Clear application emails can create cards and update matching roles. Unclear matches, older messages and conflicting final statuses stay in the review queue. Email contents are not copied into shared application notes.</p>
           {state.connection.autoSyncEnabled ? <><p className="mt-3 text-sm font-semibold text-emerald-800">Automatic sync is on. It checks when you open the board and every five minutes while it is visible, continuing older batches every 30 seconds. It stops when the board is closed.</p><div className="mt-3 flex flex-wrap gap-2"><Link href="/applications?year=all" className="primary-button">Open synced board</Link><button className={secondary} disabled={busy} onClick={() => void act({ action: "automation", enabled: false })}>Turn off automatic sync</button></div></> : <><label className="mt-3 flex items-start gap-3 text-sm leading-6"><input type="checkbox" checked={automationConsent} disabled={busy} onChange={event => setAutomationConsent(event.target.checked)} className="mt-1.5" /><span>I allow CareerUp to automatically add applications and change board statuses using clear Gmail messages in my selected search window. Existing board sharing settings apply to imported cards. I can correct changes or turn sync off.</span></label><button className="primary-button mt-3 disabled:opacity-50" disabled={busy || !automationConsent || state.connection.reconnectRequired} onClick={() => void act({ action: "automation", enabled: true, consent: automationConsent })}>Enable automatic sync</button></>}
         </div>
-        <p className="text-xs leading-5 text-slate-500">Each batch checks up to 20 matching messages. Your selected search window is used by automatic sync. Scans run while the board is open, or when you choose Scan recent emails here.</p>
+        <p className="text-xs leading-5 text-slate-500">{state.connection.checked} matching messages checked in the saved range {state.connection.startDate}–{state.connection.endDate}. {state.connection.hasMore ? "Older batches remain. Keep this page open to continue, or resume later." : state.connection.completedAt ? "The saved date range has finished scanning." : "Start an import to find past applications."} Each batch checks up to 20 messages. Clear matches reach the board automatically when automatic sync is enabled; uncertain messages stay for review.</p>
       </div> : <div className="mt-5 grid gap-4">
         <label className="flex max-w-3xl items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700">
           <input type="checkbox" checked={gmailConsent} onChange={(event) => setGmailConsent(event.target.checked)} className="mt-1.5" disabled={busy} />
