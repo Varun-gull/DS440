@@ -16,7 +16,7 @@ type SpeechRecognitionResult = { results: ArrayLike<ArrayLike<{ transcript: stri
 type Recognition = { lang: string; continuous: boolean; interimResults: boolean; onresult: ((event: SpeechRecognitionResult) => void) | null;
   onerror: (() => void) | null; onend: (() => void) | null; start(): void; stop(): void; abort(): void };
 type BrowserSpeechWindow = Window & { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition };
-const field = "w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2A6384]/20 disabled:bg-slate-100";
+const field = "w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#23675D]/20 disabled:bg-slate-100";
 const secondary = "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50";
 
 export function CareerAssistant({ view = "chat" }: { view?: "chat" | "live" }) {
@@ -34,6 +34,7 @@ export function CareerAssistant({ view = "chat" }: { view?: "chat" | "live" }) {
   const [includeResume, setIncludeResume] = useState(false);
   const [aiConsent, setAiConsent] = useState(false);
   const [voiceConsent, setVoiceConsent] = useState(false);
+  const [contextExpanded, setContextExpanded] = useState(false);
   const [dictationConsent, setDictationConsent] = useState(false);
   const [readAloud, setReadAloud] = useState(false);
   const [dictationAvailable, setDictationAvailable] = useState(false);
@@ -214,25 +215,25 @@ export function CareerAssistant({ view = "chat" }: { view?: "chat" | "live" }) {
   }[phase];
   const selectedRole = ready?.jobs.find(job => job.id === postingId)?.title || jobTitle.trim() || "General interview practice";
   const remainingSeconds = Math.max(0, 300 - seconds);
-  const contextPanel = <section className="card p-5"><h2 className="text-lg font-bold text-slate-950">{view === "live" ? "Personalize your practice" : "Your career context"}</h2><p className="mt-2 text-sm leading-6 text-slate-600">Share only what you need. Email scanner records and other students’ data are never included.</p>
+  const contextPanel = <section className="card p-5 coach-context" data-expanded={contextExpanded ? "true" : "false"}><button type="button" className="coach-context-toggle" aria-expanded={contextExpanded} aria-controls="coach-context-fields" onClick={() => setContextExpanded(value => !value)}><span>Add a role or resume<small>Optional personalization</small></span><span aria-hidden>{contextExpanded ? "−" : "+"}</span></button><div id="coach-context-fields" className="coach-context-fields"><h2 className="text-lg font-bold text-slate-950">{view === "live" ? "Personalize your practice" : "Your career context"}</h2><p className="mt-2 text-sm leading-6 text-slate-600">Share only what you need. Email scanner records and other students’ data are never included.</p>
           <label className="mt-4 grid gap-2 text-sm font-semibold text-slate-700">Choose a job<select className={field} value={postingId} disabled={controlsLocked} onChange={(event) => { setPostingId(event.target.value); clearConversation(); }}>
             <option value="">General guidance or pasted description</option>{ready?.jobs.map((job) => <option key={job.id} value={job.id}>{job.company} · {job.title}</option>)}</select></label>
           {!postingId && <><label className="mt-4 grid gap-2 text-sm font-semibold text-slate-700">Job title<input className={field} maxLength={160} value={jobTitle} disabled={controlsLocked} onChange={(event) => setJobTitle(event.target.value)} placeholder="AI Engineer Internship" /></label>
             <label className="mt-4 grid gap-2 text-sm font-semibold text-slate-700">Job description, optional<textarea className={field} rows={4} maxLength={8000} value={jobDescription} disabled={controlsLocked} onChange={(event) => setJobDescription(event.target.value)} placeholder="Paste the actual responsibilities and requirements." /></label></>}
           <label className="mt-4 flex items-start gap-2 text-sm leading-6 text-slate-700"><input type="checkbox" className="mt-1.5" checked={includeResume} disabled={controlsLocked} onChange={(event) => { setIncludeResume(event.target.checked); clearConversation(); }} />Include my saved resume text</label>
-          <p className="mt-2 text-xs leading-5 text-slate-500">Resume context is off by default. Contact patterns are removed where possible; review your resume for other private details. <Link className="font-semibold text-[#2A6384] underline" href="/profile">Manage resume</Link></p>
-        </section>;
+          <p className="mt-2 text-xs leading-5 text-slate-500">Resume context is off by default. Contact patterns are removed where possible; review your resume for other private details. <Link className="font-semibold text-[#23675D] underline" href="/profile">Manage resume</Link></p>
+        </div></section>;
   const privacyPanel = <details className="card p-5 coach-privacy">
     <summary className="flex cursor-pointer items-center gap-2 font-semibold text-[#15314A]"><ShieldCheck size={18} aria-hidden />Privacy and usage</summary>
     <div className="mt-4 space-y-3 text-xs leading-6 text-slate-600">
       <p>Chats and captions stay in this page’s memory, not your CareerUp database. Google processes AI chat and live voice under its service terms. Avoid sensitive information, especially on a free API tier.</p>
       <p>Each account has 50 AI messages and 3 voice sessions per day. Sessions last up to 5 minutes. Reward Points can unlock extra voice credits, with a limit of 10 sessions per day. Daily allowances reset at midnight UTC. The app’s free AI allowance is shared, so busy requests may wait.</p>
-      {ready && <p className="font-semibold text-[#2A6384]">{ready.textRemaining} AI messages and {ready.voiceRemaining} voice sessions remaining</p>}
-      {ready && <Link href="/rewards?tab=library" className="inline-flex font-semibold text-[#2A6384] underline">{ready.rewardVoiceCredits || 0} extra voice credits · Visit rewards</Link>}
+      {ready && <p className="font-semibold text-[#23675D]">{ready.textRemaining} AI messages and {ready.voiceRemaining} voice sessions remaining</p>}
+      {ready && <Link href="/rewards?tab=library" className="inline-flex font-semibold text-[#23675D] underline">{ready.rewardVoiceCredits || 0} extra voice credits · Visit rewards</Link>}
     </div>
   </details>;
-  const chatPanel = <section className="card flex min-w-0 flex-col overflow-hidden" aria-labelledby="chat-title">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-5"><div><h2 id="chat-title" className="flex items-center gap-2 text-xl font-bold text-slate-950"><Bot size={22} className="text-[#2A6384]" />CareerUp AI</h2><p className="mt-1 text-xs text-slate-500">{mode === "ai" ? "Google Gemini AI" : "Offline guide, not generative AI"}</p></div>
+  const chatPanel = <section className="coach-chat-panel card flex min-w-0 flex-col overflow-hidden" aria-labelledby="chat-title">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-5"><div><h2 id="chat-title" className="flex items-center gap-2 text-xl font-bold text-slate-950"><Bot size={22} className="text-[#23675D]" />CareerUp AI</h2><p className="mt-1 text-xs text-slate-500">{loading ? "Getting your coach ready…" : mode === "ai" ? "Google Gemini AI" : "Offline guide, not generative AI"}</p></div>
           <button className={secondary} disabled={working} onClick={clearConversation}><Trash2 size={16} />Clear chat</button></div>
         <div className="border-b border-slate-200 bg-slate-50 p-4"><div className="flex flex-wrap gap-2"><button className={mode === "ai" ? "primary-button" : secondary} disabled={controlsLocked || !ready?.aiReady} onClick={() => { setMode("ai"); clearConversation(); }}>AI chat</button><button className={mode === "guide" ? "primary-button" : secondary} disabled={controlsLocked} onClick={() => { setMode("guide"); clearConversation(); }}>Offline guide</button></div>
           {!loading && !ready?.aiReady && <p className="mt-3 text-xs leading-5 text-amber-800">AI chat is temporarily unavailable. You can still use the offline guide for basic career tips.</p>}
@@ -240,10 +241,10 @@ export function CareerAssistant({ view = "chat" }: { view?: "chat" | "live" }) {
         </div>
         <div className="max-h-[550px] min-h-[300px] space-y-4 overflow-y-auto p-5" role="log" aria-live="polite" aria-label="Career assistant conversation">
           {!messages.length && <div className="py-6"><p className="text-xl font-bold text-slate-900">What would you like to work on?</p><p className="mt-2 text-sm leading-6 text-slate-600">Understand a fit score, improve a truthful resume bullet, or prepare an interview answer.</p><div className="mt-5 grid gap-2">{["Explain my fit for the selected job", "How can I improve my resume for this role?", "Start a mock interview for this position"].map((text) => <button key={text} className={`${secondary} justify-start text-left`} disabled={controlsLocked || loading || (mode === "ai" && !aiConsent)} onClick={() => void send(undefined, text)}>{text}</button>)}</div></div>}
-          {messages.map((item, index) => <div key={index} className={`max-w-[95%] rounded-2xl p-4 ${item.role === "user" ? "ml-auto bg-[#2A6384] text-white" : "border border-slate-200 bg-slate-50 text-slate-800"}`}><p className="mb-2 text-xs font-bold opacity-70">{item.role === "user" ? "You" : mode === "ai" ? "CareerUp AI" : "Offline guide"}</p><p className="whitespace-pre-wrap break-words text-sm leading-7">{item.text}</p></div>)}
-          {working && <p role="status" className="flex items-center gap-2 text-sm text-[#2A6384]"><LoaderCircle size={17} className="animate-spin" />Preparing guidance. Busy requests may take up to four minutes…</p>}<div ref={chatEnd} />
+          {messages.map((item, index) => <div key={index} className={`max-w-[95%] rounded-2xl p-4 ${item.role === "user" ? "ml-auto bg-[#23675D] text-white" : "border border-slate-200 bg-slate-50 text-slate-800"}`}><p className="mb-2 text-xs font-bold opacity-70">{item.role === "user" ? "You" : mode === "ai" ? "CareerUp AI" : "Offline guide"}</p><p className="whitespace-pre-wrap break-words text-sm leading-7">{item.text}</p></div>)}
+          {working && <p role="status" className="flex items-center gap-2 text-sm text-[#23675D]"><LoaderCircle size={17} className="animate-spin" />Preparing guidance. Busy requests may take up to four minutes…</p>}<div ref={chatEnd} />
         </div>
-        {fit && <div className="mx-5 mb-4 rounded-xl border border-[#2A6384]/20 bg-[#EAF2F8] p-3 text-xs leading-5 text-[#2A6384]"><CheckCircle2 size={15} className="mr-1 inline" />CareerUp rule based evidence coverage: <strong>{fit.score}/100</strong>. This is not a hiring probability. The chatbot does not change this score.</div>}
+        {fit && <div className="mx-5 mb-4 rounded-xl border border-[#23675D]/20 bg-[#EFF7F3] p-3 text-xs leading-5 text-[#23675D]"><CheckCircle2 size={15} className="mr-1 inline" />CareerUp rule based evidence coverage: <strong>{fit.score}/100</strong>. This is not a hiring probability. The chatbot does not change this score.</div>}
         <form onSubmit={(event) => void send(event)} className="mt-auto grid gap-3 border-t border-slate-200 p-4"><label className="sr-only" htmlFor="careerup-question">Ask CareerUp</label><textarea id="careerup-question" className={field} maxLength={2500} rows={3} value={question} disabled={controlsLocked} onChange={(event) => setQuestion(event.target.value)} placeholder="Ask a career question or describe an interview answer…" />
           <div className="flex flex-wrap items-center justify-between gap-2"><div className="flex flex-wrap gap-2"><button type="button" className={secondary} disabled={controlsLocked || !dictationAvailable || !dictationConsent} onClick={dictate}>{dictating ? <MicOff size={16} /> : <Mic size={16} />}{dictating ? "Stop dictation" : "Dictate"}</button><button type="button" className={secondary} onClick={() => { window.speechSynthesis?.cancel(); setReadAloud((value) => !value); }}>{readAloud ? <Volume2 size={16} /> : <VolumeX size={16} />}{readAloud ? "Read aloud on" : "Read aloud off"}</button></div><button className="primary-button gap-2 disabled:opacity-50" disabled={controlsLocked || !question.trim() || loading || (mode === "ai" && !aiConsent)}><Send size={16} />Send</button></div>
           <label className="flex items-start gap-2 text-xs leading-5 text-slate-500"><input type="checkbox" className="mt-1" checked={dictationConsent} disabled={dictating} onChange={(event) => setDictationConsent(event.target.checked)} />Enable optional browser dictation. Your browser or device provider may process speech remotely. Dictation fills the text box; it never sends a message automatically.</label>
@@ -251,7 +252,7 @@ export function CareerAssistant({ view = "chat" }: { view?: "chat" | "live" }) {
       </section>;
   return <div className="coach-workspace" data-blocks-flow="true">
     {error && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">{error}</p>}
-    {notice && <p role="status" className="rounded-2xl border border-[#2A6384]/20 bg-[#EAF2F8] p-4 text-sm text-[#2A6384]">{notice}</p>}
+    {notice && <p role="status" className="rounded-2xl border border-[#23675D]/20 bg-[#EFF7F3] p-4 text-sm text-[#23675D]">{notice}</p>}
     {view === "chat" ? <div className="coach-chat-layout"><aside className="grid content-start gap-5">{contextPanel}{privacyPanel}<Link href="/coach/live" className="coach-live-invite"><Mic size={20} aria-hidden /><span><strong>Prefer to talk?</strong><small>Try a live practice interview</small></span><span aria-hidden>↗</span></Link></aside>{chatPanel}</div> : <>
       <div className={voiceState === "off" ? "coach-live-layout" : "coach-live-focus"}>
         {voiceState === "off" && <aside className="grid content-start gap-5">{contextPanel}{privacyPanel}</aside>}

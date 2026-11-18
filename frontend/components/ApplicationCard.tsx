@@ -18,15 +18,15 @@ export function ApplicationCard({ application, compact = false }: { application:
 
   if (compact) {
     return (
-      <article className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 ease-out hover:-translate-y-0.5 hover:border-[#2A6384]/40 hover:shadow-soft">
+      <article className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 ease-out hover:-translate-y-0.5 hover:border-[#23675D]/40 hover:shadow-soft">
         <button
           type="button"
           onClick={() => setExpanded((current) => !current)}
-          className="flex w-full min-w-0 items-center justify-between gap-2 px-3 py-3 text-left transition duration-150 hover:bg-[#EAF2F8]/60"
+          className="flex w-full min-w-0 items-center justify-between gap-2 px-3 py-3 text-left transition duration-150 hover:bg-[#EFF7F3]/60"
           aria-expanded={expanded}
         >
           <div className="min-w-0">
-            <p className="truncate text-xs font-semibold uppercase tracking-wide text-[#2A6384]">{application.company}</p>
+            <p className="truncate text-xs font-semibold uppercase tracking-wide text-[#23675D]">{application.company}</p>
             <h3 className="mt-0.5 truncate text-sm font-semibold text-ink">{application.role}</h3>
             <p className="mt-1 truncate text-xs text-slate-500">{application.location}</p>
           </div>
@@ -59,7 +59,7 @@ export function ApplicationCard({ application, compact = false }: { application:
                 <CalendarDays size={16} /> {deadlinePrefix(urgency)} {application.deadline}
               </span>
               {sourceIsUrl ? (
-                <a className="inline-flex items-center gap-2 font-semibold text-[#2A6384] hover:text-[#214E69]" href={application.source} target="_blank" rel="noreferrer">
+                <a className="inline-flex items-center gap-2 font-semibold text-[#23675D] hover:text-[#185348]" href={application.source} target="_blank" rel="noreferrer">
                   <ExternalLink size={16} /> Posting
                 </a>
               ) : (
@@ -90,7 +90,7 @@ export function ApplicationCard({ application, compact = false }: { application:
     <article className="card card-interactive p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-[#2A6384]">{application.company}</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#23675D]">{application.company}</p>
           <h3 className="mt-1 font-display text-lg font-bold tracking-tight text-ink">{application.role}</h3>
         </div>
         <ApplicationStatusBadge status={application.status} />
@@ -103,7 +103,7 @@ export function ApplicationCard({ application, compact = false }: { application:
           <CalendarDays size={16} /> {deadlinePrefix(urgency)} {application.deadline}
         </span>
         {sourceIsUrl ? (
-          <a className="inline-flex items-center gap-2 font-semibold text-[#2A6384] hover:text-[#214E69]" href={application.source} target="_blank" rel="noreferrer">
+          <a className="inline-flex items-center gap-2 font-semibold text-[#23675D] hover:text-[#185348]" href={application.source} target="_blank" rel="noreferrer">
             <ExternalLink size={16} /> Posting
           </a>
         ) : (

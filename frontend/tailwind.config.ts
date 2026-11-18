@@ -48,7 +48,7 @@ const config: Config = {
         ink: "#0f172a",
         navy: "#0f172a",
         panel: "#101722",
-        brand: "#2A6384",
+        brand: "#23675D",
         electric: "#8FB8D4",
         sky: {
           50: "#f4faf8",
@@ -75,10 +75,16 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)"
       },
+      transitionTimingFunction: {
+        DEFAULT: "cubic-bezier(0.22, 1, 0.36, 1)"
+      },
+      transitionDuration: {
+        DEFAULT: "240ms"
+      },
       boxShadow: {
-        soft: "0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.05)",
-        glow: "0 4px 18px rgba(27, 60, 83, 0.24)",
-        strong: "0 8px 30px rgba(15, 23, 42, 0.12)"
+        soft: "0 1px 2px rgba(17, 26, 36, 0.06), 0 6px 16px -8px rgba(17, 26, 36, 0.22)",
+        glow: "0 2px 6px rgba(17, 26, 36, 0.1), 0 14px 30px -12px rgba(42, 99, 132, 0.45)",
+        strong: "0 2px 4px rgba(17, 26, 36, 0.08), 0 20px 40px -16px rgba(17, 26, 36, 0.38)"
       }
     }
   },

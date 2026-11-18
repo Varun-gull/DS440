@@ -88,7 +88,7 @@ export function ProfileAutosaveForm({ profile, schools, targetRoleOptions, targe
     <div className="mt-5 grid gap-5">
       <div className="flex min-h-8 items-center justify-between gap-3">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Autosaves changes</p>
-        <p className={`text-xs font-bold ${saveStatus === "error" ? "text-red-500" : saveStatus === "saving" ? "text-slate-500" : "text-[#2A6384]"}`}>
+        <p className={`text-xs font-bold ${saveStatus === "error" ? "text-red-500" : saveStatus === "saving" ? "text-slate-500" : "text-[#23675D]"}`}>
           {message}
         </p>
       </div>
@@ -157,7 +157,7 @@ export function ProfileAutosaveForm({ profile, schools, targetRoleOptions, targe
         onValuesChange={setTargetLocations}
       />
 
-      <label className="flex gap-3 rounded-2xl border border-sky/20 bg-[#EAF2F8] p-4 text-sm font-bold text-slate-700">
+      <label className="flex gap-3 rounded-2xl border border-sky/20 bg-[#EFF7F3] p-4 text-sm font-bold text-slate-700">
         <input
           type="checkbox"
           checked={shareApplicationBoard}

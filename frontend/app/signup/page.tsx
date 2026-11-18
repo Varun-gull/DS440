@@ -19,18 +19,18 @@ export default async function SignupPage({ searchParams: searchParamsInput }: { 
     <AuthShell
       eyebrow="Create account"
       title="Start your search"
-      description="Build a profile, save your first roles, and unlock the application board."
+      description="Create your free account. Find roles, track your search, and prepare at your own pace."
     >
       {!supabaseReady && (
-        <p className="mt-5 rounded-2xl border border-[#2A6384]/20 bg-[#EAF2F8] p-3 text-sm font-bold text-[#173B55]">
+        <p className="mt-5 rounded-2xl border border-[#2A6384]/20 bg-[#EAF2F8] p-3 text-sm font-bold text-[#15314A]">
           Supabase env vars are not connected yet. Account creation will be wired in the database step.
         </p>
       )}
       {searchParams?.message && <p className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-bold text-slate-700">{searchParams.message}</p>}
       <form action={signUp} className="mt-6 grid gap-4">
-        <input name="fullName" className="field min-h-12" placeholder="Name" maxLength={120} autoComplete="name" required />
-        <input name="email" className="field min-h-12" placeholder="Email" type="email" required />
-        <input name="password" className="field min-h-12" placeholder="Password" type="password" minLength={8} maxLength={128} autoComplete="new-password" required />
+        <label className="grid gap-2 text-sm font-semibold text-slate-700">Full name<input name="fullName" className="field min-h-12" placeholder="Your name" maxLength={120} autoComplete="name" required /></label>
+        <label className="grid gap-2 text-sm font-semibold text-slate-700">Email address<input name="email" className="field min-h-12" placeholder="you@example.com" type="email" autoComplete="email" required /></label>
+        <label className="grid gap-2 text-sm font-semibold text-slate-700">Password<input name="password" className="field min-h-12" placeholder="At least 8 characters" type="password" minLength={8} maxLength={128} autoComplete="new-password" required /></label>
         <label className="flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-bold text-slate-700">
           <input name="shareApplicationBoard" type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-600 text-[#2A6384] focus:ring-[#2A6384]" />
           <span>
@@ -39,7 +39,7 @@ export default async function SignupPage({ searchParams: searchParamsInput }: { 
           </span>
         </label>
         <button type="submit" className="primary-button mt-1 w-full">Create account</button>
-        <p className="text-xs leading-5 text-slate-500">Use a different email to create a separate account. Registering again will not change an existing password.</p>
+        <p className="text-xs leading-5 text-slate-500">We’ll send a confirmation link. Check your Spam folder if it does not arrive in your inbox.</p>
         <p className="text-xs leading-5 text-slate-500">Your name, school, career interests and progress are visible to signed in CareerUp users. Your email and resume stay private. Gmail access and AI processing each require your separate permission.</p>
       </form>
       <p className="mt-5 text-sm text-slate-600">

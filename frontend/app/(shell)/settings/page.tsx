@@ -20,21 +20,22 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
           tabs={[
             { label: "Settings", href: "/settings", active: true },
             { label: "Profile", href: "/profile" },
-            { label: "Privacy", href: "/privacy" }
+            { label: "Privacy", href: "/data-privacy" }
           ]}
         />
 
-        <section className="card mt-6 max-w-3xl p-6">
+        <div className="settings-grid">
+        <section id="privacy" className="settings-intro card mt-6 max-w-3xl p-6">
           <h2 className="text-xl font-bold text-ink">What other students can see</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">Your profile name, school, career interests and progress appear to signed in CareerUp users. Your email, resume, preparation answers, reward balance and email scanner history stay private. Your application board starts private. Sharing it with accepted friends never shares your private application notes.</p>
         </section>
 
-        {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#2A6384] shadow-sm ring-1 ring-[#2A6384]/20">{searchParams.message}</p>}
+        {searchParams?.message && <p className="settings-intro mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#23675D] shadow-sm ring-1 ring-[#23675D]/20">{searchParams.message}</p>}
 
         <section className="card mt-6 max-w-3xl p-6">
-          <h2 className="text-xl font-bold text-ink">Career assistant and voice practice</h2>
+          <h2 className="text-xl font-bold text-ink">AI Coach</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">Use career chat, resume evidence explanations, and optional live interview practice. You choose the context shared with the AI provider.</p>
-          <Link href="/coach" className="primary-button mt-4 w-fit">Open career assistant</Link>
+          <Link href="/coach" className="primary-button mt-4 w-fit">Open AI Coach</Link>
         </section>
 
         <section className="card mt-6 max-w-3xl p-6">
@@ -45,7 +46,7 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
 
         <section className="card mt-8 max-w-3xl p-6">
           <div className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F8] text-brand">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
               <ShieldCheck size={20} />
             </span>
             <div>
@@ -60,7 +61,7 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
 
         <section className="card mt-6 max-w-3xl p-6">
           <div className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F8] text-brand">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
               {profile.shareApplicationBoard ? <UsersRound size={20} /> : <Lock size={20} />}
             </span>
             <div>
@@ -73,7 +74,7 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
 
           <form action={updatePrivacySettings} className="mt-5 grid gap-4">
             <input type="hidden" name="returnTo" value="/settings" />
-            <label className="flex gap-3 rounded-2xl border border-sky/20 bg-[#EAF2F8] p-4 text-sm font-bold text-slate-700">
+            <label className="flex gap-3 rounded-2xl border border-sky/20 bg-[#EFF7F3] p-4 text-sm font-bold text-slate-700">
               <input name="shareApplicationBoard" type="checkbox" defaultChecked={profile.shareApplicationBoard} className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand" />
               <span>
                 Let accepted friends view my application board.
@@ -83,6 +84,7 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
             <button type="submit" className="primary-button w-fit">Save settings</button>
           </form>
         </section>
+        </div>
       </main>
     </>
   );

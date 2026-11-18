@@ -43,7 +43,7 @@ export function PublicApplicationBoard({ applications }: { applications: Applica
 
                   return (
                     <article key={application.id} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-                      <p className="truncate text-xs font-semibold uppercase tracking-wide text-[#2A6384]">{application.company}</p>
+                      <p className="truncate text-xs font-semibold uppercase tracking-wide text-[#23675D]">{application.company}</p>
                       <h4 className="mt-1 line-clamp-2 text-sm font-semibold text-ink">{application.role}</h4>
                       <p className="mt-2 flex items-center gap-2 truncate text-xs text-slate-500">
                         <MapPin size={14} /> {application.location}
@@ -56,7 +56,7 @@ export function PublicApplicationBoard({ applications }: { applications: Applica
                           <Sparkles size={14} /> {application.fitScore}% fit
                         </span>
                         {sourceIsUrl && (
-                          <a href={application.source} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-semibold text-[#2A6384] hover:text-[#214E69]">
+                          <a href={application.source} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-semibold text-[#23675D] hover:text-[#185348]">
                             <ExternalLink size={14} /> Posting
                           </a>
                         )}

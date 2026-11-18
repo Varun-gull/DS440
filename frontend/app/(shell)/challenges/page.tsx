@@ -10,9 +10,9 @@ export default async function ChallengesPage() {
       <main className="page-shell">
         <PageHero
           compact
-          eyebrow="XP quests"
+          eyebrow="Small steps, steady progress"
           title="Challenges"
-          description="Small missions turn the internship search into daily progress instead of a giant vague task."
+          description="Build a routine with achievable goals. Each completed challenge adds to your progress."
           tabs={[
             { label: "Rewards", href: "/rewards" },
             { label: "Challenges", href: "/challenges", active: true }
@@ -22,7 +22,7 @@ export default async function ChallengesPage() {
         <section className="mt-8">
           <div className="mb-4">
             <h2 className="text-xl font-bold text-ink">Core Challenges</h2>
-            <p className="mt-1 text-sm text-slate-500">Each challenge has tiers — complete the current tier to unlock the next.</p>
+            <p className="mt-1 text-sm text-slate-500">Complete the current tier to unlock the next.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {tiered.map((challenge) => (

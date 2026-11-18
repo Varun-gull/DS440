@@ -27,21 +27,21 @@ export default async function FriendsPage({ searchParams: searchParamsInput }: {
       <main className="page-shell">
         <PageHero
           compact
-          eyebrow="Squad"
+          eyebrow="Grow together"
           title="Friends"
-          description="Add classmates, compare progress, and build a leaderboard that feels personal."
+          description="Connect with classmates, share encouragement, and work toward goals together."
           tabs={[
             { label: "Friends", href: "/friends", active: true },
             { label: "Groups", href: "/friends#groups" }
           ]}
         />
 
-        {searchParams?.message && <p className="mt-5 rounded-xl bg-white/90 p-3 text-sm font-bold text-[#2A6384] shadow-sm ring-1 ring-[#2A6384]/20">{searchParams.message}</p>}
+        {searchParams?.message && <p className="mt-5 rounded-xl bg-white/90 p-3 text-sm font-bold text-[#23675D] shadow-sm ring-1 ring-[#23675D]/20">{searchParams.message}</p>}
 
         {inviteId && (
           <form action={sendFriendRequestById} className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky/20 bg-white/90 p-4 shadow-soft backdrop-blur">
             <div>
-              <p className="font-bold text-[#2A6384]">Friend invite opened</p>
+              <p className="font-bold text-[#23675D]">Friend invite opened</p>
               <p className="text-sm font-bold text-brand">Send a request to add this CareerUp profile.</p>
             </div>
             <input type="hidden" name="profileId" value={inviteId} />
@@ -54,7 +54,7 @@ export default async function FriendsPage({ searchParams: searchParamsInput }: {
         <section className="mt-8 grid gap-4 lg:grid-cols-[1fr_360px]">
           <form action={sendFriendRequest} className="card grid gap-4 p-5">
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EAF2F8] text-brand">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
                 <UserPlus size={20} />
               </span>
               <div>
@@ -94,7 +94,7 @@ export default async function FriendsPage({ searchParams: searchParamsInput }: {
         <section id="groups" className="mt-6 scroll-mt-28 grid gap-4 lg:grid-cols-[360px_1fr]">
           <form action={createGroup} className="card grid gap-4 p-5">
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EAF2F8] text-brand">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
                 <UsersRound size={20} />
               </span>
               <div>

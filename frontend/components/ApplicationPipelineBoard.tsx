@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { ApplicationCard } from "@/components/ApplicationCard";
@@ -24,6 +24,9 @@ export function ApplicationPipelineBoard({ applications, columns }: { applicatio
   const [activeStatus, setActiveStatus] = useState<ApplicationStatus | null>(null);
   const [isPending, startTransition] = useTransition();
   const [pendingInterview, setPendingInterview] = useState<{ applicationId: string; app: Application } | null>(null);
+
+  // Server actions refresh the authoritative board after a card status changes.
+  useEffect(() => { setBoardApplications(applications); }, [applications]);
 
   const groupedApplications = useMemo(() => {
     return columns.reduce<Record<ApplicationStatus, Application[]>>(
@@ -138,7 +141,7 @@ export function ApplicationPipelineBoard({ applications, columns }: { applicatio
                 // The active ring must not compete with the resting stage ring:
                 // emitting both leaves the winner up to stylesheet order.
                 isActive
-                  ? "-translate-y-1 bg-[#EAF2F8] shadow-glow ring-[#2A6384]/60"
+                  ? "-translate-y-1 bg-[#EFF7F3] shadow-glow ring-[#23675D]/60"
                   : clsx("bg-white/80", statusAccents[column.status].column),
                 isPending && "opacity-90"
               )}
@@ -185,7 +188,7 @@ export function ApplicationPipelineBoard({ applications, columns }: { applicatio
                   className={clsx(
                     "rounded-2xl border border-dashed p-4 text-sm transition duration-200 ease-out",
                     isActive
-                      ? "border-[#2A6384]/60 bg-white text-[#2A6384]"
+                      ? "border-[#23675D]/60 bg-white text-[#23675D]"
                       : "border-slate-200 bg-slate-50/80 text-slate-500"
                   )}
                 >

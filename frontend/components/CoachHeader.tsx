@@ -4,7 +4,7 @@ import { ArrowUpRight, MessageCircle, Mic } from "lucide-react";
 export function CoachHeader({ active }: { active: "chat" | "live" }) {
   return <header className="coach-header">
     <div>
-      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#2A6384]">Your career companion</p>
+      <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#23675D]">Your career companion</p>
       <h1 className="mt-2 text-3xl font-bold tracking-tight text-[#15314A] sm:text-4xl">{active === "live" ? "Live interview practice" : "AI Coach"}</h1>
       <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{active === "live" ? "Meet your AI interviewer. Practice out loud, get feedback, and build confidence." : "A space to ask questions, strengthen your resume, and prepare for your next opportunity."}</p>
     </div>

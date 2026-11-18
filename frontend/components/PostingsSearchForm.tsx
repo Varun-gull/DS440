@@ -70,7 +70,7 @@ function SuggestionInput({
             onChange(suggestion);
             setOpen(false);
           }}
-          className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-[#EAF2F8] hover:text-slate-950"
+          className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-[#EFF7F3] hover:text-slate-950"
         >
           {suggestion}
         </button>
@@ -131,8 +131,8 @@ export function PostingsSearchForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card mt-8 p-5">
-      <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr_0.75fr_0.75fr_auto]">
+    <form onSubmit={handleSubmit} className="card mt-6 p-5">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(160px,1.15fr)_minmax(140px,1fr)_minmax(145px,0.75fr)_minmax(120px,0.75fr)_auto]">
       <input type="hidden" name="sort" value="newest" />
       <SuggestionInput label="Role or keyword" name="q" value={query} onChange={setQuery} placeholder="Data science intern" suggestions={roleSuggestions} />
       <SuggestionInput label="Location" name="location" value={location} onChange={setLocation} placeholder={locationPlaceholder} suggestions={locationSuggestions} />
@@ -160,7 +160,7 @@ export function PostingsSearchForm({
           { value: "80", label: "80%+" },
         ]}
       />
-      <button type="submit" disabled={loading} className="primary-button self-end disabled:opacity-70">
+      <button type="submit" disabled={loading} className="primary-button self-end disabled:opacity-70 sm:col-span-2 xl:col-span-1">
         {loading ? <Loader2 className="mr-2 animate-spin" size={18} /> : <Search className="mr-2" size={18} />}
         {loading ? "Searching…" : "Search"}
       </button>

@@ -113,7 +113,7 @@ export function PostingApplyFollowUpPrompt() {
       <div className="w-full max-w-xl rounded-[1.75rem] border border-white/80 bg-white p-5 shadow-strong ring-1 ring-slate-950/10">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#2A6384]">Application check-in</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#23675D]">Application check-in</p>
             <h2 className="mt-2 text-2xl font-bold text-ink">Did you apply?</h2>
             <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
               You opened <span className="font-semibold text-slate-900">{roleLabel}</span>. Tell CareerUp what happened so your tracker stays accurate.
@@ -148,7 +148,7 @@ export function PostingApplyFollowUpPrompt() {
             <button
               type="submit"
               onClick={clearPendingApply}
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-sky px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-brand"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-brand"
             >
               <Clock3 className="mr-2" size={18} /> Save for later
             </button>
@@ -169,7 +169,7 @@ export function PostingApplyFollowUpPrompt() {
           href={pending.sourceUrl}
           target="_blank"
           rel="noreferrer"
-          className="mt-4 inline-flex text-sm font-bold text-[#2A6384] hover:text-brand"
+          className="mt-4 inline-flex text-sm font-bold text-[#23675D] hover:text-brand"
         >
           <ExternalLink className="mr-1.5" size={16} /> Reopen posting
         </a>

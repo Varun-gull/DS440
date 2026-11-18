@@ -54,10 +54,10 @@ export function XpProgressBar({ xp }: { xp: number }) {
               key={rank.name}
               className={clsx(
                 "flex items-center justify-between gap-3 rounded-xl px-3 py-2 transition",
-                isCurrent ? "bg-[#EAF2F8] ring-1 ring-inset ring-[#2A6384]/25" : "bg-slate-50"
+                isCurrent ? "bg-[#EFF7F3] ring-1 ring-inset ring-[#23675D]/25" : "bg-slate-50"
               )}
             >
-              <span className={clsx("text-sm", isCurrent ? "font-bold text-[#2A6384]" : "font-semibold text-ink")}>{rank.name}</span>
+              <span className={clsx("text-sm", isCurrent ? "font-bold text-[#23675D]" : "font-semibold text-ink")}>{rank.name}</span>
               <span className="metric text-right text-xs font-semibold text-slate-600">
                 {rank.minXp.toLocaleString()} XP
                 {rankBonuses.some((b) => b.rankName === rank.name) && (
@@ -79,7 +79,7 @@ export function XpProgressBar({ xp }: { xp: number }) {
           <p className="eyebrow">Rank progress</p>
           <h2 className="metric mt-1 font-display text-2xl font-bold tracking-tight text-ink">{xp.toLocaleString()} XP</h2>
         </div>
-        <p className="metric rounded-full bg-[#EAF2F8] px-3 py-1 text-sm font-semibold text-[#2A6384] ring-1 ring-inset ring-[#2A6384]/20">
+        <p className="metric rounded-full bg-[#EFF7F3] px-3 py-1 text-sm font-semibold text-[#23675D] ring-1 ring-inset ring-[#23675D]/20">
           {progress.next ? `${progress.remaining} XP to ${progress.next.name}` : "Max rank unlocked"}
         </p>
       </div>
@@ -93,7 +93,7 @@ export function XpProgressBar({ xp }: { xp: number }) {
           type="button"
           onClick={toggle}
           aria-expanded={open}
-          className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-[#2A6384] transition duration-150 hover:border-[#2A6384]/40 hover:bg-[#EAF2F8] active:translate-y-px"
+          className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-[#23675D] transition duration-150 hover:border-[#23675D]/40 hover:bg-[#EFF7F3] active:translate-y-px"
         >
           {open ? "Hide all ranks" : "Show all ranks"}
         </button>

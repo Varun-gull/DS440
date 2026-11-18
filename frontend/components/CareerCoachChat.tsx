@@ -97,9 +97,9 @@ export default function CareerCoachChat() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2 text-xs">
-        <span className="font-semibold text-[#2A6384]">{loading ? "Connecting…" : ready ? mode === "ai" ? "Gemini AI" : "Offline guide · not generative AI" : "Connection unavailable"}</span>
+        <span className="font-semibold text-[#23675D]">{loading ? "Connecting…" : ready ? mode === "ai" ? "Gemini AI" : "Offline guide · not generative AI" : "Connection unavailable"}</span>
         <div className="flex items-center gap-2">
-          {ready?.aiReady && <button type="button" onClick={switchMode} disabled={working} className="rounded-md px-1 py-1 font-medium text-slate-600 hover:text-slate-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2A6384] disabled:opacity-50">{mode === "ai" ? "Use offline guide" : "Use AI chat"}</button>}
+          {ready?.aiReady && <button type="button" onClick={switchMode} disabled={working} className="rounded-md px-1 py-1 font-medium text-slate-600 hover:text-slate-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#23675D] disabled:opacity-50">{mode === "ai" ? "Use offline guide" : "Use AI chat"}</button>}
           {messages.length > 0 && <button type="button" aria-label="Clear chat" title="Clear chat" onClick={() => { setMessages([]); setError(""); }} disabled={working} className="career-coach-icon-button !h-8 !w-8"><RotateCcw size={14} aria-hidden /></button>}
         </div>
       </div>
@@ -109,27 +109,27 @@ export default function CareerCoachChat() {
           <p className="text-lg font-bold text-slate-950">What’s your next move?</p>
           <p className="mt-2 text-sm leading-6 text-slate-600">Let’s work on your resume, prepare for an interview, or make your job search feel more manageable.</p>
           {!ready.aiReady && <p className="mt-3 text-xs leading-5 text-slate-500">AI chat is currently unavailable. The offline guide offers basic career tips.</p>}
-          <div className="mt-4 grid gap-2">{prompts.map((text) => <button type="button" key={text} onClick={() => void send(undefined, text)} disabled={!canSend} className="rounded-xl border border-slate-200 px-3 py-2.5 text-left text-xs font-medium text-[#2A6384] transition-colors hover:border-[#2A6384]/40 hover:bg-[#EAF2F8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2A6384] disabled:cursor-not-allowed disabled:opacity-50">{text}</button>)}</div>
+          <div className="mt-4 grid gap-2">{prompts.map((text) => <button type="button" key={text} onClick={() => void send(undefined, text)} disabled={!canSend} className="rounded-xl border border-slate-200 px-3 py-2.5 text-left text-xs font-medium text-[#23675D] transition-colors hover:border-[#23675D]/40 hover:bg-[#EFF7F3] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#23675D] disabled:cursor-not-allowed disabled:opacity-50">{text}</button>)}</div>
         </div> : null}
-        {messages.map((message, index) => <div key={index} className={`max-w-[95%] rounded-2xl px-3.5 py-3 ${message.role === "user" ? "ml-auto bg-[#2A6384] text-white" : "bg-slate-100 text-slate-800"}`}>
+        {messages.map((message, index) => <div key={index} className={`max-w-[95%] rounded-2xl px-3.5 py-3 ${message.role === "user" ? "ml-auto bg-[#23675D] text-white" : "bg-slate-100 text-slate-800"}`}>
           <p className="mb-1 text-[11px] font-bold opacity-70">{message.role === "user" ? "You" : mode === "ai" ? "CareerUp AI" : "Offline guide"}</p>
           <p className="whitespace-pre-wrap break-words text-sm leading-6">{message.text}</p>
         </div>)}
-        {working && <p role="status" className="flex items-center gap-2 text-xs text-[#2A6384]"><LoaderCircle size={15} className="animate-spin" aria-hidden />Preparing your reply. Busy requests may take up to four minutes…</p>}
+        {working && <p role="status" className="flex items-center gap-2 text-xs text-[#23675D]"><LoaderCircle size={15} className="animate-spin" aria-hidden />Preparing your reply. Busy requests may take up to four minutes…</p>}
         {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs leading-5 text-red-800">{error}</p>}
-        {access && <Link className="inline-flex rounded-xl bg-[#2A6384] px-4 py-2.5 text-sm font-semibold text-white" href={access === "login" ? "/login" : "/mfa?next=%2Fcoach"}>{access === "login" ? "Sign in to chat" : "Complete two factor verification"}</Link>}
-        {!loading && !ready && !access && <button type="button" className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-[#2A6384]" onClick={() => setConnectionAttempt((current) => current + 1)}>Try connecting again</button>}
+        {access && <Link className="inline-flex rounded-xl bg-[#23675D] px-4 py-2.5 text-sm font-semibold text-white" href={access === "login" ? "/login" : "/mfa?next=%2Fcoach"}>{access === "login" ? "Sign in to chat" : "Complete two factor verification"}</Link>}
+        {!loading && !ready && !access && <button type="button" className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-[#23675D]" onClick={() => setConnectionAttempt((current) => current + 1)}>Try connecting again</button>}
       </div>
 
       {ready && <form onSubmit={(event) => void send(event)} className="shrink-0 space-y-2.5 border-t border-slate-200 bg-white p-3">
-        {mode === "ai" && <label className="flex items-start gap-2 px-1 text-[11px] leading-4 text-slate-600"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} disabled={working} className="mt-0.5 accent-[#2A6384]" />I agree to send this chat and my career preferences to Google.</label>}
+        {mode === "ai" && <label className="flex items-start gap-2 px-1 text-[11px] leading-4 text-slate-600"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} disabled={working} className="mt-0.5 accent-[#23675D]" />I agree to send this chat and my career preferences to Google.</label>}
         {mode === "ai" && ready.textRemaining === 0 && <p role="status" className="px-1 text-xs text-amber-800">You’ve used today’s AI messages. You can still use the offline guide.</p>}
-        <div className="flex items-end gap-2 rounded-2xl border border-slate-300 bg-white p-2 focus-within:border-[#2A6384] focus-within:ring-2 focus-within:ring-[#2A6384]/10">
+        <div className="flex items-end gap-2 rounded-2xl border border-slate-300 bg-white p-2 focus-within:border-[#23675D] focus-within:ring-2 focus-within:ring-[#23675D]/10">
           <label htmlFor="careerup-quick-question" className="sr-only">Message your career coach</label>
           <textarea ref={input} id="careerup-quick-question" rows={2} maxLength={2500} value={question} onChange={(event) => setQuestion(event.target.value)} disabled={working} placeholder={mode === "ai" && !consent ? "Approve AI guidance above to start" : "Ask your career coach…"} className="max-h-28 min-h-11 min-w-0 flex-1 resize-none border-0 bg-transparent px-1 py-1 text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-60" onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} />
-          <button type="submit" aria-label="Send message" disabled={!canSend || !question.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2A6384] text-white transition-colors hover:bg-[#214E69] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2A6384] disabled:cursor-not-allowed disabled:opacity-40">{working ? <LoaderCircle size={17} className="animate-spin" aria-hidden /> : <Send size={17} aria-hidden />}</button>
+          <button type="submit" aria-label="Send message" disabled={!canSend || !question.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#23675D] text-white transition-colors hover:bg-[#185348] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#23675D] disabled:cursor-not-allowed disabled:opacity-40">{working ? <LoaderCircle size={17} className="animate-spin" aria-hidden /> : <Send size={17} aria-hidden />}</button>
         </div>
-        <p className="flex items-center justify-center gap-1 text-[10px] leading-4 text-slate-500"><ShieldCheck size={12} aria-hidden />Saved resumes and emails aren’t included. <Link className="font-semibold text-[#2A6384] underline" href="/coach">Full coach</Link></p>
+        <p className="flex items-center justify-center gap-1 text-[10px] leading-4 text-slate-500"><ShieldCheck size={12} aria-hidden />Saved resumes and emails aren’t included. <Link className="font-semibold text-[#23675D] underline" href="/coach">Full coach</Link></p>
       </form>}
     </div>
   );

@@ -152,9 +152,9 @@ export function InterviewModal({ company, role, initialDate, initialTime, initia
                     onClick={() => pickDate(key)}
                     className={clsx(
                       "mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition",
-                      isSelected && "bg-sky font-bold text-white",
-                      !isSelected && isToday && "font-bold text-[#2A6384] ring-2 ring-sky",
-                      !isSelected && !isToday && !isPast && "text-slate-700 hover:bg-[#EAF2F8] hover:text-slate-900",
+                      isSelected && "bg-brand font-bold text-white",
+                      !isSelected && isToday && "font-bold text-[#23675D] ring-2 ring-sky",
+                      !isSelected && !isToday && !isPast && "text-slate-700 hover:bg-[#EFF7F3] hover:text-slate-900",
                       isPast && "cursor-not-allowed text-slate-300"
                     )}
                   >
@@ -191,8 +191,8 @@ export function InterviewModal({ company, role, initialDate, initialTime, initia
                     className={clsx(
                       "rounded-xl py-2.5 text-sm font-bold transition",
                       selected
-                        ? "bg-sky text-white shadow-sm"
-                        : "bg-slate-100 text-slate-700 hover:bg-sky/20 hover:text-slate-900"
+                        ? "bg-brand text-white shadow-sm"
+                        : "bg-slate-100 text-slate-700 hover:bg-brand/20 hover:text-slate-900"
                     )}
                   >
                     {formatSlot(time)}
@@ -231,7 +231,7 @@ export function InterviewModal({ company, role, initialDate, initialTime, initia
                     setSelectedTime(customTime);
                     setCustomTimeOpen(false);
                   }}
-                  className="rounded-xl bg-sky px-4 text-sm font-bold text-white transition hover:bg-brand"
+                  className="rounded-xl bg-brand px-4 text-sm font-bold text-white transition hover:bg-brand"
                 >
                   Use
                 </button>

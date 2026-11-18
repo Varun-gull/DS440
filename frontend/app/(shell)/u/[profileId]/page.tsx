@@ -42,7 +42,7 @@ export default async function PublicProfilePage({
           <ArrowLeft className="mr-2" size={16} /> Friends
         </Link>
 
-        {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#2A6384] shadow-sm ring-1 ring-[#2A6384]/20">{searchParams.message}</p>}
+        {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#23675D] shadow-sm ring-1 ring-[#23675D]/20">{searchParams.message}</p>}
 
         {!profile ? (
           <section className="card mt-6 p-8 text-center">
@@ -51,12 +51,12 @@ export default async function PublicProfilePage({
           </section>
         ) : (
           <section className="card mt-6 overflow-hidden">
-            <div className="relative isolate overflow-hidden bg-[#173B55] px-6 py-10 text-white">
+            <div className="profile-banner relative isolate overflow-hidden bg-[#15314A] px-6 py-8 text-white">
               <div className="hero-glow pointer-events-none absolute inset-0" aria-hidden />
               <div className="hero-grid pointer-events-none absolute inset-0" aria-hidden />
               <div className="relative flex flex-wrap items-center justify-between gap-5">
                 <div className="flex items-center gap-4">
-                  <div className="font-display flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white text-2xl font-bold text-[#2A6384] shadow-glow">
+                  <div className="font-display flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-2xl font-bold text-[#23675D] sm:h-16 sm:w-16">
                     {profile.schoolLogoUrl ? <img src={profile.schoolLogoUrl} alt="" className="h-full w-full bg-white object-contain p-2" /> : profile.name.charAt(0)}
                   </div>
                   <div>
@@ -74,7 +74,7 @@ export default async function PublicProfilePage({
                   <span
                     className={
                       friendship.status === "accepted"
-                        ? "inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-400/15 px-5 font-semibold text-emerald-200 ring-1 ring-inset ring-emerald-300/40"
+                        ? "inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-50 px-5 font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200"
                         : "inline-flex min-h-11 items-center justify-center rounded-xl bg-white/10 px-5 font-semibold text-white/85 ring-1 ring-inset ring-white/25"
                     }
                   >
@@ -95,8 +95,8 @@ export default async function PublicProfilePage({
               </div>
             </div>
 
-            <div className="grid gap-6 p-6 lg:grid-cols-[1fr_360px]">
-              <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="grid grid-cols-3 gap-3">
                 <StatCard icon={Sparkles} label="XP" value={profile.xp.toLocaleString()} />
                 <StatCard icon={Flame} label="Streak" value={`${profile.streak} days`} />
                 <StatCard icon={Trophy} label="Applied" value={profile.applicationsApplied.toString()} />
@@ -110,7 +110,7 @@ export default async function PublicProfilePage({
                 <XpProgressBar xp={profile.xp} />
                 <BadgeShelf applicationsApplied={profile.applicationsApplied} />
                 {!isOwnProfile && user && (
-                  <form action={sendPeerMessage} className="rounded-3xl border border-sky/20 bg-[#EAF2F8] p-4">
+                  <form action={sendPeerMessage} className="rounded-3xl border border-sky/20 bg-[#EFF7F3] p-4">
                     <div className="flex items-center gap-2">
                       <Mail size={18} className="text-brand" />
                       <h2 className="font-bold text-ink">Message {profile.name.split(" ")[0]}</h2>
@@ -156,7 +156,7 @@ export default async function PublicProfilePage({
                       mutualFriends.length > 0 ? (
                         <div className="mt-4 grid gap-3">
                           {mutualFriends.map((friend) => (
-                            <div key={friend.id} className="rounded-2xl border border-slate-200 p-3 transition hover:border-sky/25 hover:bg-[#EAF2F8]">
+                            <div key={friend.id} className="rounded-2xl border border-slate-200 p-3 transition hover:border-sky/25 hover:bg-[#EFF7F3]">
                               <ProfileLink profileId={friend.id} name={friend.name} />
                               <p className="mt-1 text-xs font-bold text-slate-500">{friend.school}</p>
                             </div>
@@ -172,12 +172,12 @@ export default async function PublicProfilePage({
                 )}
               </aside>
 
-              <div className="lg:col-span-2 grid gap-4 md:grid-cols-2">
+              <div className="xl:col-span-2 grid gap-4 md:grid-cols-2">
                 <ProfileTags icon={Target} title="Target roles" values={profile.targetRoles} empty="No target roles yet." />
                 <ProfileTags icon={MapPin} title="Target locations" values={profile.targetLocations} empty="No target locations yet." />
               </div>
 
-              <div className="lg:col-span-2">
+              <div className="xl:col-span-2">
                 <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
                   <div>
                     <p className="eyebrow">Application board</p>
@@ -205,7 +205,7 @@ export default async function PublicProfilePage({
                         <Link
                           href={`/u/${params.profileId}?year=all`}
                           className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
-                            selectedBoardYear === "all" ? "bg-white text-white shadow-lg shadow-slate-950/20" : "border border-slate-200 bg-white/90 text-slate-600 hover:border-brand/30 hover:text-brand"
+                            selectedBoardYear === "all" ? "bg-brand text-white" : "border border-slate-200 bg-white/90 text-slate-600 hover:border-brand/30 hover:text-brand"
                           }`}
                           aria-current={selectedBoardYear === "all" ? "page" : undefined}
                         >
@@ -222,7 +222,7 @@ export default async function PublicProfilePage({
                 ) : isAcceptedFriend ? (
                   <div className="rounded-3xl border border-slate-200 bg-white/90 p-6">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F8] text-brand">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
                         <Lock size={18} />
                       </span>
                       <div>
@@ -234,7 +234,7 @@ export default async function PublicProfilePage({
                 ) : (
                   <div className="rounded-3xl border border-slate-200 bg-white/90 p-6">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F8] text-brand">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
                         <Lock size={18} />
                       </span>
                       <div>

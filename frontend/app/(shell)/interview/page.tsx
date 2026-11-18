@@ -18,12 +18,12 @@ export default async function InterviewPage({ searchParams: searchParamsInput }:
           description="Turn your experiences into clear interview stories. Build and save answers for free, with no Reward Points required."
         />
 
-        {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#2A6384] shadow-sm ring-1 ring-[#2A6384]/20">{searchParams.message}</p>}
+        {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#23675D] shadow-sm ring-1 ring-[#23675D]/20">{searchParams.message}</p>}
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
           <form action={saveInterviewAnswer} className="card min-w-0 p-5">
             <div className="mb-5 flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F8] text-brand">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
                 <MessageSquareText size={22} />
               </div>
               <div>
@@ -110,7 +110,7 @@ export default async function InterviewPage({ searchParams: searchParamsInput }:
                     <AnswerSection title="Action" body={answer.action} />
                     <AnswerSection title="Result" body={answer.result} />
                   </div>
-                  {answer.notes && <p className="mt-4 rounded-2xl bg-[#EAF2F8] p-3 text-sm leading-6 text-slate-700">{answer.notes}</p>}
+                  {answer.notes && <p className="mt-4 rounded-2xl bg-[#EFF7F3] p-3 text-sm leading-6 text-slate-700">{answer.notes}</p>}
                 </article>
               ))}
             </div>

@@ -51,7 +51,7 @@ export function FloatingCareerCoach() {
         >
           <header className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3.5">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EAF2F8] text-[#2A6384]">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EFF7F3] text-[#23675D]">
                 <Sparkles size={20} aria-hidden />
               </span>
               <div>

@@ -220,7 +220,7 @@ export function TwoFactorSettings() {
       )}
 
       {enrollment && (
-        <form onSubmit={verifyEnrollment} className="grid gap-5 rounded-2xl border border-[#2A6384]/25 bg-[#EAF2F8] p-5 sm:grid-cols-[13rem_1fr]">
+        <form onSubmit={verifyEnrollment} className="grid gap-5 rounded-2xl border border-[#23675D]/25 bg-[#EFF7F3] p-5 sm:grid-cols-[13rem_1fr]">
           <div className="rounded-2xl bg-white p-3 shadow-sm">
             <Image src={qrCodeSource(enrollment.qrCode)} alt="CareerUp authenticator setup QR code" width={184} height={184} unoptimized className="h-auto w-full" />
           </div>

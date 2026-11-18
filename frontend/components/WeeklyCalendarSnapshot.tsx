@@ -29,9 +29,9 @@ function eventLabel(type: CalendarEvent["eventType"]) {
 }
 
 function eventTone(type: CalendarEvent["eventType"]) {
-  if (type === "interview") return "border-[#2A6384]/40 bg-sky/12 text-[#2A6384]";
+  if (type === "interview") return "border-[#23675D]/40 bg-sky/12 text-[#23675D]";
   if (type === "offer") return "border-emerald-400/40 bg-emerald-400/10 text-emerald-700";
-  if (type === "deadline") return "border-[#5E7681]/35 bg-[#EAF2F8]/80 text-[#2A6384]";
+  if (type === "deadline") return "border-[#5E7681]/35 bg-[#EFF7F3]/80 text-[#23675D]";
   return "border-slate-600 bg-slate-100 text-slate-700";
 }
 
@@ -89,14 +89,14 @@ export function WeeklyCalendarSnapshot({ events }: { events: CalendarEvent[] }) 
               title={title}
               className={`group relative min-h-24 rounded-2xl border p-2 text-left transition ${
                 isToday
-                  ? "border-sky/50 bg-[#EAF2F8] shadow-sm"
+                  ? "border-sky/50 bg-[#EFF7F3] shadow-sm"
                   : day.inMonth
-                    ? "border-[#5E7681]/30 bg-[#EAF2F8]/60 hover:border-[#2A6384]/40 hover:bg-white/80"
+                    ? "border-[#5E7681]/30 bg-[#EFF7F3]/60 hover:border-[#23675D]/40 hover:bg-white/80"
                     : "border-slate-200/70 bg-white/35 text-slate-400"
               }`}
             >
               <div className="flex items-center justify-between gap-2">
-                <p className={isToday ? "text-sm font-semibold text-[#2A6384]" : day.inMonth ? "text-sm font-bold text-[#2A6384]" : "text-sm font-bold text-slate-400"}>
+                <p className={isToday ? "text-sm font-semibold text-[#23675D]" : day.inMonth ? "text-sm font-bold text-[#23675D]" : "text-sm font-bold text-slate-400"}>
                   {day.date.getDate()}
                 </p>
                 {day.eventCount > 2 && <span className="text-[10px] font-bold text-slate-500">+{day.eventCount - 2}</span>}
@@ -118,9 +118,9 @@ export function WeeklyCalendarSnapshot({ events }: { events: CalendarEvent[] }) 
         })}
       </div>
 
-      <div className="mt-5 rounded-2xl border border-[#5E7681]/30 bg-[#EAF2F8]/60 p-4">
+      <div className="mt-5 rounded-2xl border border-[#5E7681]/30 bg-[#EFF7F3]/60 p-4">
         <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-          <CalendarDays size={17} className="text-[#2A6384]" />
+          <CalendarDays size={17} className="text-[#23675D]" />
           Upcoming
         </div>
         <div className="mt-3 grid gap-2">
@@ -131,7 +131,7 @@ export function WeeklyCalendarSnapshot({ events }: { events: CalendarEvent[] }) 
                   <p className="truncate text-sm font-bold text-ink">{event.role}</p>
                   <p className="truncate text-xs font-bold text-slate-600">{event.company}</p>
                 </div>
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#EAF2F8] px-2.5 py-1 text-xs font-bold text-[#2A6384]">
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#EFF7F3] px-2.5 py-1 text-xs font-bold text-[#23675D]">
                   <Clock3 size={13} /> {event.date.slice(5)}
                 </span>
               </div>

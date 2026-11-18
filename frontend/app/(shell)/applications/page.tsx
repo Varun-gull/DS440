@@ -15,7 +15,7 @@ const pipelineColumns: Array<{
 }> = [
   { status: "saved", title: "Saved", helper: "Ready to review" },
   { status: "applied", title: "Applied", helper: "Submitted" },
-  { status: "interviewing", title: "Interviewing", helper: "Active loops" },
+  { status: "interviewing", title: "Interviewing", helper: "Upcoming conversations" },
   { status: "offer", title: "Offer", helper: "Wins" },
   { status: "rejected", title: "Rejected", helper: "Closed" }
 ];
@@ -79,9 +79,9 @@ export default async function ApplicationsPage({
       <main className="page-shell">
         <PageHero
           compact
-          eyebrow="Pipeline"
+          eyebrow="Your search, organized"
           title="Applications"
-          description="Track every role from saved to offer without losing momentum."
+          description="Every opportunity in one place. Save a role, update its status, and see what comes next."
           actions={
             <>
               <Link href="/applications/email-scanner" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/20">
@@ -89,17 +89,17 @@ export default async function ApplicationsPage({
               </Link>
               <Link
                 href="/applications/new"
-                className="group inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#2A6384] shadow-sm transition duration-150 hover:bg-[#EAF2F8] active:translate-y-px"
+                className="group inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#23675D] shadow-sm transition duration-150 hover:bg-[#EFF7F3] active:translate-y-px"
               >
-                <Plus size={16} className="transition-transform duration-200 group-hover:rotate-90" /> Add role
+                <Plus size={16} className="transition-transform duration-200 group-hover:rotate-90" /> Add application
               </Link>
             </>
           }
         />
-        {searchParams?.message && <p className="rise mt-5 rounded-2xl border border-[#2A6384]/20 bg-[#EAF2F8] p-3 text-sm font-semibold text-[#2A6384]">{searchParams.message}</p>}
+        {searchParams?.message && <p className="rise mt-5 rounded-2xl border border-[#23675D]/20 bg-[#EFF7F3] p-3 text-sm font-semibold text-[#23675D]">{searchParams.message}</p>}
         {applications.length > 0 ? (
           <>
-            <section className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <section className="application-history mt-6 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="font-display text-lg font-bold tracking-tight text-slate-950">Application history</h2>
                 <p className="text-sm text-slate-600">Switch between recruiting cycles without losing your older boards.</p>
@@ -111,8 +111,8 @@ export default async function ApplicationsPage({
                     href={getYearHref(year, query, statusFilter)}
                     className={`metric rounded-xl px-4 py-2 text-sm font-semibold transition duration-150 ${
                       selectedYear === year
-                        ? "bg-[#2A6384] text-white shadow-glow"
-                        : "border border-slate-200 bg-slate-50 text-slate-700 hover:border-[#2A6384]/40 hover:bg-[#EAF2F8] hover:text-[#2A6384]"
+                        ? "bg-[#23675D] text-white shadow-glow"
+                        : "border border-slate-200 bg-slate-50 text-slate-700 hover:border-[#23675D]/40 hover:bg-[#EFF7F3] hover:text-[#23675D]"
                     }`}
                     aria-current={selectedYear === year ? "page" : undefined}
                   >
@@ -123,8 +123,8 @@ export default async function ApplicationsPage({
                   href={getYearHref("all", query, statusFilter)}
                   className={`rounded-xl px-4 py-2 text-sm font-semibold transition duration-150 ${
                     selectedYear === "all"
-                      ? "bg-[#2A6384] text-white shadow-glow"
-                      : "border border-slate-200 bg-slate-50 text-slate-700 hover:border-[#2A6384]/40 hover:bg-[#EAF2F8] hover:text-[#2A6384]"
+                      ? "bg-[#23675D] text-white shadow-glow"
+                      : "border border-slate-200 bg-slate-50 text-slate-700 hover:border-[#23675D]/40 hover:bg-[#EFF7F3] hover:text-[#23675D]"
                   }`}
                   aria-current={selectedYear === "all" ? "page" : undefined}
                 >
@@ -135,12 +135,12 @@ export default async function ApplicationsPage({
 
             {/* Tones track the pipeline stages: neutral while saved, brand blue
                 once live, emerald at an offer. */}
-            <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-              <DashboardCard title="Tracked" value={yearApplications.length.toString()} helper="Total roles in this cycle." icon={BriefcaseBusiness} tone="bg-[#2A6384] text-white" step={0} />
+            <section className="application-summary-grid mt-6 grid grid-cols-3 gap-3 lg:grid-cols-5">
+              <DashboardCard title="Tracked" value={yearApplications.length.toString()} helper="Total roles in this cycle." icon={BriefcaseBusiness} tone="bg-[#23675D] text-white" step={0} />
               <DashboardCard title="Saved" value={savedCount.toString()} helper="Review and apply when ready." icon={Clock3} tone="bg-slate-100 text-slate-600 ring-1 ring-slate-200" step={1} />
-              <DashboardCard title="Applied" value={appliedCount.toString()} helper="Roles moved beyond saved." icon={CheckCircle2} tone="bg-[#EAF2F8] text-[#2A6384] ring-1 ring-[#2A6384]/25" step={2} />
-              <DashboardCard title="Interviewing" value={interviewingCount.toString()} helper="Active interview loops." icon={MessageSquareText} tone="bg-[#8FB8D4]/35 text-[#214E69] ring-1 ring-[#2A6384]/30" step={3} />
-              <DashboardCard title="Offers" value={offerCount.toString()} helper="Unlocked wins." icon={Trophy} tone="bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" step={4} />
+              <DashboardCard title="Applied" value={appliedCount.toString()} helper="Roles moved beyond saved." icon={CheckCircle2} tone="bg-[#EFF7F3] text-[#23675D] ring-1 ring-[#23675D]/25" step={2} />
+              <DashboardCard title="Interviewing" value={interviewingCount.toString()} helper="Active interview loops." icon={MessageSquareText} tone="bg-[#8FB8D4]/35 text-[#185348] ring-1 ring-[#23675D]/30" step={3} />
+              <DashboardCard title="Offers" value={offerCount.toString()} helper="Your next opportunities." icon={Trophy} tone="bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" step={4} />
             </section>
 
             <ApplicationsFilterForm

@@ -100,7 +100,7 @@ export function CalendarCreateModal({ defaultDate, onClose, onCreated }: Props) 
             onClick={() => setTab("application")}
             className={clsx(
               "flex-1 rounded-xl py-1.5 text-sm font-bold transition-colors",
-              tab === "application" ? "bg-sky text-white" : "text-slate-500 hover:text-slate-700"
+              tab === "application" ? "bg-brand text-white" : "text-slate-500 hover:text-slate-700"
             )}
           >
             New Application
@@ -109,7 +109,7 @@ export function CalendarCreateModal({ defaultDate, onClose, onCreated }: Props) 
             onClick={() => setTab("custom")}
             className={clsx(
               "flex-1 rounded-xl py-1.5 text-sm font-bold transition-colors",
-              tab === "custom" ? "bg-sky text-white" : "text-slate-500 hover:text-slate-700"
+              tab === "custom" ? "bg-brand text-white" : "text-slate-500 hover:text-slate-700"
             )}
           >
             Custom Event

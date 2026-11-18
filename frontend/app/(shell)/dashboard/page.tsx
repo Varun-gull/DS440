@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Flame, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Bot, CheckCircle2, ClipboardList, Flame, Search, Sparkles, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
@@ -26,16 +26,9 @@ function StatCard({
   step: 1 | 2 | 3 | 4;
 }) {
   return (
-    <section className={`card card-interactive rise rise-${step} flex min-h-40 flex-col justify-between gap-6 p-5`}>
-      <span className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm ${tone}`}>
-        <Icon size={20} />
-      </span>
-      <div>
-        <p className="text-sm font-medium text-slate-600">{label}</p>
-        <p className="font-display mt-1 text-3xl font-bold tracking-tight text-ink">
-          <Metric value={value} delay={180 + step * 60} />
-        </p>
-      </div>
+    <section className="card dashboard-stat">
+      <span className="dashboard-stat-icon"><Icon size={20} aria-hidden /></span>
+      <div><p>{label}</p><strong><Metric value={value} /></strong></div>
     </section>
   );
 }
@@ -46,11 +39,11 @@ function TopFitPostings({ postings }: { postings: InternshipPosting[] }) {
       <div className="flex items-end justify-between gap-3">
         <div>
           <p className="eyebrow">Best matches</p>
-          <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Top postings for you</h2>
+          <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Recommended for you</h2>
         </div>
         <Link
           href="/postings/internships?sort=fit"
-          className="group inline-flex items-center gap-1 rounded-lg px-1 text-sm font-semibold text-[#2A6384] transition hover:text-[#214E69]"
+          className="group inline-flex items-center gap-1 rounded-lg px-1 text-sm font-semibold text-[#23675D] transition hover:text-[#185348]"
         >
           View all
           <ArrowRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -66,7 +59,7 @@ function TopFitPostings({ postings }: { postings: InternshipPosting[] }) {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex min-w-0 gap-3">
-                  <span className="metric mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#EAF2F8] text-xs font-semibold text-[#2A6384]">
+                  <span className="metric mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#EFF7F3] text-xs font-semibold text-[#23675D]">
                     {index + 1}
                   </span>
                   <div className="min-w-0">
@@ -94,7 +87,7 @@ function TopFitPostings({ postings }: { postings: InternshipPosting[] }) {
               <div className="mt-3 flex flex-wrap items-center justify-between gap-3 pl-9">
                 <p className="text-xs text-slate-500">
                   {posting.source} ·{" "}
-                  <span className={isFreshPosting(posting.postedAt) ? "metric font-bold text-[#2A6384]" : "metric"}>
+                  <span className={isFreshPosting(posting.postedAt) ? "metric font-bold text-[#23675D]" : "metric"}>
                     {posting.postedAt}
                   </span>
                 </p>
@@ -102,7 +95,7 @@ function TopFitPostings({ postings }: { postings: InternshipPosting[] }) {
                   href={posting.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 rounded-lg text-sm font-semibold text-[#2A6384] transition hover:text-[#214E69]"
+                  className="inline-flex items-center gap-1 rounded-lg text-sm font-semibold text-[#23675D] transition hover:text-[#185348]"
                 >
                   Open
                   <ArrowRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -173,43 +166,46 @@ export default async function DashboardPage({ searchParams: searchParamsInput }:
   return (
     <main className="page-shell space-y-5">
       <PageHero
-        eyebrow={profile.school || "CareerUp student"}
-        title={`Welcome back, ${profile.name}`}
-        description="Keep your search focused: review today's quests, move one role forward, and protect your recruiting momentum."
-        tabs={[
-          { label: "Dashboard", href: "/dashboard", active: true },
-          { label: "Applications", href: "/applications" },
-          { label: "Postings", href: "/postings/internships" },
-          { label: "Messages", href: "/messages" }
-        ]}
+        eyebrow="Your career, one step at a time"
+        title={`Welcome back, ${profile.name.split(/\s+/)[0] || "there"}`}
+        description="Find your next role, keep track of applications, and build confidence for the interview."
+        actions={<Link href="/postings/internships" className="primary-button gap-2"><Search size={16} aria-hidden />Find a job</Link>}
       />
+      <section aria-label="Start your next step" className="next-step-grid">
+        {[
+          { href: "/postings/internships", icon: Search, title: "Discover your next role", detail: "Search internships and graduate jobs." },
+          { href: "/applications", icon: ClipboardList, title: "Keep your search organized", detail: "Save roles and track every application." },
+          { href: "/coach/live", icon: Bot, title: "Prepare with your AI Coach", detail: "Practice an interview or get guidance." }
+        ].map(({ href, icon: Icon, title, detail }) => <Link href={href} key={href} className="next-step-card"><span><Icon size={18} aria-hidden /></span><div><h2>{title}</h2><p>{detail}</p></div><ArrowRight size={15} aria-hidden /></Link>)}
+      </section>
       {searchParams?.message && (
-        <p className="rise rounded-2xl border border-[#5E7681]/30 bg-[#F8FBFA] p-3 text-sm font-semibold text-[#2A6384]">{searchParams.message}</p>
+        <p className="rise rounded-2xl border border-[#5E7681]/30 bg-[#F8FBFA] p-3 text-sm font-semibold text-[#23675D]">{searchParams.message}</p>
       )}
 
       <section className="space-y-5">
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard icon={Sparkles} label="Lifetime XP" value={profile.xp} tone="bg-[#2A6384] text-white" step={1} />
-          <StatCard icon={Star} label="Reward Points" value={profile.rewardPoints} tone="bg-[#EAF2F8] text-[#2A6384]" step={2} />
+        <div className="dashboard-section-heading"><h2>Your progress at a glance</h2><Link href="/rewards" className="text-xs font-semibold text-brand">Explore rewards <span aria-hidden>↗</span></Link></div>
+        <div className="dashboard-stats">
+          <StatCard icon={Sparkles} label="Lifetime XP" value={profile.xp} tone="bg-[#23675D] text-white" step={1} />
+          <StatCard icon={Star} label="Reward Points" value={profile.rewardPoints} tone="bg-[#EFF7F3] text-[#23675D]" step={2} />
           <StatCard icon={Flame} label="Day streak" value={profile.streak} tone="bg-[#5E7681] text-white" step={3} />
           <StatCard
             icon={CheckCircle2}
             label="Applications sent"
             value={appliedCount}
-            tone="bg-[#F8FBFA] text-[#2A6384] ring-1 ring-[#5E7681]/35"
+            tone="bg-[#F8FBFA] text-[#23675D] ring-1 ring-[#5E7681]/35"
             step={4}
           />
         </div>
 
-        <div className="rise rise-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-stretch">
+        <div className="rise rise-5 grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(290px,.8fr)] xl:items-stretch">
           <TopFitPostings postings={topFitPostings} />
           <section className="card flex h-full flex-col p-5">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="eyebrow">XP quests</p>
-                <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Daily challenges</h2>
+                <p className="eyebrow">Keep your momentum</p>
+                <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Small steps, real progress</h2>
               </div>
-              <span className="metric rounded-full bg-[#EAF2F8] px-3 py-1 text-xs font-semibold text-[#2A6384] ring-1 ring-[#5E7681]/30">
+              <span className="metric rounded-full bg-[#EFF7F3] px-3 py-1 text-xs font-semibold text-[#23675D] ring-1 ring-[#5E7681]/30">
                 {dailyChallenges.length} today
               </span>
             </div>
@@ -218,10 +214,10 @@ export default async function DashboardPage({ searchParams: searchParamsInput }:
                 dailyChallenges.map((challenge) => <ChallengeCard key={challenge.id} challenge={challenge} />)
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-5">
-                  <p className="text-sm font-semibold text-ink">No quests loaded</p>
+                  <p className="text-sm font-semibold text-ink">Your next challenge is on its way</p>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
                     Challenges appear here once your recruiting cycle starts.{" "}
-                    <Link href="/challenges" className="font-semibold text-[#2A6384] underline decoration-[#2A6384]/30 underline-offset-2 hover:decoration-[#2A6384]">
+                    <Link href="/challenges" className="font-semibold text-[#23675D] underline decoration-[#23675D]/30 underline-offset-2 hover:decoration-[#23675D]">
                       Browse all challenges
                     </Link>
                   </p>

@@ -168,7 +168,7 @@ export function RewardsStudio({
       <div className="reward-page-title">
         <div>
           <p className="reward-kicker">CareerUp rewards</p>
-          <h1>A little progress. More possibility.</h1>
+          <h1>Make your progress count.</h1>
           <p>
             Turn the effort you put in into something that helps you move
             forward.
