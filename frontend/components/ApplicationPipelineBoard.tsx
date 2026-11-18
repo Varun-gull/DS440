@@ -141,7 +141,7 @@ export function ApplicationPipelineBoard({ applications, columns }: { applicatio
                 // The active ring must not compete with the resting stage ring:
                 // emitting both leaves the winner up to stylesheet order.
                 isActive
-                  ? "-translate-y-1 bg-[#EFF7F3] shadow-glow ring-[#23675D]/60"
+                  ? "-translate-y-1 bg-[#eef3fc] shadow-glow ring-[#2456a6]/60"
                   : clsx("bg-white/80", statusAccents[column.status].column),
                 isPending && "opacity-90"
               )}
@@ -188,7 +188,7 @@ export function ApplicationPipelineBoard({ applications, columns }: { applicatio
                   className={clsx(
                     "rounded-2xl border border-dashed p-4 text-sm transition duration-200 ease-out",
                     isActive
-                      ? "border-[#23675D]/60 bg-white text-[#23675D]"
+                      ? "border-[#2456a6]/60 bg-white text-[#2456a6]"
                       : "border-slate-200 bg-slate-50/80 text-slate-500"
                   )}
                 >

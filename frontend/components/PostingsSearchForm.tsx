@@ -70,7 +70,7 @@ function SuggestionInput({
             onChange(suggestion);
             setOpen(false);
           }}
-          className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-[#EFF7F3] hover:text-slate-950"
+          className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-[#eef3fc] hover:text-slate-950"
         >
           {suggestion}
         </button>

@@ -107,7 +107,7 @@ export default async function PostingInsightsPage({
 
           <div className="card grid gap-3 p-5">
             <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#23675D] text-white">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2456a6] text-white">
                 <UsersRound size={24} />
               </span>
               <div>
@@ -122,9 +122,9 @@ export default async function PostingInsightsPage({
                 <p className="metric text-xl font-bold text-slate-600">{insight?.appliedCount ?? applied.length}</p>
                 <p className="mt-0.5 text-xs font-semibold text-slate-500">Applied</p>
               </div>
-              <div className="rounded-2xl bg-[#EFF7F3] p-3 ring-1 ring-inset ring-[#23675D]/25">
-                <p className="metric text-xl font-bold text-[#185348]">{insight?.interviewedCount ?? interviewed.length}</p>
-                <p className="mt-0.5 text-xs font-semibold text-[#23675D]">Interviewed</p>
+              <div className="rounded-2xl bg-[#eef3fc] p-3 ring-1 ring-inset ring-[#2456a6]/25">
+                <p className="metric text-xl font-bold text-[#173f7a]">{insight?.interviewedCount ?? interviewed.length}</p>
+                <p className="mt-0.5 text-xs font-semibold text-[#2456a6]">Interviewed</p>
               </div>
               <div className="rounded-2xl bg-emerald-50 p-3 ring-1 ring-inset ring-emerald-200">
                 <p className="metric text-xl font-bold text-emerald-700">{insight?.offerCount ?? applicants.filter((a) => a.status === "offer").length}</p>
@@ -134,7 +134,7 @@ export default async function PostingInsightsPage({
           </div>
         </section>
 
-        {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#23675D] shadow-sm ring-1 ring-[#23675D]/20">{searchParams.message}</p>}
+        {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#2456a6] shadow-sm ring-1 ring-[#2456a6]/20">{searchParams.message}</p>}
         <RolePeerSetupNotice status={peerFeatureStatus} />
 
         <section className="mt-8 grid gap-4">
@@ -157,7 +157,7 @@ export default async function PostingInsightsPage({
                     <Link
                       href={buildInsightHref({ roleKey, company, role, returnTo, year: "all", signal: selectedSignal })}
                       className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
-                        selectedYear === "all" ? "bg-brand text-white" : "border border-slate-200 bg-white text-slate-600 hover:border-[#23675D]/40 hover:text-brand"
+                        selectedYear === "all" ? "bg-brand text-white" : "border border-slate-200 bg-white text-slate-600 hover:border-[#2456a6]/40 hover:text-brand"
                       }`}
                     >
                       All years
@@ -167,7 +167,7 @@ export default async function PostingInsightsPage({
                         key={year}
                         href={buildInsightHref({ roleKey, company, role, returnTo, year, signal: selectedSignal })}
                         className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
-                          selectedYear === year ? "bg-brand text-white" : "border border-slate-200 bg-white text-slate-600 hover:border-[#23675D]/40 hover:text-brand"
+                          selectedYear === year ? "bg-brand text-white" : "border border-slate-200 bg-white text-slate-600 hover:border-[#2456a6]/40 hover:text-brand"
                         }`}
                       >
                         {year}
@@ -184,7 +184,7 @@ export default async function PostingInsightsPage({
                         key={tab.value}
                         href={buildInsightHref({ roleKey, company, role, returnTo, year: selectedYear, signal: tab.value })}
                         className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-bold transition ${
-                          selectedSignal === tab.value ? "border-brand bg-brand text-white" : "border-slate-200 bg-white text-slate-600 hover:border-[#23675D]/40 hover:text-brand"
+                          selectedSignal === tab.value ? "border-brand bg-brand text-white" : "border-slate-200 bg-white text-slate-600 hover:border-[#2456a6]/40 hover:text-brand"
                         }`}
                       >
                         <span className="inline-flex items-center gap-2">
@@ -205,7 +205,7 @@ export default async function PostingInsightsPage({
                       <div className="flex min-w-0 items-center gap-3">
                         <Link
                           href={`/u/${applicant.profileId}`}
-                          className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-lg font-bold text-[#23675D] transition hover:ring-2 hover:ring-sky/40"
+                          className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-lg font-bold text-[#2456a6] transition hover:ring-2 hover:ring-sky/40"
                           aria-label={`Open ${applicant.name}'s profile`}
                         >
                           <ApplicantAvatar applicant={applicant} />

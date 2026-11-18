@@ -8,10 +8,10 @@ import { buildRoleKey } from "@/lib/role-key";
 import type { InternshipPosting, RolePeerInsight } from "@/lib/types";
 
 const APPLY_BUTTON =
-  "inline-flex min-h-9 w-full items-center justify-center rounded-xl bg-[#23675D] px-3 text-xs font-semibold text-white shadow-sm transition duration-150 hover:bg-[#185348] active:translate-y-px";
+  "inline-flex min-h-9 w-full items-center justify-center rounded-xl bg-[#2456a6] px-3 text-xs font-semibold text-white shadow-sm transition duration-150 hover:bg-[#173f7a] active:translate-y-px";
 
 const SAVE_BUTTON =
-  "inline-flex min-h-9 w-full items-center justify-center rounded-xl border border-[#5E7681]/35 bg-white px-2 text-xs font-semibold text-[#23675D] transition duration-150 hover:border-[#23675D]/45 hover:bg-[#EFF7F3] active:translate-y-px disabled:cursor-progress";
+  "inline-flex min-h-9 w-full items-center justify-center rounded-xl border border-[#5E7681]/35 bg-white px-2 text-xs font-semibold text-[#2456a6] transition duration-150 hover:border-[#2456a6]/45 hover:bg-[#eef3fc] active:translate-y-px disabled:cursor-progress";
 
 const SAVED_BUTTON =
   "inline-flex min-h-9 w-full cursor-default items-center justify-center rounded-xl bg-emerald-50 px-2 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200";
@@ -19,11 +19,11 @@ const SAVED_BUTTON =
 /** Work mode is a category, not a score, so it stays off the signal ramp. */
 function workModeTone(workMode: InternshipPosting["workMode"]) {
   if (workMode === "remote") {
-    return "bg-[#EFF7F3] text-[#185348] ring-[#23675D]/25";
+    return "bg-[#eef3fc] text-[#173f7a] ring-[#2456a6]/25";
   }
 
   if (workMode === "hybrid") {
-    return "bg-[#8FB8D4]/25 text-[#185348] ring-[#23675D]/20";
+    return "bg-[#8FB8D4]/25 text-[#173f7a] ring-[#2456a6]/20";
   }
 
   return "bg-slate-100 text-slate-600 ring-slate-200";
@@ -77,12 +77,12 @@ export function PostingsTable({
           return (
             <article key={posting.id} className="data-row p-4">
               <div className="flex items-start gap-3">
-                <span className="metric mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#EFF7F3] text-xs font-semibold text-[#23675D]">
+                <span className="metric mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#eef3fc] text-xs font-semibold text-[#2456a6]">
                   {index + 1}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold leading-tight text-ink">{posting.title}</p>
-                  <p className="mt-1 text-xs font-semibold text-[#23675D]">{posting.company}</p>
+                  <p className="mt-1 text-xs font-semibold text-[#2456a6]">{posting.company}</p>
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600">
                     <span className={`rounded-full px-2.5 py-1 font-semibold ring-1 ring-inset ${workModeTone(posting.workMode)}`}>{workModeLabel(posting.workMode)}</span>
                     <span className={`metric rounded-full px-2.5 py-1 font-bold ring-1 ring-inset ${bandStyle(fitBand(posting.fitScore)).chip}`}>
@@ -91,7 +91,7 @@ export function PostingsTable({
                     <span
                       className={
                         isFreshPosting(posting.postedAt)
-                          ? "metric rounded-full bg-[#EFF7F3] px-2.5 py-1 font-semibold text-[#185348]"
+                          ? "metric rounded-full bg-[#eef3fc] px-2.5 py-1 font-semibold text-[#173f7a]"
                           : "metric rounded-full bg-slate-100 px-2.5 py-1"
                       }
                     >
@@ -112,7 +112,7 @@ export function PostingsTable({
                     fitScore: posting.fitScore
                   }}
                   returnTo={returnTo}
-                  className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#23675D] px-3 text-sm font-semibold text-white shadow-sm transition duration-150 hover:bg-[#185348] active:translate-y-px"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#2456a6] px-3 text-sm font-semibold text-white shadow-sm transition duration-150 hover:bg-[#173f7a] active:translate-y-px"
                 >
                   <ExternalLink className="mr-1.5" size={15} /> Apply
                 </PostingApplyLink>
@@ -130,7 +130,7 @@ export function PostingsTable({
                     className={
                       saved
                         ? "inline-flex min-h-10 w-full cursor-default items-center justify-center rounded-xl bg-emerald-50 px-3 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200"
-                        : "inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-[#5E7681]/35 bg-white px-3 text-sm font-semibold text-[#23675D] transition duration-150 hover:border-[#23675D]/45 hover:bg-[#EFF7F3] active:translate-y-px disabled:cursor-progress"
+                        : "inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-[#5E7681]/35 bg-white px-3 text-sm font-semibold text-[#2456a6] transition duration-150 hover:border-[#2456a6]/45 hover:bg-[#eef3fc] active:translate-y-px disabled:cursor-progress"
                     }
                   >
                     <>
@@ -143,7 +143,7 @@ export function PostingsTable({
 
               <Link
                 href={insightHref}
-                className="mt-2 inline-flex min-h-9 w-full items-center justify-center rounded-xl bg-[#EFF7F3] px-3 text-xs font-semibold text-[#23675D] ring-1 ring-inset ring-[#5E7681]/25 transition hover:bg-[#dfeaf3]"
+                className="mt-2 inline-flex min-h-9 w-full items-center justify-center rounded-xl bg-[#eef3fc] px-3 text-xs font-semibold text-[#2456a6] ring-1 ring-inset ring-[#5E7681]/25 transition hover:bg-[#dfeaf3]"
               >
                 <UsersRound className="mr-1.5" size={14} />
                 {peerInsight?.trackedCount ?? 0} tracked · {peerInsight?.interviewedCount ?? 0} interviewing
@@ -199,7 +199,7 @@ export function PostingsTable({
                 <td
                   className={
                     isFreshPosting(posting.postedAt)
-                      ? "metric hidden whitespace-nowrap px-2 py-3 font-bold text-[#23675D] xl:table-cell"
+                      ? "metric hidden whitespace-nowrap px-2 py-3 font-bold text-[#2456a6] xl:table-cell"
                       : "metric hidden whitespace-nowrap px-2 py-3 text-slate-500 xl:table-cell"
                   }
                 >
@@ -229,14 +229,14 @@ export function PostingsTable({
                   </p>
                 </td>
                 <td className="hidden px-3 py-3 lg:table-cell">
-                  <p className="truncate font-semibold text-[#23675D]" title={posting.company}>
+                  <p className="truncate font-semibold text-[#2456a6]" title={posting.company}>
                     {posting.company}
                   </p>
                 </td>
                 <td className="hidden px-2 py-3 xl:table-cell">
                   <Link
                     href={insightHref}
-                    className="metric inline-flex min-h-9 w-full items-center justify-center rounded-xl bg-[#EFF7F3] px-2 text-xs font-semibold text-[#23675D] ring-1 ring-inset ring-[#5E7681]/25 transition hover:bg-[#dfeaf3]"
+                    className="metric inline-flex min-h-9 w-full items-center justify-center rounded-xl bg-[#eef3fc] px-2 text-xs font-semibold text-[#2456a6] ring-1 ring-inset ring-[#5E7681]/25 transition hover:bg-[#dfeaf3]"
                     title="See who else tracked this role"
                   >
                     <UsersRound className="mr-1" size={14} />

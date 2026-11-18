@@ -11,7 +11,7 @@ export function PostingCard({ posting }: { posting: InternshipPosting }) {
     <article className="card card-interactive p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-[#23675D]">{posting.company}</p>
+          <p className="text-sm font-semibold text-[#2456a6]">{posting.company}</p>
           <h3 className="font-display mt-1 text-xl font-bold tracking-tight text-ink">{posting.title}</h3>
         </div>
         <span className={`metric inline-flex rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset ${fit.chip}`}>
@@ -26,7 +26,7 @@ export function PostingCard({ posting }: { posting: InternshipPosting }) {
         <span className="inline-flex items-center gap-2">
           <Radio size={16} /> {workModeLabel}
         </span>
-        <span className={isFreshPosting(posting.postedAt) ? "metric inline-flex items-center gap-2 text-[#23675D]" : "metric inline-flex items-center gap-2"}>
+        <span className={isFreshPosting(posting.postedAt) ? "metric inline-flex items-center gap-2 text-[#2456a6]" : "metric inline-flex items-center gap-2"}>
           <CalendarDays size={16} /> {posting.postedAt}
         </span>
       </div>

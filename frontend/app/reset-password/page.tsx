@@ -25,6 +25,6 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
       <p className="text-xs leading-5 text-slate-500">Use at least 8 characters. After saving, sign in with your new password.</p>
       <AuthSubmitButton label="Save new password" pendingLabel="Saving your password…" />
     </form>
-    <Link href="/login" className="mt-5 inline-block text-sm font-bold text-[#2A6384]">Back to log in</Link>
+    <Link href="/login" className="mt-5 inline-block text-sm font-bold text-[#2456a6]">Back to log in</Link>
   </AuthShell>;
 }

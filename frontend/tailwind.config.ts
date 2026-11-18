@@ -1,5 +1,4 @@
 import type { Config } from "tailwindcss";
-import colors from "tailwindcss/colors";
 import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
@@ -48,21 +47,22 @@ const config: Config = {
         ink: "#0f172a",
         navy: "#0f172a",
         panel: "#101722",
-        brand: "#23675D",
-        electric: "#8FB8D4",
+        brand: "#2456A6",
+        gold: "#D8AA42",
+        electric: "#D8AA42",
         sky: {
-          50: "#f4faf8",
-          100: "#EAF2F8",
-          200: "#c6ddd8",
-          300: "#8FB8D4",
-          400: "#789ca3",
-          500: "#5E7681",
-          600: "#36556F",
-          700: "#2A6384",
-          800: "#214E69",
-          900: "#13112D",
-          950: "#0b0a1b",
-          DEFAULT: "#2A6384"
+          50: "#F0F5FF",
+          100: "#E3EDFD",
+          200: "#C3D7F7",
+          300: "#94B8EE",
+          400: "#6795DB",
+          500: "#3B73BF",
+          600: "#2456A6",
+          700: "#1D488B",
+          800: "#173F7A",
+          900: "#142B49",
+          950: "#0D1D34",
+          DEFAULT: "#2456A6"
         },
         success: "#2563eb",
         warning: "#f59e0b"

@@ -13,12 +13,12 @@ const TIER_COLORS = [
   "text-orange-800 bg-orange-50 ring-orange-200",
   "text-slate-600 bg-slate-100 ring-slate-300",
   "text-amber-800 bg-amber-50 ring-amber-300",
-  "text-[#185348] bg-[#EFF7F3] ring-[#23675D]/30",
+  "text-[#173f7a] bg-[#eef3fc] ring-[#2456a6]/30",
   "text-violet-700 bg-violet-50 ring-violet-300",
 ];
 
 /* The pip that marks the tier you are on, matched to the chip above. */
-const TIER_PIPS = ["", "bg-orange-700", "bg-slate-500", "bg-amber-700", "bg-[#23675D]", "bg-violet-700"];
+const TIER_PIPS = ["", "bg-orange-700", "bg-slate-500", "bg-amber-700", "bg-[#2456a6]", "bg-violet-700"];
 
 const TIER_ICONS: (LucideIcon | null)[] = [null, Medal, Medal, Medal, Gem, Crown];
 
@@ -31,7 +31,7 @@ export function ChallengeCard({ challenge }: { challenge: Challenge }) {
   return (
     <article className={clsx("card card-interactive p-5", challenge.completed && "ring-2 ring-emerald-400/60")}>
       <div className="flex items-start justify-between gap-4">
-        <div className={clsx("flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm", challenge.completed ? "bg-emerald-500" : "bg-[#23675D] text-white")}>
+        <div className={clsx("flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm", challenge.completed ? "bg-emerald-500" : "bg-[#2456a6] text-white")}>
           {challenge.completed
             ? (CompletedTierIcon ? <CompletedTierIcon size={22} className="text-white" /> : <CheckCircle2 size={22} className="text-white" />)
             : <Trophy size={22} />}
@@ -47,7 +47,7 @@ export function ChallengeCard({ challenge }: { challenge: Challenge }) {
               <CheckCircle2 size={12} /> Completed
             </span>
           ) : (
-            <span className="metric rounded-full bg-[#EFF7F3] px-3 py-1 text-xs font-semibold text-[#23675D] ring-1 ring-[#5E7681]/30">+{challenge.xp} XP</span>
+            <span className="metric rounded-full bg-[#eef3fc] px-3 py-1 text-xs font-semibold text-[#2456a6] ring-1 ring-[#5E7681]/30">+{challenge.xp} XP</span>
           )}
         </div>
       </div>

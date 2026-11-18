@@ -287,7 +287,7 @@ export async function PostingsPageView({
           ]}
         />
 
-        {searchParams?.message && <p className="mt-5 rounded-2xl border border-sky/20 bg-[#EFF7F3] p-3 text-sm font-bold text-[#23675D]">{searchParams.message}</p>}
+        {searchParams?.message && <p className="mt-5 rounded-2xl border border-sky/20 bg-[#eef3fc] p-3 text-sm font-bold text-[#2456a6]">{searchParams.message}</p>}
         <RolePeerSetupNotice status={peerFeatureStatus} />
 
         <PostingsSearchForm
@@ -302,7 +302,7 @@ export async function PostingsPageView({
         />
 
         <div className="postings-result-bar mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-white/80 bg-white/55 px-4 py-3 text-sm font-medium text-slate-600 shadow-sm backdrop-blur-xl">
-          <Link href={resetHref} className="inline-flex items-center rounded-full bg-white/75 px-3 py-1 text-xs text-slate-700 shadow-sm ring-1 ring-white/80 transition hover:bg-[#EFF7F3] hover:text-[#23675D]">
+          <Link href={resetHref} className="inline-flex items-center rounded-full bg-white/75 px-3 py-1 text-xs text-slate-700 shadow-sm ring-1 ring-white/80 transition hover:bg-[#eef3fc] hover:text-[#2456a6]">
             <RotateCcw className="mr-1" size={14} /> Reset
           </Link>
           <div className="flex flex-wrap items-center gap-3">
@@ -315,10 +315,10 @@ export async function PostingsPageView({
               </span>
             )}
             <span className="inline-flex overflow-hidden rounded-full bg-white/70 text-xs font-bold shadow-sm ring-1 ring-white/80">
-              <Link href={bestFitHref} className={sort === "fit" ? "bg-[#23675D] px-3 py-1 text-white" : "px-3 py-1 text-slate-600 transition hover:bg-[#EFF7F3] hover:text-[#23675D]"}>
+              <Link href={bestFitHref} className={sort === "fit" ? "bg-[#2456a6] px-3 py-1 text-white" : "px-3 py-1 text-slate-600 transition hover:bg-[#eef3fc] hover:text-[#2456a6]"}>
                 Best fit
               </Link>
-              <Link href={newestHref} className={sort === "newest" ? "bg-[#23675D] px-3 py-1 text-white" : "px-3 py-1 text-slate-600 transition hover:bg-[#EFF7F3] hover:text-[#23675D]"}>
+              <Link href={newestHref} className={sort === "newest" ? "bg-[#2456a6] px-3 py-1 text-white" : "px-3 py-1 text-slate-600 transition hover:bg-[#eef3fc] hover:text-[#2456a6]"}>
                 Latest posted
               </Link>
             </span>
@@ -332,7 +332,7 @@ export async function PostingsPageView({
               <nav className="mt-5 flex flex-wrap items-center justify-end gap-1 text-sm font-bold" aria-label="Posting pages">
                 <Link
                   href={buildPostingsHref(kind, searchParams, { page: Math.max(1, currentPage - 1) })}
-                  className={`flex items-center gap-1 rounded-xl px-3 py-2 transition ${currentPage === 1 ? "pointer-events-none text-slate-300" : "text-slate-600 hover:bg-slate-100 hover:text-[#23675D]"}`}
+                  className={`flex items-center gap-1 rounded-xl px-3 py-2 transition ${currentPage === 1 ? "pointer-events-none text-slate-300" : "text-slate-600 hover:bg-slate-100 hover:text-[#2456a6]"}`}
                   aria-disabled={currentPage === 1}
                 >
                   <ChevronLeft size={16} /> Previous
@@ -348,7 +348,7 @@ export async function PostingsPageView({
                       className={`min-w-[2.25rem] rounded-xl px-3 py-2 text-center transition ${
                         item === currentPage
                           ? "bg-slate-900 text-white shadow-sm ring-1 ring-slate-700"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-[#23675D]"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-[#2456a6]"
                       }`}
                       aria-current={item === currentPage ? "page" : undefined}
                     >
@@ -359,7 +359,7 @@ export async function PostingsPageView({
 
                 <Link
                   href={buildPostingsHref(kind, searchParams, { page: Math.min(totalPages, currentPage + 1) })}
-                  className={`flex items-center gap-1 rounded-xl px-3 py-2 transition ${currentPage === totalPages ? "pointer-events-none text-slate-300" : "text-slate-600 hover:bg-slate-100 hover:text-[#23675D]"}`}
+                  className={`flex items-center gap-1 rounded-xl px-3 py-2 transition ${currentPage === totalPages ? "pointer-events-none text-slate-300" : "text-slate-600 hover:bg-slate-100 hover:text-[#2456a6]"}`}
                   aria-disabled={currentPage === totalPages}
                 >
                   Next <ChevronRight size={16} />

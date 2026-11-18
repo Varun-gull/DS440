@@ -32,7 +32,7 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
           <p className="mt-2 text-sm leading-6 text-slate-600">Your profile name, school, career interests and progress appear to signed in CareerUp users. Your email, resume, preparation answers, reward balance and email scanner history stay private. Your application board starts private. Sharing it with accepted friends never shares your private application notes.</p>
         </section>
 
-        {searchParams?.message && <p className="settings-intro mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#23675D] shadow-sm ring-1 ring-[#23675D]/20">{searchParams.message}</p>}
+        {searchParams?.message && <p className="settings-intro mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#2456a6] shadow-sm ring-1 ring-[#2456a6]/20">{searchParams.message}</p>}
 
         <section className="card mt-6 max-w-3xl p-6">
           <h2 className="text-xl font-bold text-ink">AI Coach</h2>
@@ -48,7 +48,7 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
 
         <section className="card mt-8 max-w-3xl p-6">
           <div className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#eef3fc] text-brand">
               <ShieldCheck size={20} />
             </span>
             <div>
@@ -63,7 +63,7 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
 
         <section className="card mt-6 max-w-3xl p-6">
           <div className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#eef3fc] text-brand">
               {profile.shareApplicationBoard ? <UsersRound size={20} /> : <Lock size={20} />}
             </span>
             <div>
@@ -76,7 +76,7 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
 
           <form action={updatePrivacySettings} className="mt-5 grid gap-4">
             <input type="hidden" name="returnTo" value="/settings" />
-            <label className="flex gap-3 rounded-2xl border border-sky/20 bg-[#EFF7F3] p-4 text-sm font-bold text-slate-700">
+            <label className="flex gap-3 rounded-2xl border border-sky/20 bg-[#eef3fc] p-4 text-sm font-bold text-slate-700">
               <input name="shareApplicationBoard" type="checkbox" defaultChecked={profile.shareApplicationBoard} className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand" />
               <span>
                 Let accepted friends view my application board.

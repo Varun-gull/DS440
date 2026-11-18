@@ -101,11 +101,11 @@ export function MultiSelectField({ label, name, options, initialValues, placehol
                     type="button"
                     onClick={() => toggleOption(option.value)}
                     className={`flex items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-bold transition ${
-                      selected ? "bg-[#EFF7F3] text-slate-950" : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                      selected ? "bg-[#eef3fc] text-slate-950" : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
                     }`}
                   >
                     <span>{option.label}</span>
-                    {selected && <Check size={16} className="text-[#23675D]" />}
+                    {selected && <Check size={16} className="text-[#2456a6]" />}
                   </button>
                 );
               })}

@@ -110,7 +110,7 @@ export function MfaChallengeForm({ nextPath }: { nextPath: string }) {
 
   if (loading) {
     return (
-      <div className="mt-6 flex items-center gap-3 rounded-2xl bg-[#EFF7F3] p-4 text-sm font-semibold text-[#173B55]">
+      <div className="mt-6 flex items-center gap-3 rounded-2xl bg-[#eef3fc] p-4 text-sm font-semibold text-[#173B55]">
         <LoaderCircle className="animate-spin" size={18} />
         Loading your authenticator settings
       </div>
@@ -119,8 +119,8 @@ export function MfaChallengeForm({ nextPath }: { nextPath: string }) {
 
   return (
     <form onSubmit={verifyCode} className="mt-6 grid gap-4">
-      <div className="flex items-start gap-3 rounded-2xl border border-[#23675D]/20 bg-[#EFF7F3] p-4">
-        <KeyRound className="mt-0.5 shrink-0 text-[#23675D]" size={20} />
+      <div className="flex items-start gap-3 rounded-2xl border border-[#2456a6]/20 bg-[#eef3fc] p-4">
+        <KeyRound className="mt-0.5 shrink-0 text-[#2456a6]" size={20} />
         <p className="text-sm leading-6 text-slate-700">
           Open the authenticator application connected to CareerUp and enter its current six digit code.
         </p>

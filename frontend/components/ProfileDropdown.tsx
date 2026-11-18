@@ -39,7 +39,7 @@ export function ProfileDropdown({
     return (
       <Link
         href="/login"
-        className="flex h-11 min-w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-2 text-sm font-semibold text-slate-900 shadow-sm transition duration-200 ease-out hover:-translate-y-0.5 hover:border-[#23675D]/40 hover:text-[#23675D]"
+        className="flex h-11 min-w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-2 text-sm font-semibold text-slate-900 shadow-sm transition duration-200 ease-out hover:-translate-y-0.5 hover:border-[#2456a6]/40 hover:text-[#2456a6]"
       >
         <UserRound size={20} />
       </Link>
@@ -50,7 +50,7 @@ export function ProfileDropdown({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex h-11 min-w-11 max-w-44 items-center justify-center gap-2 truncate rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm transition duration-200 ease-out hover:-translate-y-0.5 hover:border-[#23675D]/40 hover:text-[#23675D]"
+        className="flex h-11 min-w-11 max-w-44 items-center justify-center gap-2 truncate rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm transition duration-200 ease-out hover:-translate-y-0.5 hover:border-[#2456a6]/40 hover:text-[#2456a6]"
         aria-label="Open profile menu"
         aria-expanded={open}
       >
@@ -68,38 +68,38 @@ export function ProfileDropdown({
           <Link
             href="/profile"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#EFF7F3] hover:text-[#23675D]"
+            className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#eef3fc] hover:text-[#2456a6]"
           >
             <User size={16} /> Profile
           </Link>
           <Link
             href="/friends"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#EFF7F3] hover:text-[#23675D]"
+            className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#eef3fc] hover:text-[#2456a6]"
           >
             <Users size={16} /> Friends
           </Link>
           <Link
             href="/messages"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#EFF7F3] hover:text-[#23675D]"
+            className="flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#eef3fc] hover:text-[#2456a6]"
           >
             <span className="inline-flex items-center gap-3">
               <Mail size={16} /> Messages
             </span>
-            {unreadMessages > 0 && <span className="metric rounded-full bg-[#23675D] px-2 py-0.5 text-xs font-semibold text-white">{unreadMessages}</span>}
+            {unreadMessages > 0 && <span className="metric rounded-full bg-[#2456a6] px-2 py-0.5 text-xs font-semibold text-white">{unreadMessages}</span>}
           </Link>
           <Link
             href="/leaderboard"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#EFF7F3] hover:text-[#23675D]"
+            className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#eef3fc] hover:text-[#2456a6]"
           >
             <Trophy size={16} /> Leaderboard
           </Link>
           <Link
             href="/settings"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#EFF7F3] hover:text-[#23675D]"
+            className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition duration-150 hover:bg-[#eef3fc] hover:text-[#2456a6]"
           >
             <Settings size={16} /> Settings
           </Link>

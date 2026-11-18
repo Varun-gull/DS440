@@ -5,18 +5,19 @@
 :root {
   color-scheme: light;
 
-  /* Brand surfaces — sky-blue family, single source of truth.
-     The page sits on a cool grey-blue rather than near-white, with dark
-     blue-grey chrome top and bottom, so light cards read as lifted off it
-     and a page can fade out without flashing white. */
-  --brand: #2a6384;
-  --brand-deep: #214e69;
-  --brand-ink: #15314a;
-  --brand-lift: #8fb8d4;
+  /* Blue and gold brand surfaces, shared by every feature. */
+  --brand: #2456a6;
+  --brand-deep: #173f7a;
+  --brand-ink: #142b49;
+  --brand-lift: #d8aa42;
+  --gold: #d8aa42;
+  --gold-ink: #805a10;
+  --gold-wash: #fff7df;
+  --gold-line: #ead49d;
   --steel: #5e7681;
   --wash: #eaf2f8;
-  --canvas: #c9d4e2;
-  --canvas-deep: #b6c4d6;
+  --canvas: #f4f7fc;
+  --canvas-deep: #e7edf7;
   --surface: #ffffff;
   --chrome: #111a24;
   --chrome-line: rgba(143, 184, 212, 0.16);
@@ -42,19 +43,19 @@
   --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
-  --primary: 204 51% 22%;
+  --primary: 217 64% 40%;
   --primary-foreground: 0 0% 100%;
   --secondary: 210 40% 96%;
   --secondary-foreground: 222 47% 11%;
   --muted: 215 20% 65%;
   --muted-foreground: 215 16% 47%;
-  --accent: 171 23% 64%;
-  --accent-foreground: 0 0% 100%;
+  --accent: 42 66% 55%;
+  --accent-foreground: 214 55% 18%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   --border: 214 32% 91%;
   --input: 214 32% 91%;
-  --ring: 204 51% 22%;
+  --ring: 217 64% 40%;
   --radius: 0.75rem;
 }
 
@@ -262,7 +263,7 @@ textarea {
 
   .primary-button {
     background: var(--brand);
-    @apply inline-flex min-h-11 items-center justify-center rounded-xl px-5 font-semibold text-white shadow-sm transition hover:bg-[#214E69] focus:outline-none focus:ring-4 focus:ring-sky/20 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none;
+    @apply inline-flex min-h-11 items-center justify-center rounded-xl px-5 font-semibold text-white shadow-sm transition hover:bg-[#173f7a] focus:outline-none focus:ring-4 focus:ring-sky/20 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none;
     transition-duration: var(--dur-1);
   }
 
@@ -501,11 +502,11 @@ textarea {
   }
 
   .career-coach-launcher {
-    @apply relative flex h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-[#2A6384] px-4 text-sm font-semibold text-white shadow-xl ring-1 ring-white/30 transition-colors hover:bg-[#214E69] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2A6384];
+    @apply relative flex h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-[#2456a6] px-4 text-sm font-semibold text-white shadow-xl ring-1 ring-white/30 transition-colors hover:bg-[#173f7a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2456a6];
   }
 
   .career-coach-badge {
-    @apply absolute -right-1 -top-1 rounded-full border-2 border-white bg-[#83C8AC] px-1.5 py-0.5 text-[9px] font-extrabold text-[#17394D];
+    @apply absolute -right-1 -top-1 rounded-full border-2 border-white bg-[#d8aa42] px-1.5 py-0.5 text-[9px] font-extrabold text-[#17394D];
   }
 
   .career-coach-panel {
@@ -528,7 +529,7 @@ textarea {
   }
 
   .career-coach-icon-button {
-    @apply inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2A6384] disabled:opacity-40;
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2456a6] disabled:opacity-40;
   }
 
   @media (min-width: 768px) {

@@ -16,7 +16,7 @@ export function EmptyState({
 }) {
   return (
     <section className="empty-state card flex flex-col items-center px-6 py-12 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EFF7F3] text-[#23675D] ring-1 ring-inset ring-[#23675D]/15">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eef3fc] text-[#2456a6] ring-1 ring-inset ring-[#2456a6]/15">
         <Icon size={28} />
       </div>
       <h2 className="font-display mt-5 text-xl font-bold tracking-tight text-ink">{title}</h2>

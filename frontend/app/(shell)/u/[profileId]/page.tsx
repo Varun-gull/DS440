@@ -42,7 +42,7 @@ export default async function PublicProfilePage({
           <ArrowLeft className="mr-2" size={16} /> Friends
         </Link>
 
-        {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#23675D] shadow-sm ring-1 ring-[#23675D]/20">{searchParams.message}</p>}
+        {searchParams?.message && <p className="mt-5 rounded-2xl bg-white/90 p-3 text-sm font-bold text-[#2456a6] shadow-sm ring-1 ring-[#2456a6]/20">{searchParams.message}</p>}
 
         {!profile ? (
           <section className="card mt-6 p-8 text-center">
@@ -51,12 +51,12 @@ export default async function PublicProfilePage({
           </section>
         ) : (
           <section className="card mt-6 overflow-hidden">
-            <div className="profile-banner relative isolate overflow-hidden bg-[#15314A] px-6 py-8 text-white">
+            <div className="profile-banner relative isolate overflow-hidden bg-[#142b49] px-6 py-8 text-white">
               <div className="hero-glow pointer-events-none absolute inset-0" aria-hidden />
               <div className="hero-grid pointer-events-none absolute inset-0" aria-hidden />
               <div className="relative flex flex-wrap items-center justify-between gap-5">
                 <div className="flex items-center gap-4">
-                  <div className="font-display flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-2xl font-bold text-[#23675D] sm:h-16 sm:w-16">
+                  <div className="font-display flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-2xl font-bold text-[#2456a6] sm:h-16 sm:w-16">
                     {profile.schoolLogoUrl ? <img src={profile.schoolLogoUrl} alt="" className="h-full w-full bg-white object-contain p-2" /> : profile.name.charAt(0)}
                   </div>
                   <div>
@@ -110,7 +110,7 @@ export default async function PublicProfilePage({
                 <XpProgressBar xp={profile.xp} />
                 <BadgeShelf applicationsApplied={profile.applicationsApplied} />
                 {!isOwnProfile && user && (
-                  <form action={sendPeerMessage} className="rounded-3xl border border-sky/20 bg-[#EFF7F3] p-4">
+                  <form action={sendPeerMessage} className="rounded-3xl border border-sky/20 bg-[#eef3fc] p-4">
                     <div className="flex items-center gap-2">
                       <Mail size={18} className="text-brand" />
                       <h2 className="font-bold text-ink">Message {profile.name.split(" ")[0]}</h2>
@@ -156,7 +156,7 @@ export default async function PublicProfilePage({
                       mutualFriends.length > 0 ? (
                         <div className="mt-4 grid gap-3">
                           {mutualFriends.map((friend) => (
-                            <div key={friend.id} className="rounded-2xl border border-slate-200 p-3 transition hover:border-sky/25 hover:bg-[#EFF7F3]">
+                            <div key={friend.id} className="rounded-2xl border border-slate-200 p-3 transition hover:border-sky/25 hover:bg-[#eef3fc]">
                               <ProfileLink profileId={friend.id} name={friend.name} />
                               <p className="mt-1 text-xs font-bold text-slate-500">{friend.school}</p>
                             </div>
@@ -222,7 +222,7 @@ export default async function PublicProfilePage({
                 ) : isAcceptedFriend ? (
                   <div className="rounded-3xl border border-slate-200 bg-white/90 p-6">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#eef3fc] text-brand">
                         <Lock size={18} />
                       </span>
                       <div>
@@ -234,7 +234,7 @@ export default async function PublicProfilePage({
                 ) : (
                   <div className="rounded-3xl border border-slate-200 bg-white/90 p-6">
                     <div className="flex items-start gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#eef3fc] text-brand">
                         <Lock size={18} />
                       </span>
                       <div>

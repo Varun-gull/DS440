@@ -43,7 +43,7 @@ function TopFitPostings({ postings }: { postings: InternshipPosting[] }) {
         </div>
         <Link
           href="/postings/internships?sort=fit"
-          className="group inline-flex items-center gap-1 rounded-lg px-1 text-sm font-semibold text-[#23675D] transition hover:text-[#185348]"
+          className="group inline-flex items-center gap-1 rounded-lg px-1 text-sm font-semibold text-[#2456a6] transition hover:text-[#173f7a]"
         >
           View all
           <ArrowRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -59,7 +59,7 @@ function TopFitPostings({ postings }: { postings: InternshipPosting[] }) {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex min-w-0 gap-3">
-                  <span className="metric mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#EFF7F3] text-xs font-semibold text-[#23675D]">
+                  <span className="metric mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#eef3fc] text-xs font-semibold text-[#2456a6]">
                     {index + 1}
                   </span>
                   <div className="min-w-0">
@@ -87,7 +87,7 @@ function TopFitPostings({ postings }: { postings: InternshipPosting[] }) {
               <div className="mt-3 flex flex-wrap items-center justify-between gap-3 pl-9">
                 <p className="text-xs text-slate-500">
                   {posting.source} ·{" "}
-                  <span className={isFreshPosting(posting.postedAt) ? "metric font-bold text-[#23675D]" : "metric"}>
+                  <span className={isFreshPosting(posting.postedAt) ? "metric font-bold text-[#2456a6]" : "metric"}>
                     {posting.postedAt}
                   </span>
                 </p>
@@ -95,7 +95,7 @@ function TopFitPostings({ postings }: { postings: InternshipPosting[] }) {
                   href={posting.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 rounded-lg text-sm font-semibold text-[#23675D] transition hover:text-[#185348]"
+                  className="inline-flex items-center gap-1 rounded-lg text-sm font-semibold text-[#2456a6] transition hover:text-[#173f7a]"
                 >
                   Open
                   <ArrowRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -179,20 +179,20 @@ export default async function DashboardPage({ searchParams: searchParamsInput }:
         ].map(({ href, icon: Icon, title, detail }) => <Link href={href} key={href} className="next-step-card"><span><Icon size={18} aria-hidden /></span><div><h2>{title}</h2><p>{detail}</p></div><ArrowRight size={15} aria-hidden /></Link>)}
       </section>
       {searchParams?.message && (
-        <p className="rise rounded-2xl border border-[#5E7681]/30 bg-[#F8FBFA] p-3 text-sm font-semibold text-[#23675D]">{searchParams.message}</p>
+        <p className="rise rounded-2xl border border-[#5E7681]/30 bg-[#F8FBFA] p-3 text-sm font-semibold text-[#2456a6]">{searchParams.message}</p>
       )}
 
       <section className="space-y-5">
         <div className="dashboard-section-heading"><h2>Your progress at a glance</h2><Link href="/rewards" className="text-xs font-semibold text-brand">Explore rewards <span aria-hidden>↗</span></Link></div>
         <div className="dashboard-stats">
-          <StatCard icon={Sparkles} label="Lifetime XP" value={profile.xp} tone="bg-[#23675D] text-white" step={1} />
-          <StatCard icon={Star} label="Reward Points" value={profile.rewardPoints} tone="bg-[#EFF7F3] text-[#23675D]" step={2} />
+          <StatCard icon={Sparkles} label="Lifetime XP" value={profile.xp} tone="bg-[#2456a6] text-white" step={1} />
+          <StatCard icon={Star} label="Reward Points" value={profile.rewardPoints} tone="bg-[#eef3fc] text-[#2456a6]" step={2} />
           <StatCard icon={Flame} label="Day streak" value={profile.streak} tone="bg-[#5E7681] text-white" step={3} />
           <StatCard
             icon={CheckCircle2}
             label="Applications sent"
             value={appliedCount}
-            tone="bg-[#F8FBFA] text-[#23675D] ring-1 ring-[#5E7681]/35"
+            tone="bg-[#F8FBFA] text-[#2456a6] ring-1 ring-[#5E7681]/35"
             step={4}
           />
         </div>
@@ -205,7 +205,7 @@ export default async function DashboardPage({ searchParams: searchParamsInput }:
                 <p className="eyebrow">Keep your momentum</p>
                 <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">Small steps, real progress</h2>
               </div>
-              <span className="metric rounded-full bg-[#EFF7F3] px-3 py-1 text-xs font-semibold text-[#23675D] ring-1 ring-[#5E7681]/30">
+              <span className="metric rounded-full bg-[#eef3fc] px-3 py-1 text-xs font-semibold text-[#2456a6] ring-1 ring-[#5E7681]/30">
                 {dailyChallenges.length} today
               </span>
             </div>
@@ -217,7 +217,7 @@ export default async function DashboardPage({ searchParams: searchParamsInput }:
                   <p className="text-sm font-semibold text-ink">Your next challenge is on its way</p>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
                     Challenges appear here once your recruiting cycle starts.{" "}
-                    <Link href="/challenges" className="font-semibold text-[#23675D] underline decoration-[#23675D]/30 underline-offset-2 hover:decoration-[#23675D]">
+                    <Link href="/challenges" className="font-semibold text-[#2456a6] underline decoration-[#2456a6]/30 underline-offset-2 hover:decoration-[#2456a6]">
                       Browse all challenges
                     </Link>
                   </p>

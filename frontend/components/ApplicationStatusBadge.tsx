@@ -16,8 +16,8 @@ const labels: Record<ApplicationStatus, string> = {
  */
 const styles: Record<ApplicationStatus, string> = {
   saved: "bg-slate-100 text-slate-600 ring-slate-200",
-  applied: "bg-[#EFF7F3] text-[#23675D] ring-[#23675D]/25",
-  interviewing: "bg-[#23675D] text-white ring-[#23675D]",
+  applied: "bg-[#eef3fc] text-[#2456a6] ring-[#2456a6]/25",
+  interviewing: "bg-[#2456a6] text-white ring-[#2456a6]",
   offer: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   rejected: "bg-slate-50 text-slate-500 ring-slate-200"
 };
@@ -26,7 +26,7 @@ const styles: Record<ApplicationStatus, string> = {
 export const statusAccents: Record<ApplicationStatus, { dot: string; column: string }> = {
   saved: { dot: "bg-slate-400", column: "ring-slate-200" },
   applied: { dot: "bg-[#8FB8D4]", column: "ring-[#8FB8D4]/50" },
-  interviewing: { dot: "bg-[#23675D]", column: "ring-[#23675D]/35" },
+  interviewing: { dot: "bg-[#2456a6]", column: "ring-[#2456a6]/35" },
   offer: { dot: "bg-emerald-500", column: "ring-emerald-300/60" },
   rejected: { dot: "bg-slate-300", column: "ring-slate-200" }
 };

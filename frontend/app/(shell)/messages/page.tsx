@@ -72,7 +72,7 @@ function EmptyMessages() {
   return (
     <div className="card flex min-h-[18rem] items-center justify-center p-8 text-center">
       <div>
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EFF7F3] text-[#23675D] ring-1 ring-inset ring-[#23675D]/15">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eef3fc] text-[#2456a6] ring-1 ring-inset ring-[#2456a6]/15">
           <Mail size={26} />
         </div>
         <h2 className="font-display mt-4 text-2xl font-bold tracking-tight text-ink">No conversations yet</h2>
@@ -125,7 +125,7 @@ export default async function MessagesPage({ searchParams: searchParamsInput }: 
             </span>
           }
         />
-        {searchParams?.message && <p className="mt-5 rounded-2xl border border-sky/20 bg-[#EFF7F3] p-3 text-sm font-bold text-[#23675D]">{searchParams.message}</p>}
+        {searchParams?.message && <p className="mt-5 rounded-2xl border border-sky/20 bg-[#eef3fc] p-3 text-sm font-bold text-[#2456a6]">{searchParams.message}</p>}
         <RolePeerSetupNotice status={peerFeatureStatus} />
 
         {selectedConversation ? (
@@ -166,7 +166,7 @@ export default async function MessagesPage({ searchParams: searchParamsInput }: 
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-base font-bold text-[#23675D]">
+                        <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-base font-bold text-[#2456a6]">
                           <Avatar conversation={conversation} />
                         </span>
                         <div className="min-w-0 flex-1">
@@ -192,7 +192,7 @@ export default async function MessagesPage({ searchParams: searchParamsInput }: 
               <div className="border-b border-slate-200/80 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-4">
-                    <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-lg font-bold text-[#23675D]">
+                    <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-lg font-bold text-[#2456a6]">
                       <Avatar conversation={selectedConversation} />
                     </span>
                     <div className="min-w-0">
@@ -205,7 +205,7 @@ export default async function MessagesPage({ searchParams: searchParamsInput }: 
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Link href={`/u/${selectedConversation.otherProfileId}`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#23675D] px-4 text-sm font-semibold text-white shadow-sm">
+                    <Link href={`/u/${selectedConversation.otherProfileId}`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#2456a6] px-4 text-sm font-semibold text-white shadow-sm">
                       View profile
                     </Link>
                     {selectedConversation.unreadCount > 0 ? (
@@ -262,24 +262,24 @@ export default async function MessagesPage({ searchParams: searchParamsInput }: 
                   return (
                     <article key={message.id} className={`flex gap-3 ${outbound ? "justify-end" : "justify-start"}`}>
                       {!outbound && (
-                        <span className="mt-7 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-sm font-semibold text-[#23675D]">
+                        <span className="mt-7 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-sm font-semibold text-[#2456a6]">
                           <Avatar conversation={selectedConversation} />
                         </span>
                       )}
                       <div className={`max-w-[74%] ${outbound ? "text-right" : "text-left"}`}>
-                        <div className={`mb-1 flex items-center gap-2 text-xs font-semibold text-[#23675D] ${outbound ? "justify-end" : "justify-start"}`}>
+                        <div className={`mb-1 flex items-center gap-2 text-xs font-semibold text-[#2456a6] ${outbound ? "justify-end" : "justify-start"}`}>
                           <span>{outbound ? "You" : message.otherName}</span>
                           <span>{message.createdAt}</span>
                         </div>
                         <div className={`inline-block max-w-full rounded-2xl px-3 py-2 text-left text-sm font-semibold leading-5 shadow-sm ${
                           outbound
-                            ? "rounded-br-md bg-[#23675D] text-white"
+                            ? "rounded-br-md bg-[#2456a6] text-white"
                             : "rounded-bl-md bg-slate-50 text-slate-900 ring-1 ring-slate-100"
                         }`}>
                           <p className="whitespace-pre-wrap">{message.body}</p>
                         </div>
                         {outbound && (
-                          <div className={`mt-2 flex items-center justify-end gap-1 text-xs font-bold ${isRead ? "text-[#23675D]" : "text-slate-400"}`}>
+                          <div className={`mt-2 flex items-center justify-end gap-1 text-xs font-bold ${isRead ? "text-[#2456a6]" : "text-slate-400"}`}>
                             {isRead ? (
                               <><CheckCheck size={14} /> Read {message.readAt}</>
                             ) : (

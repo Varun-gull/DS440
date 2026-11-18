@@ -22,14 +22,14 @@ function Avatar({ user, size = "md" }: { user: LeaderboardUser; size?: "md" | "l
     <div
       className={
         size === "lg"
-          ? "flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-[#8FB8D4] bg-[#EFF7F3] shadow-glow"
-          : "flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-[#5E7681]/35 bg-[#EFF7F3]"
+          ? "flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-[#8FB8D4] bg-[#eef3fc] shadow-glow"
+          : "flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-[#5E7681]/35 bg-[#eef3fc]"
       }
     >
       {user.schoolLogoUrl ? (
         <img src={user.schoolLogoUrl} alt="" className="h-full w-full object-contain p-1.5" />
       ) : (
-        <span className={size === "lg" ? "font-display text-2xl font-bold tracking-tight text-[#23675D]" : "text-sm font-semibold text-[#23675D]"}>{getInitial(user.name)}</span>
+        <span className={size === "lg" ? "font-display text-2xl font-bold tracking-tight text-[#2456a6]" : "text-sm font-semibold text-[#2456a6]"}>{getInitial(user.name)}</span>
       )}
     </div>
   );
@@ -61,7 +61,7 @@ export function LeaderboardTable({ users, currentUserId, emptyMode = "global" }:
   if (sorted.length === 0) {
     return (
       <div className="card p-8 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EFF7F3] text-brand">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef3fc] text-brand">
           <UserPlus size={22} />
         </div>
         <h2 className="mt-4 text-2xl font-bold text-ink">{emptyMode === "friends" ? "No friends on the board yet" : "No leaderboard data yet"}</h2>
@@ -91,10 +91,10 @@ export function LeaderboardTable({ users, currentUserId, emptyMode = "global" }:
       <div className="border-t border-[#5E7681]/20">
         <div className="flex items-center justify-between gap-3 px-6 py-5">
           <div className="flex items-center gap-3">
-            <List size={20} className="text-[#23675D]" />
+            <List size={20} className="text-[#2456a6]" />
             <h2 className="font-display text-lg font-bold text-[#0F172A]">Top contributors</h2>
           </div>
-          <span className="rounded-lg bg-[#EFF7F3] px-3 py-2 text-xs font-semibold text-[#23675D]">Lifetime XP</span>
+          <span className="rounded-lg bg-[#eef3fc] px-3 py-2 text-xs font-semibold text-[#2456a6]">Lifetime XP</span>
         </div>
 
         <div className="leaderboard-columns leaderboard-column-head border-y border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
@@ -120,10 +120,10 @@ export function LeaderboardTable({ users, currentUserId, emptyMode = "global" }:
                     {user.name}
                   </ProfileLink>
                   <p className="truncate text-[11px] font-semibold uppercase text-slate-500">{leagueLabel(user.xp)}</p>
-                  {currentUserId === user.id && <span className="mt-1 inline-flex rounded-full bg-[#EFF7F3] px-2 py-0.5 text-[10px] font-semibold text-[#23675D] ring-1 ring-[#5E7681]/25">You</span>}
+                  {currentUserId === user.id && <span className="mt-1 inline-flex rounded-full bg-[#eef3fc] px-2 py-0.5 text-[10px] font-semibold text-[#2456a6] ring-1 ring-[#5E7681]/25">You</span>}
                 </div>
               </div>
-              <span className="leaderboard-level metric items-center text-sm font-semibold text-[#23675D]">LVL {getLevel(user.xp)}</span>
+              <span className="leaderboard-level metric items-center text-sm font-semibold text-[#2456a6]">LVL {getLevel(user.xp)}</span>
               <span className="metric flex items-center font-semibold text-slate-800">{user.xp.toLocaleString()} XP</span>
               <div className="leaderboard-badge items-center justify-end">
                 <TopBadge applicationsApplied={user.applicationsApplied} />
@@ -134,12 +134,12 @@ export function LeaderboardTable({ users, currentUserId, emptyMode = "global" }:
       </div>
 
       {currentUser && currentProgress && (
-        <div className="leaderboard-footer grid gap-5 border-t border-slate-200 bg-[#EFF7F3]/65 px-6 py-5">
+        <div className="leaderboard-footer grid gap-5 border-t border-slate-200 bg-[#eef3fc]/65 px-6 py-5">
           <div className="flex min-w-0 items-center gap-4">
-            <span className="font-display text-xl font-bold text-[#23675D]">{currentIndex + 1}</span>
+            <span className="font-display text-xl font-bold text-[#2456a6]">{currentIndex + 1}</span>
             <Avatar user={currentUser} />
             <div className="min-w-0">
-              <p className="truncate text-base font-semibold text-[#23675D]">{currentUser.name} <span className="text-slate-500">(You)</span></p>
+              <p className="truncate text-base font-semibold text-[#2456a6]">{currentUser.name} <span className="text-slate-500">(You)</span></p>
               <p className="text-xs font-semibold uppercase text-[#5E7681]">{leagueLabel(currentUser.xp)} · Top {Math.max(1, Math.round(((currentIndex + 1) / sorted.length) * 100))}%</p>
             </div>
           </div>
@@ -157,7 +157,7 @@ export function LeaderboardTable({ users, currentUserId, emptyMode = "global" }:
               <p className="text-xs font-semibold uppercase text-[#5E7681]">Current XP</p>
               <p className="metric font-display text-xl font-bold text-[#0F172A]">{currentUser.xp.toLocaleString()}</p>
             </div>
-            <Link href="/rewards" className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-2xl border border-[#23675D]/20 bg-[#23675D] px-5 text-sm font-semibold text-white transition hover:bg-[#185348]">
+            <Link href="/rewards" className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-2xl border border-[#2456a6]/20 bg-[#2456a6] px-5 text-sm font-semibold text-white transition hover:bg-[#173f7a]">
               <Rocket size={16} /> Boost Rank
             </Link>
           </div>

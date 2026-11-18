@@ -33,7 +33,7 @@ export default async function LoginPage({ searchParams: searchParamsInput }: { s
       description="Your opportunities, applications, and next steps are waiting."
     >
       {!supabaseReady && (
-        <p className="mt-5 rounded-2xl border border-[#2A6384]/20 bg-[#EAF2F8] p-3 text-sm font-bold text-[#15314A]">
+        <p className="mt-5 rounded-2xl border border-[#2456a6]/20 bg-[#EAF2F8] p-3 text-sm font-bold text-[#142b49]">
           Supabase env vars are not connected yet. This form is ready for the next setup step.
         </p>
       )}
@@ -41,12 +41,12 @@ export default async function LoginPage({ searchParams: searchParamsInput }: { s
       <form action={logIn} className="mt-6 grid gap-4">
         <label className="grid gap-2 text-sm font-semibold text-slate-700">Email address<input name="email" className="field min-h-12" placeholder="you@example.com" type="email" autoComplete="email" required /></label>
         <label className="grid gap-2 text-sm font-semibold text-slate-700">Password<input name="password" className="field min-h-12" placeholder="Enter your password" type="password" autoComplete="current-password" required /></label>
-        <Link href="/forgot-password" className="justify-self-end text-sm font-semibold text-[#2A6384] hover:underline">Forgot password?</Link>
+        <Link href="/forgot-password" className="justify-self-end text-sm font-semibold text-[#2456a6] hover:underline">Forgot password?</Link>
         <button type="submit" className="primary-button mt-1 w-full">Log in</button>
       </form>
       <p className="mt-5 text-sm text-slate-600">
         New here?{" "}
-        <Link href="/signup" className="font-bold text-[#2A6384]">
+        <Link href="/signup" className="font-bold text-[#2456a6]">
           Create an account
         </Link>
       </p>

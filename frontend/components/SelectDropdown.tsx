@@ -83,10 +83,10 @@ export function SelectDropdown({ label, name, value, onChange, options }: Props)
           role="option"
           aria-selected={opt.value === value}
           onClick={() => { onChange(opt.value); setOpen(false); btnRef.current?.focus(); }}
-          className="flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#EFF7F3] hover:text-slate-950 focus:bg-[#EFF7F3]"
+          className="flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#eef3fc] hover:text-slate-950 focus:bg-[#eef3fc]"
         >
           {opt.label}
-          {opt.value === value && <Check size={14} className="text-[#23675D]" />}
+          {opt.value === value && <Check size={14} className="text-[#2456a6]" />}
         </button>
       ))}
     </div>,
