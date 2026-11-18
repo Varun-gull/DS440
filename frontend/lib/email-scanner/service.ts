@@ -7,7 +7,7 @@ import { analyzeEmail, EMAIL_PARSER_VERSION } from "./scanner";
 import { decodeGmailMessage, isIncomingGmailMessage, type GmailMessage } from "./gmail-message";
 import { gmailRequest, googleTokenRequest, GoogleAccessError, revokeGoogleToken } from "./google";
 import { ScannerError, requireScannerUser } from "./security";
-import { resolveScanWindow, gmailSearchQuery, emailWithinWindow } from "./window";
+import { resolveScanWindow, currentRecruitingCycle, gmailSearchQuery, emailWithinWindow } from "./window";
 import type { EmailInput, EmailUpdate, ScannerState, TrackedApplication } from "./types";
 
 type Session = Awaited<ReturnType<typeof requireScannerUser>>;
@@ -166,7 +166,7 @@ export async function scanGmail(session: Session, body: Record<string, unknown>)
     // syncs. Reviewed records are immutable; old uncertain matches are not lost.
     const seen = new Set((existing.data ?? []).filter(row => row.decision !== "pending"
       || (row.parser_version >= EMAIL_PARSER_VERSION && body.force !== true)).map(row => row.source_key));
-    const applications = (await scannerApplications(session)).filter(app => window.mode === "recent" || app.application_year === window.cycleYear);
+    const applications = await scannerApplications(session);
     const rows: Array<Record<string, unknown>> = [];
     const remaining = messages.filter((_, index) => !seen.has(keys[index]));
     for (let start = 0; start < remaining.length; start += 5) {
@@ -175,8 +175,9 @@ export async function scanGmail(session: Session, body: Record<string, unknown>)
         if (!isIncomingGmailMessage(full, current.email)) return null;
         const email = decodeGmailMessage(full);
         if (!emailWithinWindow(email.receivedAt, window)) return null;
-        const result = suggestion(email, applications);
-        return result ? { ...result, recruiting_cycle_year: window.mode === "recent" ? null : window.cycleYear, source_key: hash(`${current.email.toLowerCase()}:${full.id}`),
+        const year = window.mode === "recent" ? null : currentRecruitingCycle(new Date(email.receivedAt)).cycleYear;
+        const result = suggestion(email, applications.filter(app => year === null || app.application_year === year));
+        return result ? { ...result, recruiting_cycle_year: year, source_key: hash(`${current.email.toLowerCase()}:${full.id}`),
           thread_key: hash(`${current.email.toLowerCase()}:${full.threadId}`) } : null;
       }));
       for (const row of batch) if (row) rows.push(row);

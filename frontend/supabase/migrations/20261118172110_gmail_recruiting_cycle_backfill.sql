@@ -22,7 +22,8 @@ begin
  if exists(select 1 from jsonb_to_recordset(p_updates) as x(received_at timestamptz)
  where (x.received_at at time zone 'America/New_York')::date not between p_start_date and p_end_date) then raise exception 'Email outside requested dates.'; end if;
  n:=public.save_gmail_updates(p_user_id,p_lease,p_updates,p_next_page,p_query,p_days);
- update public.email_updates e set recruiting_cycle_year=case when p_mode='recent' then null else p_cycle_year end
+ update public.email_updates e set recruiting_cycle_year=case when p_mode='recent' then null else
+  extract(year from e.received_at at time zone 'America/New_York')::integer - case when extract(month from e.received_at at time zone 'America/New_York')<7 then 1 else 0 end end
  where e.user_id=p_user_id and e.source='gmail' and e.decision='pending'
  and e.source_key in(select x.source_key from jsonb_to_recordset(p_updates) as x(source_key text));
  update public.email_connections set scan_mode=p_mode,scan_start_date=p_start_date,scan_end_date=p_end_date,

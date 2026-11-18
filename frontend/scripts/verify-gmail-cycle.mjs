@@ -59,6 +59,10 @@ try{
  must(await save(a,[nextYear],'2026-07-01','2026-11-18',2026,null,true));
  check('Same role in a new cycle creates a separate card',must(await ca.rpc('apply_gmail_board_updates')).added===1&&must(await ca.from('applications').select('id').eq('company','CycleCo')).length===2);
  check('New cycle leaves archived interview unchanged',must(await ca.from('applications').select('status').eq('id',app.id).single()).status==='interviewing');
+ const broad=[row('Archived Analyst','applied','2025-08-21T16:00:00Z'),row('Current Analyst','applied','2026-08-21T16:00:00Z')];
+ must(await save(a,broad,'2025-07-01','2026-11-18',2025,null,true));must(await ca.rpc('apply_gmail_board_updates'));
+ const broadApps=must(await ca.from('applications').select('role,application_year').in('role',['Archived Analyst','Current Analyst']));
+ check('Custom ranges spanning July assign each email to its own cycle',broadApps.find(x=>x.role==='Archived Analyst')?.application_year===2025&&broadApps.find(x=>x.role==='Current Analyst')?.application_year===2026);
  const outside=await save(a,[row('Wrong Date','applied','2025-08-20T16:00:00Z')],'2026-07-01','2026-11-18',2026,null,true);
  check('Database rejects email outside the selected date range',!!outside.error);
  must(await admin.from('email_connections').update({scan_lease:null,scan_lease_until:null}).eq('user_id',a.id));
