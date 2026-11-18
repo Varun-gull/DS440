@@ -34,10 +34,16 @@ export function emailWithinWindow(receivedAt: string, window: ScanWindow) {
   const date = calendarDate(new Date(receivedAt));
   return date >= window.startDate && date <= window.endDate;
 }
-export function gmailSearchQuery(window: ScanWindow) {
+export function gmailSearchQuery(window: ScanWindow, newerThan?: string) {
   // Search a wider UTC envelope, then enforce exact local dates after decoding.
   // This avoids Gmail's default Pacific-time interpretation of date-only queries.
-  const after = Date.parse(`${window.startDate}T00:00:00Z`) / 1000 - 86400;
+  const start = validDate(newerThan) && newerThan > window.startDate && newerThan <= window.endDate ? newerThan : window.startDate;
+  const after = Date.parse(`${start}T00:00:00Z`) / 1000 - 86400;
   const before = Date.parse(`${window.endDate}T00:00:00Z`) / 1000 + 2 * 86400;
   return `after:${after} before:${before} {"application" "applying" "interview" "phone screen" "offer" "candidacy" "your interest" "assessment"} -in:spam -in:trash -in:sent -in:drafts -subject:"job matches" -subject:"job alert" -subject:"new jobs"`;
+}
+export function isIncrementalQuery(window: ScanWindow, query: string | null) {
+  const after = Number(query?.match(/\bafter:(\d+)/)?.[1]);
+  const baseline = Number(gmailSearchQuery(window).match(/\bafter:(\d+)/)![1]);
+  return Number.isFinite(after) && after > baseline;
 }

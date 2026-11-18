@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {createClient} from '@supabase/supabase-js';
-import {currentRecruitingCycle,resolveScanWindow,emailWithinWindow,gmailSearchQuery} from '../lib/email-scanner/window.ts';
+import {currentRecruitingCycle,resolveScanWindow,emailWithinWindow,gmailSearchQuery,isIncrementalQuery} from '../lib/email-scanner/window.ts';
 import {analyzeEmail} from '../lib/email-scanner/scanner.ts';
 const checks=[];
 function check(name,ok){assert.ok(ok,name);checks.push({name,passed:true});console.log('PASS '+name);}
@@ -15,6 +15,8 @@ check('Custom archived cycle is supported',resolveScanWindow({mode:'custom',star
 for(const [name,input] of [['Future dates rejected',{mode:'custom',startDate:'2026-07-01',endDate:'2027-01-01'}],['Invalid calendar dates rejected',{mode:'custom',startDate:'2026-02-30',endDate:'2026-11-18'}],['Reversed dates rejected',{mode:'custom',startDate:'2026-11-18',endDate:'2026-07-01'}],['Unbounded historical scans rejected',{mode:'custom',startDate:'2000-01-01',endDate:'2026-11-18'}]]){let failed=false;try{resolveScanWindow(input,{},now);}catch{failed=true;}check(name,failed);}
 check('Recent windows remain compatible',resolveScanWindow({days:90},{},now).mode==='recent');
 check('Search excludes sent mail, drafts and job-alert subjects',gmailSearchQuery(cycle).includes('-in:sent -in:drafts -subject:"job matches"'));
+check('After backfill a recent-mail query avoids rescanning the entire cycle',isIncrementalQuery(cycle,gmailSearchQuery(cycle,'2026-11-17'))&&!isIncrementalQuery(cycle,gmailSearchQuery(cycle)));
+check('A recent-mail watermark cannot move before or beyond the chosen cycle',gmailSearchQuery(cycle,'2026-06-01')===gmailSearchQuery(cycle)&&gmailSearchQuery(cycle,'2027-01-01')===gmailSearchQuery(cycle));
 const email=(subject,body,sender='Recruiting <jobs@company.invalid>')=>({subject,body,sender,receivedAt:now.toISOString()});
 for(const [name,input,company,role,status] of [
  ['Comeet role in subject',email('We Got It: Thanks for applying for Outbound AI Engineer','Thank you for applying for a position at NimbleWay. We received your information.'),'NimbleWay','Outbound AI Engineer','applied'],

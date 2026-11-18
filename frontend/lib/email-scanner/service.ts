@@ -7,7 +7,7 @@ import { analyzeEmail, EMAIL_PARSER_VERSION } from "./scanner";
 import { decodeGmailMessage, isIncomingGmailMessage, type GmailMessage } from "./gmail-message";
 import { gmailRequest, googleTokenRequest, GoogleAccessError, revokeGoogleToken } from "./google";
 import { ScannerError, requireScannerUser } from "./security";
-import { resolveScanWindow, currentRecruitingCycle, gmailSearchQuery, emailWithinWindow } from "./window";
+import { resolveScanWindow, currentRecruitingCycle, calendarDate, gmailSearchQuery, isIncrementalQuery, emailWithinWindow } from "./window";
 import type { EmailInput, EmailUpdate, ScannerState, TrackedApplication } from "./types";
 
 type Session = Awaited<ReturnType<typeof requireScannerUser>>;
@@ -154,7 +154,12 @@ export async function scanGmail(session: Session, body: Record<string, unknown>)
     const access = token.access_token!;
     const continuing = body.continue === true && current.scan_parser_version >= EMAIL_PARSER_VERSION && current.scan_page_token && current.scan_query
       && current.scan_mode === window.mode && current.scan_start_date === window.startDate && current.scan_end_date === window.endDate;
-    const query = continuing ? current.scan_query! : gmailSearchQuery(window);
+    const sameScope = current.scan_mode === window.mode && current.scan_start_date === window.startDate && current.scan_parser_version >= EMAIL_PARSER_VERSION
+      && (current.scan_end_date === window.endDate || (window.mode === "cycle" && current.scan_end_date !== null && current.scan_end_date < window.endDate));
+    const watermark = body.force !== true && sameScope && current.scan_completed_at
+      ? calendarDate(new Date(Date.parse(current.scan_completed_at) - 86400000)) : undefined;
+    const query = continuing ? current.scan_query! : gmailSearchQuery(window, watermark);
+    const incremental = isIncrementalQuery(window, query);
     const params = new URLSearchParams({ q: query, maxResults: "20", fields: "messages(id,threadId),nextPageToken" });
     if (continuing) params.set("pageToken", current.scan_page_token!);
     const page = await gmailRequest<{ messages?: Array<{ id: string; threadId: string }>; nextPageToken?: string }>(access, `messages?${params}`);
@@ -191,8 +196,8 @@ export async function scanGmail(session: Session, body: Record<string, unknown>)
     if (applied.error) throw new ScannerError("Emails were saved, but board sync could not finish. Retry sync to apply saved updates.", 503);
     const counts = { ...(applied.data as { added: number; updated: number }), review: await pendingGmailCount(session) };
     const checked = (continuing ? current.scan_checked : 0) + messages.length;
-    return { message: `Checked ${checked} emails from ${window.startDate} through ${window.endDate}. This batch added ${counts.added} application${counts.added === 1 ? "" : "s"} and updated ${counts.updated}. ${counts.review} email${counts.review === 1 ? " needs" : "s need"} review. ${page.nextPageToken ? "Older emails remain; backfill will continue while this page is open." : "Backfill complete for this date range."}`,
-      ...counts, checked, ...window, hasMore: Boolean(page.nextPageToken) };
+    return { message: `${incremental ? "Recent update check: " : ""}Checked ${checked} emails within ${window.startDate} through ${window.endDate}. This batch added ${counts.added} application${counts.added === 1 ? "" : "s"} and updated ${counts.updated}. ${counts.review} email${counts.review === 1 ? " needs" : "s need"} review. ${page.nextPageToken ? `${incremental ? "More new" : "Older"} emails remain; scanning will continue while this page is open.` : incremental ? "Recent update check complete. Your recruiting-cycle history is kept." : "Backfill complete for this date range."}`,
+      ...counts, checked, incremental, ...window, hasMore: Boolean(page.nextPageToken) };
   } catch (error) {
     if (error instanceof GoogleAccessError && error.reconnect) {
       await admin.from("email_connections").update({ reconnect_required: true }).eq("user_id", session.user.id).eq("scan_lease", lease);
