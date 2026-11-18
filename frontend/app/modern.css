@@ -4,11 +4,11 @@
   --brand: #2456a6;
   --brand-deep: #173f7a;
   --brand-ink: #142b49;
-  --brand-lift: #d8aa42;
-  --gold: #d8aa42;
-  --gold-ink: #805a10;
-  --gold-wash: #fff7df;
-  --gold-line: #ead49d;
+  --brand-lift: #c5cedb;
+  --silver: #c5cedb;
+  --silver-ink: #526174;
+  --silver-wash: #f1f4f8;
+  --silver-line: #d4dce7;
   --wash: #eef3fc;
   --canvas: #f4f7fc;
   --canvas-deep: #edf1f4;
@@ -427,41 +427,41 @@ input[type="checkbox"],input[type="radio"] { accent-color:var(--brand); }
 .account-confirm-panel { max-width:680px; border:1px solid #dce0e6; border-radius:14px; padding:20px; background:#f8f9fb; }
 .account-confirm-danger { background:#fffbfa; border-color:#e8bdb9; }
 
-/* Gold marks progress and selected destinations; blue carries primary actions. */
+/* Silver marks progress and selected destinations; blue carries primary actions. */
 .brand-lockup { color:var(--brand-ink); }
-.brand-symbol { background:var(--brand-ink); color:var(--gold); }
-.brand-up { color:var(--gold-ink); }
-::selection { background:#fae8b5; color:var(--brand-ink); }
+.brand-symbol { background:var(--brand-ink); color:var(--silver); }
+.brand-up { color:var(--silver-ink); }
+::selection { background:#dce5f2; color:var(--brand-ink); }
 :focus-visible { outline-color:var(--brand); }
-.topbar-points { background:var(--gold-wash); color:var(--gold-ink); border:1px solid var(--gold-line); }
-.workspace-nav-link[aria-current="page"] { color:var(--brand-ink); background:var(--gold-wash); }
-.workspace-nav-link[aria-current="page"]::before { background:var(--gold); }
-.page-tabs a[aria-current="page"] { color:var(--brand); border-bottom-color:var(--gold); }
-.mobile-nav-link[aria-current="page"],.mobile-nav-link[data-active="true"] { background:var(--gold-wash); color:var(--brand-ink); }
-.careerup-shell .coach-mode-nav a[aria-current="page"] { background:var(--gold-wash); color:var(--brand-ink); }
-.next-step-card:first-child { background:var(--gold-wash); border-color:var(--gold-line); }
-.next-step-card:first-child > span { color:var(--gold-ink); border-color:var(--gold-line); }
-.leader-highlight[data-place="1"] { background:var(--gold-wash); border-color:var(--gold-line); }
-.leader-highlight[data-place="1"] .leader-highlight-label > span:first-child { color:var(--gold-ink); }
-.career-coach-launcher { background:var(--brand-ink); border:1px solid var(--gold); }
+.topbar-points { background:var(--silver-wash); color:var(--silver-ink); border:1px solid var(--silver-line); }
+.workspace-nav-link[aria-current="page"] { color:var(--brand-ink); background:var(--silver-wash); }
+.workspace-nav-link[aria-current="page"]::before { background:var(--silver); }
+.page-tabs a[aria-current="page"] { color:var(--brand); border-bottom-color:var(--silver); }
+.mobile-nav-link[aria-current="page"],.mobile-nav-link[data-active="true"] { background:var(--silver-wash); color:var(--brand-ink); }
+.careerup-shell .coach-mode-nav a[aria-current="page"] { background:var(--silver-wash); color:var(--brand-ink); }
+.next-step-card:first-child { background:var(--silver-wash); border-color:var(--silver-line); }
+.next-step-card:first-child > span { color:var(--silver-ink); border-color:var(--silver-line); }
+.leader-highlight[data-place="1"] { background:var(--silver-wash); border-color:var(--silver-line); }
+.leader-highlight[data-place="1"] .leader-highlight-label > span:first-child { color:var(--silver-ink); }
+.career-coach-launcher { background:var(--brand-ink); border:1px solid var(--silver); }
 .career-coach-launcher:hover { background:var(--brand-deep); }
 .landing-page,.auth-page { background:var(--canvas); }
-.landing-tag { color:var(--gold-ink); background:var(--gold-wash); border-color:var(--gold-line); }
+.landing-tag { color:var(--silver-ink); background:var(--silver-wash); border-color:var(--silver-line); }
 .landing-intro h1,.auth-story h2,.auth-form-card h1 { color:var(--brand-ink); }
-.landing-intro h1 > span,.auth-story h2 > span { color:var(--gold-ink); }
-.landing-actions .primary-button,.landing-closing .primary-button { color:var(--brand-ink); background:var(--gold); }
-.landing-actions .primary-button:hover,.landing-closing .primary-button:hover { background:#c99b32; }
-.landing-closing { background:var(--gold-wash); border-color:var(--gold-line); }
+.landing-intro h1 > span,.auth-story h2 > span { color:var(--silver-ink); }
+.landing-actions .primary-button,.landing-closing .primary-button { color:var(--brand-ink); background:var(--silver); }
+.landing-actions .primary-button:hover,.landing-closing .primary-button:hover { background:#b3bfce; }
+.landing-closing { background:var(--silver-wash); border-color:var(--silver-line); }
 .landing-closing h2 { color:var(--brand-ink); }
-.landing-closing p:last-child { color:#665322; }
-.preview-bottom { background:var(--gold-wash); color:var(--gold-ink); border-top-color:var(--gold-line); }
-.preview-interview > p > span { background:var(--gold); }
-.auth-benefits svg,.auth-story > .eyebrow { color:var(--gold-ink); }
-.auth-form-card { border-top:3px solid var(--gold); }
-.reward-balance { color:#f4d581; }
-.reward-wallet-tag { color:#f4d581; border-color:#d8aa4266; background:#d8aa4214; }
-.reward-wallet::before { background:radial-gradient(ellipse at 92% 15%,#d8aa4226,transparent 58%); }
-.reward-coin-art i { color:#142b49; background:linear-gradient(135deg,#f5d986,#d8aa42); border-color:#f5d98666; outline-color:#d8aa4280; box-shadow:0 4px 0 #8b6522,0 8px 22px #00000020; }
+.landing-closing p:last-child { color:#526174; }
+.preview-bottom { background:var(--silver-wash); color:var(--silver-ink); border-top-color:var(--silver-line); }
+.preview-interview > p > span { background:var(--silver); }
+.auth-benefits svg,.auth-story > .eyebrow { color:var(--silver-ink); }
+.auth-form-card { border-top:3px solid var(--silver); }
+.reward-balance { color:#e5ebf3; }
+.reward-wallet-tag { color:#e5ebf3; border-color:#c5cedb66; background:#c5cedb14; }
+.reward-wallet::before { background:radial-gradient(ellipse at 92% 15%,#c5cedb26,transparent 58%); }
+.reward-coin-art i { color:#142b49; background:linear-gradient(135deg,#edf1f7,#c5cedb); border-color:#edf1f766; outline-color:#c5cedb80; box-shadow:0 4px 0 #69788d,0 8px 22px #00000020; }
 .reward-coin-art i:first-child { color:#e3edfd; background:linear-gradient(135deg,#3b73bf,#173f7a); border-color:#6795db7a; }
 .account-confirm-panel input { background:white; }
 @media(max-width:640px) { .legal-document { width:calc(100% - 32px); margin-top:26px; } .legal-document section p { font-size:14px; } .legal-document td,.legal-document th { padding:12px; } .public-footer { gap:18px; flex-wrap:wrap; } }

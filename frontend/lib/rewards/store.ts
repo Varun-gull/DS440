@@ -113,7 +113,7 @@ export const storeRewards: StoreReward[] = [
     repeatable: false,
     available: true,
     includes: [
-      "Blue & gold, Forest, and Plum app themes",
+      "Blue & silver, Forest, and Plum app themes",
       "Initials, Compass, Rocket, and Graduate avatars",
       "Choose an earned badge to feature on your profile",
     ],
@@ -184,7 +184,7 @@ export const storeRewards: StoreReward[] = [
 ];
 
 export const themeOptions = [
-  { id: "ocean", label: "Blue & gold", color: "#2456A6", canvas: "#F4F7FC" },
+  { id: "ocean", label: "Blue & silver", color: "#2456A6", canvas: "#F4F7FC" },
   { id: "forest", label: "Forest", color: "#276657", canvas: "#DEE9E2" },
   { id: "plum", label: "Plum", color: "#71537D", canvas: "#E9E1EC" },
 ] as const;

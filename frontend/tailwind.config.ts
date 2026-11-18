@@ -48,8 +48,8 @@ const config: Config = {
         navy: "#0f172a",
         panel: "#101722",
         brand: "#2456A6",
-        gold: "#D8AA42",
-        electric: "#D8AA42",
+        silver: "#c5cedb",
+        electric: "#c5cedb",
         sky: {
           50: "#F0F5FF",
           100: "#E3EDFD",

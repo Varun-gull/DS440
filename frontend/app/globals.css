@@ -5,15 +5,15 @@
 :root {
   color-scheme: light;
 
-  /* Blue and gold brand surfaces, shared by every feature. */
+  /* Blue and silver brand surfaces, shared by every feature. */
   --brand: #2456a6;
   --brand-deep: #173f7a;
   --brand-ink: #142b49;
-  --brand-lift: #d8aa42;
-  --gold: #d8aa42;
-  --gold-ink: #805a10;
-  --gold-wash: #fff7df;
-  --gold-line: #ead49d;
+  --brand-lift: #c5cedb;
+  --silver: #c5cedb;
+  --silver-ink: #526174;
+  --silver-wash: #f1f4f8;
+  --silver-line: #d4dce7;
   --steel: #5e7681;
   --wash: #eaf2f8;
   --canvas: #f4f7fc;
@@ -49,7 +49,7 @@
   --secondary-foreground: 222 47% 11%;
   --muted: 215 20% 65%;
   --muted-foreground: 215 16% 47%;
-  --accent: 42 66% 55%;
+  --accent: 215 23% 82%;
   --accent-foreground: 214 55% 18%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
@@ -506,7 +506,7 @@ textarea {
   }
 
   .career-coach-badge {
-    @apply absolute -right-1 -top-1 rounded-full border-2 border-white bg-[#d8aa42] px-1.5 py-0.5 text-[9px] font-extrabold text-[#17394D];
+    @apply absolute -right-1 -top-1 rounded-full border-2 border-white bg-[#c5cedb] px-1.5 py-0.5 text-[9px] font-extrabold text-[#17394D];
   }
 
   .career-coach-panel {

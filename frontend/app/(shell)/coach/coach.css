@@ -64,6 +64,6 @@
 @media (max-width:1023px) { .coach-chat-layout { grid-template-columns:minmax(240px,.65fr) minmax(0,1fr); } .coach-live-layout { grid-template-columns:280px minmax(0,1fr); } .coach-header-actions { align-items:flex-start; } }
 @media (max-width:767px) { .coach-chat-layout,.coach-live-layout { grid-template-columns:1fr; } .coach-header { gap:1rem; } .coach-header-actions { width:100%; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; } .coach-mode-nav a { padding:.75rem .9rem; } .interview-room-header { padding:1.2rem; } .interview-room-center { padding:1.5rem 1.1rem; } .interview-room[data-active="true"] .interview-avatar { width:240px; height:240px; } .interview-room[data-active="true"] .interview-avatar-face { width:176px; height:176px; } .interview-room[data-active="true"] .interview-room-center { min-height:490px; } .interview-controls { width:100%; } .interview-controls button { flex:1; padding:.8rem 1rem; } }
 @media (prefers-reduced-motion:reduce) { .interview-avatar,.interview-avatar * { animation:none !important; transition:none !important; } }
-.interview-avatar-spark { background:#d8aa42; color:#142b49; }
-.interview-avatar-orbit-inner { border-color:#d8aa4255; }
-.interview-avatar[data-phase="speaking"] .interview-avatar-orbit-inner { border-color:#d8aa4288; }
+.interview-avatar-spark { background:#c5cedb; color:#142b49; }
+.interview-avatar-orbit-inner { border-color:#c5cedb55; }
+.interview-avatar[data-phase="speaking"] .interview-avatar-orbit-inner { border-color:#c5cedb88; }
