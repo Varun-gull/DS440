@@ -121,7 +121,9 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
       if (!response.ok) throw new Error(result.error ?? "Could not complete the request.");
       setMessage(result.message);
       await load();
-      if (["confirm", "create", "scan", "auto-sync"].includes(String(payload.action))) router.refresh();
+      // Refreshing the route during backfill can remount this component and
+      // discard its continuation timer. The API already revalidates the board.
+      if (["confirm", "create"].includes(String(payload.action))) router.refresh();
       return true;
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Request failed. Try again."); return false; }
     finally { setBusy(false); }
