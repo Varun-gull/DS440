@@ -22,7 +22,8 @@
     "verify:rewards": "node scripts/verify-rewards.mjs",
     "verify:rewards:database": "node scripts/verify-rewards-database.mjs",
     "verify:rewards:live": "node scripts/verify-rewards-live.mjs",
-    "verify:account-privacy": "node scripts/verify-account-privacy.mjs"
+    "verify:account-privacy": "node scripts/verify-account-privacy.mjs",
+    "verify:gmail-automation": "node --experimental-strip-types scripts/verify-gmail-automation.mjs"
   },
   "dependencies": {
     "@google/genai": "2.31.0",

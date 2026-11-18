@@ -15,6 +15,7 @@ export type EmailInput = {
 };
 
 export type EmailAnalysis = {
+  identityComplete: boolean;
   status: EmailStatus | null;
   confidence: "high" | "review" | "unknown";
   evidence: string;
@@ -27,6 +28,8 @@ export type EmailAnalysis = {
 };
 
 export type EmailUpdate = {
+  automation_note?: string;
+  automatically_applied?: boolean;
   id: string;
   source: "gmail" | "paste";
   subject: string;
@@ -51,7 +54,7 @@ export type ScannerState = {
   databaseReady: boolean;
   gmailReady: boolean;
   missingSettings: string[];
-  connection: { email: string; lastScannedAt: string | null; hasMore: boolean; scanDays: number; reconnectRequired: boolean } | null;
+  connection: { email: string; lastScannedAt: string | null; hasMore: boolean; scanDays: number; reconnectRequired: boolean; autoSyncEnabled: boolean } | null;
   applications: TrackedApplication[];
   updates: EmailUpdate[];
   error?: string;

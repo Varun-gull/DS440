@@ -49,6 +49,7 @@ function SuggestionCard({ update, applications, busy, act }: { update: EmailUpda
         </select>
       </label>
       {!update.suggested_application_id && <p className="text-xs leading-5 text-amber-800">No unique application match. Choose the correct company and role yourself.</p>}
+      {update.automation_note && <p className="text-xs leading-5 text-amber-800">{update.automation_note}</p>}
       {!applications.length && <p className="text-sm text-slate-600"><Link className="font-semibold text-[#23675D] underline" href="/applications/new">Add a tracked application</Link> before confirming.</p>}
       {app && <p className="flex flex-wrap items-center gap-2 text-sm text-slate-600">{statusLabel[app.status]} <ChevronRight size={16} /> <strong className="text-[#23675D]">{statusLabel[update.proposed_status]}</strong></p>}
       {older && <label className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900">
@@ -80,6 +81,7 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
   const [body, setBody] = useState("");
   const [receivedAt, setReceivedAt] = useState("");
   const [preview, setPreview] = useState<EmailAnalysis | null>(null);
+  const [automationConsent, setAutomationConsent] = useState(false);
 
   const load = useCallback(async () => {
     const response = await fetch("/api/email-scanner", { cache: "no-store" });
@@ -102,7 +104,7 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
       if (!response.ok) throw new Error(result.error ?? "Could not complete the request.");
       setMessage(result.message);
       await load();
-      if (payload.action === "confirm") router.refresh();
+      if (["confirm", "scan", "auto-sync"].includes(String(payload.action))) router.refresh();
       return true;
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Request failed. Try again."); return false; }
     finally { setBusy(false); }
@@ -146,7 +148,7 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
     <section className="grid gap-4 sm:grid-cols-3" aria-label="How email scanning works">
       {[{ icon: Mail, title: "1. Find updates", text: "Scan recent Gmail messages or paste one email." },
         { icon: FileText, title: "2. Review the evidence", text: "Check the status phrase, company, role, and date." },
-        { icon: ShieldCheck, title: "3. You decide", text: "Nothing changes until you confirm the application." }].map((item) => <div key={item.title} className="card p-5">
+        { icon: ShieldCheck, title: "3. Keep your board updated", text: "Enable automatic sync for clear matches, or confirm each suggestion yourself." }].map((item) => <div key={item.title} className="card p-5">
         <item.icon size={20} className="text-[#23675D]" /><h2 className="mt-3 font-bold text-slate-900">{item.title}</h2><p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
       </div>)}
     </section>
@@ -170,7 +172,10 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
             if (window.confirm("Disconnect Gmail and delete imported Gmail records? Confirmed changes on your application board will remain.")) void act({ action: "disconnect" });
           }}><Unplug size={16} />Disconnect</button>
         </div>
-        <p className="text-xs leading-5 text-slate-500">Each batch checks up to 20 matching messages. Continue until the window is complete. Scanning is manual and does not run in the background.</p>
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4"><h3 className="font-bold text-slate-900">Automatic application board sync</h3><p className="mt-2 text-sm leading-6 text-slate-600">Clear application emails can create cards and update matching roles. Unclear matches, older messages and conflicting final statuses stay in the review queue. Email contents are not copied into shared application notes.</p>
+          {state.connection.autoSyncEnabled ? <><p className="mt-3 text-sm font-semibold text-emerald-800">Automatic sync is on. It checks when you open the board and every five minutes while it is visible, continuing older batches every 30 seconds. It stops when the board is closed.</p><div className="mt-3 flex flex-wrap gap-2"><Link href="/applications?year=all" className="primary-button">Open synced board</Link><button className={secondary} disabled={busy} onClick={() => void act({ action: "automation", enabled: false })}>Turn off automatic sync</button></div></> : <><label className="mt-3 flex items-start gap-3 text-sm leading-6"><input type="checkbox" checked={automationConsent} disabled={busy} onChange={event => setAutomationConsent(event.target.checked)} className="mt-1.5" /><span>I allow CareerUp to automatically add applications and change board statuses using clear Gmail messages in my selected search window. Existing board sharing settings apply to imported cards. I can correct changes or turn sync off.</span></label><button className="primary-button mt-3 disabled:opacity-50" disabled={busy || !automationConsent || state.connection.reconnectRequired} onClick={() => void act({ action: "automation", enabled: true, consent: automationConsent })}>Enable automatic sync</button></>}
+        </div>
+        <p className="text-xs leading-5 text-slate-500">Each batch checks up to 20 matching messages. Your selected search window is used by automatic sync. Scans run while the board is open, or when you choose Scan recent emails here.</p>
       </div> : <div className="mt-5 grid gap-4">
         <label className="flex max-w-3xl items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700">
           <input type="checkbox" checked={gmailConsent} onChange={(event) => setGmailConsent(event.target.checked)} className="mt-1.5" disabled={busy} />
@@ -208,13 +213,13 @@ export function EmailScanner({ initialMessage = "" }: { initialMessage?: string 
       </div>}
     </section>
 
-    <section aria-labelledby="review-heading"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 id="review-heading" className="text-xl font-bold text-slate-950">Ready for review <span className="ml-2 text-base text-slate-500">{pending.length}</span></h2><p className="mt-2 text-sm text-slate-600">Review up to 80 pending suggestions, newest first. Confirmed updates appear on your application board.</p></div>
+    <section aria-labelledby="review-heading"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 id="review-heading" className="text-xl font-bold text-slate-950">Ready for review <span className="ml-2 text-base text-slate-500">{pending.length}</span></h2><p className="mt-2 text-sm text-slate-600">Review up to 80 pending suggestions, newest first. Confirmed and automatically synced updates appear on your application board.</p></div>
       <button className={secondary} disabled={busy || loading} onClick={async () => { setError(""); setLoading(true); try { await load(); } catch { setError("Could not refresh. Try again."); } finally { setLoading(false); } }}><RefreshCw size={16} />Refresh</button></div>
       <div className="grid gap-4">{pending.map((update) => <SuggestionCard key={update.id} update={update} applications={state?.applications ?? []} busy={busy} act={act} />)}
-        {!pending.length && <div className="card p-8 text-center"><Inbox size={26} className="mx-auto text-[#23675D]" /><p className="mt-3 font-bold text-slate-800">No pending suggestions</p><p className="mt-2 text-sm text-slate-500">Scan Gmail or save a pasted email. CareerUp never changes a status just because an email arrived.</p></div>}</div>
+        {!pending.length && <div className="card p-8 text-center"><Inbox size={26} className="mx-auto text-[#23675D]" /><p className="mt-3 font-bold text-slate-800">No pending suggestions</p><p className="mt-2 text-sm text-slate-500">With automatic sync enabled, clear Gmail updates appear directly on your board. Messages that need your judgment appear here.</p></div>}</div>
     </section>
 
-    {history.length > 0 && <section className="card p-5 sm:p-6"><h2 className="text-lg font-bold text-slate-950">Recent decisions</h2><div className="mt-3 divide-y divide-slate-100">{history.map((update) => <div key={update.id} className="py-3"><p className="break-words text-sm font-semibold text-slate-800">{update.subject}</p><p className="mt-1 text-xs text-slate-500">{update.decision === "confirmed" ? `Confirmed: ${statusLabel[update.previous_status ?? ""] ?? "Previous status"} → ${statusLabel[update.proposed_status]}` : "Dismissed"} · {displayDate(update.reviewed_at ?? update.created_at)}</p></div>)}</div></section>}
+    {history.length > 0 && <section className="card p-5 sm:p-6"><h2 className="text-lg font-bold text-slate-950">Recent decisions</h2><div className="mt-3 divide-y divide-slate-100">{history.map((update) => <div key={update.id} className="py-3"><p className="break-words text-sm font-semibold text-slate-800">{update.subject}</p><p className="mt-1 text-xs text-slate-500">{update.decision === "confirmed" ? `${update.automatically_applied ? "Automatically synced" : "Confirmed"}: ${statusLabel[update.previous_status ?? ""] ?? "Previous status"} → ${statusLabel[update.proposed_status]}` : "Dismissed"} · {displayDate(update.reviewed_at ?? update.created_at)}</p></div>)}</div></section>}
     <section className="rounded-2xl border border-slate-300 bg-white/60 p-5 text-sm leading-6 text-slate-600"><h2 className="font-bold text-slate-800">Your data and control</h2>
       <p className="mt-2">No full email bodies or attachments are stored. Subjects, senders, dates, and short evidence excerpts are private scanner records. Records older than 30 days are removed when you next load the scanner. Disconnect removes stored Gmail credentials and imported Gmail records. Confirmed application changes remain, and existing board sharing preferences still apply.</p>
       <p className="mt-2">Scanning does not grant XP, change streaks, send replies, or add calendar events. You can correct any status from your application board.</p>

@@ -3,6 +3,7 @@ import { BriefcaseBusiness, CheckCircle2, Clock3, Mail, MessageSquareText, Plus,
 import Link from "next/link";
 import { ApplicationPipelineBoard } from "@/components/ApplicationPipelineBoard";
 import { ApplicationsFilterForm } from "@/components/ApplicationsFilterForm";
+import { GmailBoardSync } from "@/components/GmailBoardSync";
 import { DashboardCard } from "@/components/DashboardCard";
 import { EmptyState } from "@/components/EmptyState";
 import { getApplications } from "@/lib/data";
@@ -96,6 +97,7 @@ export default async function ApplicationsPage({
             </>
           }
         />
+        <GmailBoardSync />
         {searchParams?.message && <p className="rise mt-5 rounded-2xl border border-[#23675D]/20 bg-[#EFF7F3] p-3 text-sm font-semibold text-[#23675D]">{searchParams.message}</p>}
         {applications.length > 0 ? (
           <>

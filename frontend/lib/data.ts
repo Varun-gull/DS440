@@ -11,6 +11,7 @@ import { getDateKeyStartUtcIso, getTodayKey, getVisibleStreak, isBrokenStreak } 
 import { rewardsSnapshot, rewardProtectionForUsers } from "./rewards/server";
 
 type DbApplication = {
+  email_status_received_at?: string | null;
   id: string;
   company: string;
   role: string;
@@ -79,11 +80,12 @@ function resolveSchoolLogoUrl(school: string | null | undefined, storedLogoUrl: 
 
 function mapDbApplication(application: DbApplication): Application {
   return {
+    emailImported: Boolean(application.email_status_received_at && !application.source_url && application.fit_score === 0),
     id: application.id,
     company: application.company,
     role: application.role,
-    location: application.location ?? "Remote",
-    source: application.source_url ?? "Saved manually",
+    location: application.location ?? (application.email_status_received_at ? "Location not provided" : "Remote"),
+    source: application.source_url ?? (application.email_status_received_at ? "Imported from Gmail" : "Saved manually"),
     status: application.status,
     roleKey: application.role_key ?? buildRoleKey(application.company, application.role),
     applicationYear: application.application_year ?? new Date(application.updated_at).getFullYear(),

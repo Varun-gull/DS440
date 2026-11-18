@@ -40,6 +40,27 @@ function phraseIn(haystack: string, phrase: string) {
 const roleStopWords = new Set(["a", "an", "the", "for", "of", "and", "at", "to", "in", "position", "role", "summer", "fall", "spring", "winter", "2025", "2026", "2027", "2028"]);
 const companyStopWords = new Set(["inc", "llc", "ltd", "corp", "corporation", "company", "the"]);
 
+// Extract explicit company/role pairs, never infer a company from a mail vendor.
+export function extractApplicationIdentity(email: EmailInput) {
+  const text = `${email.subject}\n${currentMessage(email.body)}`;
+  const pairs: Array<{ company: string; role: string }> = [];
+  const clean = (s: string) => s.trim().replace(/[.!,:;]+$/, "").trim();
+  for (const line of text.split(/\n+/)) {
+    const pair = line.match(/(?:application (?:received|confirmation)|interview invitation|application update|offer(?: letter)?)[\s:–—-]+(.{3,100}?)\s+(?:at|with)\s+([^.!?\n]{2,70})[.!?]?$/i)
+      ?? line.match(/(?:for (?:the |our )?)(.{3,100}?)\s+(?:position|role)\s+(?:at|with)\s+([^.!?\n]{2,70})/i);
+    if (pair) pairs.push({ role: clean(pair[1]), company: clean(pair[2]) });
+  }
+  const company = text.match(/\b(?:thank you for applying to|your application (?:to|with))\s+([^\n.!?]{2,70}?)(?=\s+for\b|[.!?\n]|$)/i)?.[1];
+  const role = text.match(/\b(?:for the|for our)\s+([^\n.!?]{3,100}?)\s+(?:position|role)\b/i)?.[1]
+    ?? text.match(/\b(?:job title|position|role):\s*([^\n.!?]{3,100})/i)?.[1];
+  if (company && role) pairs.push({ company: clean(company), role: clean(role) });
+  const valid = pairs.filter(p => p.company.length >= 2 && p.company.length <= 70 && p.role.length >= 3 && p.role.length <= 100
+    && !/\b(?:your|our|this|team|opportunities|position|role|application|recruiting)\b/i.test(p.company)
+    && !/\b(?:your|our|this|availability|interest|application)\b/i.test(p.role));
+  const unique = [...new Map(valid.map(p => [`${normalized(p.company)}::${normalized(p.role)}`, p])).values()];
+  return unique.length === 1 ? unique[0] : null;
+}
+
 export function matchApplications(email: EmailInput, applications: TrackedApplication[]) {
   const haystack = normalized(`${email.subject}\n${currentMessage(email.body)}`);
   const sender = email.sender.match(/@([a-z0-9.-]+)/i)?.[1]?.toLowerCase() ?? "";
@@ -95,16 +116,18 @@ export function analyzeEmail(email: EmailInput, applications: TrackedApplication
   const hit = conflict ? null : terminal[0] ?? hits[0] ?? null;
   const candidates = matchApplications({ ...email, body }, applications);
   const best = candidates[0];
-  const clearMatch = best && (!candidates[1] || best.score - candidates[1].score >= 0.15);
+  const clearMatch = best && best.score >= 0.85 && (!candidates[1] || best.score - candidates[1].score >= 0.15);
+  const identity = extractApplicationIdentity(email);
   const companyMatch = body.match(/\b(?:thank you for applying to|your application (?:to|with))\s+([^\n.!?]{2,70})/i);
   const roleMatch = body.match(/\b(?:for the|for our)\s+([^\n.!?]{2,100}?)\s+(?:position|role)\b/i);
   const actionDate = body.match(/\b\d{4}-\d{2}-\d{2}\b|\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:,?\s+20\d{2})?\b/i);
   return {
+    identityComplete: Boolean(identity),
     status: hit?.status ?? null,
     confidence: hit && clearMatch ? "high" : hit ? "review" : "unknown",
     evidence: (hit?.evidence ?? terminal.map((item) => item.evidence).join(" ")).slice(0, 400),
-    company: clearMatch ? best.company : companyMatch?.[1]?.trim().slice(0, 100) ?? "",
-    role: clearMatch ? best.role : roleMatch?.[1]?.trim().slice(0, 160) ?? "",
+    company: clearMatch ? best.company : identity?.company ?? companyMatch?.[1]?.trim().slice(0, 100) ?? "",
+    role: clearMatch ? best.role : identity?.role ?? roleMatch?.[1]?.trim().slice(0, 160) ?? "",
     actionDateText: actionDate?.[0] ?? "",
     candidates,
     suggestedApplicationId: clearMatch ? best.applicationId : null,

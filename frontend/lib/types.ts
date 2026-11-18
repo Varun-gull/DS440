@@ -1,6 +1,7 @@
 export type ApplicationStatus = "saved" | "applied" | "interviewing" | "offer" | "rejected";
 
 export type Application = {
+  emailImported?: boolean;
   id: string;
   company: string;
   role: string;

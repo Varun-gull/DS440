@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { requireSameOrigin, requireScannerUser, readScannerJson, ScannerError } from "@/lib/email-scanner/security";
-import { disconnectGmail, reviewUpdate, savePastedEmail, scanGmail, scannerAdmin, scannerState } from "@/lib/email-scanner/service";
+import { autoSyncGmail, boardSyncState, setGmailAutomation, disconnectGmail, reviewUpdate, savePastedEmail, scanGmail, scannerAdmin, scannerState } from "@/lib/email-scanner/service";
 import { GoogleAccessError } from "@/lib/email-scanner/google";
 
 export const runtime = "nodejs";
@@ -15,8 +15,8 @@ function failure(error: unknown) {
   return NextResponse.json({ error: "The email request could not be completed. Try again or check the setup guide." }, { status: 503, headers });
 }
 
-export async function GET() {
-  try { return NextResponse.json(await scannerState(await requireScannerUser()), { headers }); }
+export async function GET(request: Request) {
+  try { const session = await requireScannerUser(); return NextResponse.json(new URL(request.url).searchParams.get("view") === "board" ? await boardSyncState(session) : await scannerState(session), { headers }); }
   catch (error) { return failure(error); }
 }
 
@@ -27,6 +27,8 @@ export async function POST(request: Request) {
     const body = await readScannerJson(request);
     let result: { message: string };
     switch (body.action) {
+      case "automation": result = await setGmailAutomation(session, body); break;
+      case "auto-sync": result = await autoSyncGmail(session); break;
       case "paste": result = await savePastedEmail(session, body); break;
       case "scan": result = await scanGmail(session, body); break;
       case "confirm":
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
       }
       default: throw new ScannerError("Unknown email scanner action.");
     }
-    if (body.action === "confirm") {
+    if (["confirm", "scan", "auto-sync"].includes(String(body.action))) {
       for (const path of ["/applications", "/dashboard", "/calendar", "/profile"]) revalidatePath(path);
     }
     return NextResponse.json(result, { headers });

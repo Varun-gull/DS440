@@ -68,7 +68,7 @@ export function ApplicationCard({ application, compact = false }: { application:
                 </span>
               )}
               <span className={clsx("metric inline-flex items-center gap-2 font-bold", fit.text)}>
-                <Sparkles size={16} /> {application.fitScore}% · {fitLabel(application.fitScore)}
+                <Sparkles size={16} /> {application.emailImported ? "Fit not scored" : `${application.fitScore}% · ${fitLabel(application.fitScore)}`}
               </span>
             </div>
             <div className="mt-4 grid gap-3 border-t border-slate-200 pt-4">
@@ -112,7 +112,7 @@ export function ApplicationCard({ application, compact = false }: { application:
           </span>
         )}
         <span className={clsx("metric inline-flex items-center gap-2 font-bold", fit.text)}>
-          <Sparkles size={16} /> {application.fitScore}% · {fitLabel(application.fitScore)}
+          <Sparkles size={16} /> {application.emailImported ? "Fit not scored" : `${application.fitScore}% · ${fitLabel(application.fitScore)}`}
         </span>
       </div>
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">

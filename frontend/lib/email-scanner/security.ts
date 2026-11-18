@@ -1,7 +1,6 @@
 import "server-only";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { requiresMfaChallenge } from "@/lib/auth/mfa";
-import { scannerConfig } from "./config";
 
 export class ScannerError extends Error {
   constructor(message: string, public status = 400) { super(message); }
@@ -23,7 +22,7 @@ export async function requireScannerUser() {
 
 export function requireSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
-  const expected = scannerConfig().baseUrl || new URL(request.url).origin;
+  const expected = new URL(request.url).origin;
   if (!origin || origin !== expected || request.headers.get("sec-fetch-site") === "cross-site") {
     throw new ScannerError("Open CareerUp directly and try again.", 403);
   }

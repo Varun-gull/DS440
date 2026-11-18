@@ -15,7 +15,7 @@ type Connection = {
   last_scanned_at: string | null; scan_page_token: string | null; scan_query: string | null;
   scan_days: number; reconnect_required: boolean;
 };
-const updateColumns = "id,source,subject,sender,received_at,proposed_status,evidence,extracted_company,extracted_role,action_date_text,confidence,suggested_application_id,application_id,previous_status,decision,reviewed_at,created_at";
+const updateColumns = "id,source,subject,sender,received_at,proposed_status,evidence,extracted_company,extracted_role,action_date_text,confidence,suggested_application_id,application_id,previous_status,decision,reviewed_at,created_at,automation_note,automatically_applied";
 const hash = (text: string) => createHash("sha256").update(text).digest("hex");
 export function scannerAdmin() {
   const admin = getSupabaseAdminClient();
@@ -44,7 +44,7 @@ export async function scannerState(session: Session): Promise<ScannerState> {
     .lt("created_at", new Date(Date.now() - 30 * 86400000).toISOString());
   if (expired.error) return { ...base, databaseReady: false, connection: null, updates: [], error: databaseError().message };
   const [connected, pending, history] = await Promise.all([
-    admin.from("email_connections").select("email,last_scanned_at,scan_page_token,scan_days,reconnect_required").eq("user_id", session.user.id).maybeSingle(),
+    admin.from("email_connections").select("email,last_scanned_at,scan_page_token,scan_days,reconnect_required,auto_sync_enabled").eq("user_id", session.user.id).maybeSingle(),
     session.supabase.from("email_updates").select(updateColumns).eq("user_id", session.user.id).eq("decision", "pending").order("received_at", { ascending: false }).limit(80),
     session.supabase.from("email_updates").select(updateColumns).eq("user_id", session.user.id).neq("decision", "pending").order("reviewed_at", { ascending: false }).limit(20),
   ]);
@@ -52,7 +52,7 @@ export async function scannerState(session: Session): Promise<ScannerState> {
   const c = connected.data;
   return { ...base, databaseReady: true, connection: c ? {
     email: c.email, lastScannedAt: c.last_scanned_at, hasMore: Boolean(c.scan_page_token),
-    scanDays: c.scan_days, reconnectRequired: c.reconnect_required,
+    scanDays: c.scan_days, reconnectRequired: c.reconnect_required, autoSyncEnabled: c.auto_sync_enabled,
   } : null, updates: [...(pending.data ?? []), ...(history.data ?? [])] as EmailUpdate[] };
 }
 
@@ -62,7 +62,35 @@ function suggestion(email: EmailInput, applications: TrackedApplication[]) {
   return { subject: email.subject.slice(0, 300), sender: email.sender.slice(0, 300), received_at: email.receivedAt,
     proposed_status: result.status, evidence: result.evidence, extracted_company: result.company,
     extracted_role: result.role, action_date_text: result.actionDateText, confidence: result.confidence,
-    suggested_application_id: result.suggestedApplicationId };
+    suggested_application_id: result.suggestedApplicationId, identity_complete: result.identityComplete };
+}
+
+export async function boardSyncState(session: Session) {
+  const { data, error } = await scannerAdmin().from("email_connections")
+    .select("auto_sync_enabled,reconnect_required,last_scanned_at,scan_page_token,scan_days").eq("user_id", session.user.id).maybeSingle();
+  if (error) throw databaseError();
+  return { connected: Boolean(data), enabled: data?.auto_sync_enabled ?? false, reconnectRequired: data?.reconnect_required ?? false,
+    lastScannedAt: data?.last_scanned_at ?? null, hasMore: Boolean(data?.scan_page_token), days: data?.scan_days ?? 30 };
+}
+
+export async function setGmailAutomation(session: Session, body: Record<string, unknown>) {
+  if (typeof body.enabled !== "boolean" || (body.enabled && body.consent !== true)) throw new ScannerError("Approve automatic board changes before enabling Gmail sync.");
+  const { data, error } = await scannerAdmin().from("email_connections").update({ auto_sync_enabled: body.enabled,
+    auto_sync_consented_at: body.enabled ? new Date().toISOString() : null }).eq("user_id", session.user.id).select("user_id");
+  if (error) throw databaseError();
+  if (!data?.length) throw new ScannerError("Connect Gmail before enabling automatic sync.");
+  return { message: body.enabled ? "Automatic Gmail sync enabled. Open your application board to start. Clear emails can add and update applications; uncertain matches stay for review." : "Automatic Gmail sync disabled. You can still scan and review emails manually." };
+}
+
+export async function autoSyncGmail(session: Session) {
+  const state = await boardSyncState(session);
+  if (!state.connected || !state.enabled) throw new ScannerError("Enable automatic Gmail sync in the email scanner first.", 409);
+  if (!state.hasMore && state.lastScannedAt && Date.now() - Date.parse(state.lastScannedAt) < 300000) {
+    const pending = await session.supabase.rpc("apply_gmail_board_updates");
+    if (pending.error) throw new ScannerError("Saved email updates could not be applied. Retry sync.", 503);
+    return { message: "Gmail is up to date.", ...pending.data, hasMore: false };
+  }
+  return scanGmail(session, { days: state.days, continue: state.hasMore });
 }
 
 export async function savePastedEmail(session: Session, body: Record<string, unknown>) {
@@ -135,7 +163,11 @@ export async function scanGmail(session: Session, body: Record<string, unknown>)
     const saved = await admin.rpc("save_gmail_updates", { p_user_id: session.user.id, p_lease: lease,
       p_updates: rows, p_next_page: page.nextPageToken ?? null, p_query: query, p_days: days });
     if (saved.error) throw new ScannerError("The scan could not be saved. Retry this batch; no checkpoint was advanced.", 409);
-    return { message: `Checked ${messages.length} matching emails, inspected ${inspected} new messages, and saved ${saved.data ?? 0} suggestions. ${page.nextPageToken ? "More emails remain. Choose Scan next batch." : "This search window is complete."}` };
+    const applied = await session.supabase.rpc("apply_gmail_board_updates");
+    if (applied.error) throw new ScannerError("Emails were saved, but board sync could not finish. Retry sync to apply saved updates.", 503);
+    const counts = applied.data as { added: number; updated: number; review: number };
+    return { message: `Checked ${messages.length} emails. Added ${counts.added} applications, updated ${counts.updated}, and saved ${saved.data ?? 0} email records. ${page.nextPageToken ? "More emails remain." : "This search window is complete."}`,
+      ...counts, hasMore: Boolean(page.nextPageToken) };
   } catch (error) {
     if (error instanceof GoogleAccessError && error.reconnect) {
       await admin.from("email_connections").update({ reconnect_required: true }).eq("user_id", session.user.id).eq("scan_lease", lease);
