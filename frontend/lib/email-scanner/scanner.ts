@@ -50,6 +50,18 @@ export function extractApplicationIdentity(email: EmailInput) {
   const flat = text.replace(/\s+/g, " ");
   const pairs: Array<{ company: string; role: string }> = [];
   const clean = (s: string) => s.trim().replace(/[.!,:;]+$/, "").trim();
+  const greeting = currentMessage(email.body).match(/(?:^|\n)\s*(?:hi|hello|dear)\s+([a-z]+)[,\s]/i)?.[1];
+  const cleanCompany = (s: string) => {
+    let value = clean(s).replace(/^(?:joining|working at|working with|a career at)\s+/i, "");
+    if (greeting && value.toLowerCase().endsWith(`, ${greeting.toLowerCase()}`)) value = value.slice(0, -(greeting.length + 2));
+    return value;
+  };
+  const senderAddress = email.sender.match(/<([^<>]+)>/)?.[1] ?? email.sender;
+  const atsSender = /@(?:[a-z0-9.-]+\.)?(?:ashbyhq\.com|hire\.lever\.co|smartrecruiters\.com|comeet-notifications\.com)$/i.test(senderAddress);
+  const senderBrand = clean(email.sender.split("<")[0].replace(/^[\\"']+|[\\"'\s]+$/g, "").replace(/(?:'s)?\s+(?:hiring|recruiting)(?:\s+team)?$/i, ""));
+  const corroboratedBrand = atsSender && senderBrand.length >= 2 && senderBrand.length <= 70
+    && !/\b(?:workday|notifications?|smartrecruiters|no.?reply|do not reply)\b/i.test(senderBrand)
+    && normalized(flat).replace(/ /g, "").includes(normalized(senderBrand).replace(/ /g, "")) ? senderBrand : undefined;
   for (const line of text.split(/\n+/)) {
     const pair = line.match(/(?:application (?:received|confirmation)|interview invitation|application update|offer(?: letter)?)[\s:–—-]+(.{3,160}?)\s+(?:at|with)\s+([^.!?\n]{2,70})[.!?]?$/i)
       ?? line.match(/(?:for (?:the |our )?|interest in (?:the |our )?)(.{3,160}?)\s+(?:position|role)\s+(?:at|with|for)\s+([^.!?\n]{2,70})/i);
@@ -58,8 +70,9 @@ export function extractApplicationIdentity(email: EmailInput) {
   const explicitCompany = text.match(/\b(?:thank you for applying to|your application (?:to|with)|(?:thank you(?: very much)?|thanks) for your interest in)\s+([^\n.!?]{2,70}?)(?=\s+for\b|[.!?\n]|$)/i)?.[1];
   const subjectCompany = email.subject.match(/(?:interview|offer) with\s+([^.!?\n]{2,70})[.!?]?$/i)?.[1]
     ?? email.subject.match(/^(.{2,70}?)\s+(?:job\s+)?application(?:\s+update|:)/i)?.[1];
-  const company = subjectCompany ?? (explicitCompany && !/\b(?:position|role|our|the|this)\b/i.test(explicitCompany) ? explicitCompany
+  let company = subjectCompany ?? (explicitCompany && !/\b(?:position|role|our|the|this)\b/i.test(explicitCompany) ? explicitCompany
     : flat.match(/\b(?:a |the )?position at\s+([^.!?]{2,70})(?=[.!?]|$)/i)?.[1]);
+  if ((!company || /https?:|www\.|[@/]/i.test(company)) && corroboratedBrand) company = corroboratedBrand;
   const role = flat.match(/\bfor the position of\s+([^.!?]{3,160})(?=[.!?]|$)/i)?.[1]
     ?? flat.match(/\bfor the following position:\s*([^.!?]{3,160})(?=[.!?]|$)/i)?.[1]
     ?? flat.match(/\b(?:for (?:the|our)|interest in (?:the|our))\s+([^.!?]{3,160}?)\s+(?:position|role)\b/i)?.[1]
@@ -67,7 +80,9 @@ export function extractApplicationIdentity(email: EmailInput) {
     ?? email.subject.match(/\b(?:thanks|thank you) for applying for\s+(.{3,160})$/i)?.[1]
     ?? (subjectCompany ? flat.match(/\bthanks for applying to\s+([^.!?]{3,160})(?=[.!?]|$)/i)?.[1] : undefined);
   if (company && role) pairs.push({ company: clean(company), role: clean(role) });
-  const valid = pairs.filter(p => p.company.length >= 2 && p.company.length <= 70 && p.role.length >= 3 && p.role.length <= 160
+  const valid = pairs.map(p => ({ ...p, company: cleanCompany(p.company) })).filter(p => p.company.length >= 2 && p.company.length <= 70 && p.role.length >= 3 && p.role.length <= 160
+    && !/https?:|www\.|[@/]/i.test(p.company)
+    && !/(?:^| )(?:live video|digital|virtual|phone|technical) interviews?$/i.test(p.role)
     && !/\b(?:your|our|this|team|opportunities|position|role|application|recruiting)\b/i.test(p.company)
     && !/\b(?:your|our|this|availability|interest|application|applying|received|submitted|or)\b/i.test(p.role)
     && normalized(p.role).split(" ").some(word => !roleStopWords.has(word)));

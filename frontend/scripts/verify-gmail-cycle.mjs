@@ -26,6 +26,12 @@ for(const [name,input,company,role,status] of [
 check('Competing roles are held for review',!analyzeEmail(email('Application received: Developer or Analyst at ExampleCo','Thank you for applying.')).identityComplete);
 check('A season alone is not a job title',!analyzeEmail(email('Application received: Winter 2027 at ExampleCo','Thank you for applying.')).identityComplete);
 check('Offer congratulations are recognized',analyzeEmail(email('Congratulations on your offer with ExampleCo!','Congratulations on your offer! Please review your offer letter.')).status==='offer');
+check('Joining is not part of an employer name',analyzeEmail(email('Thank you for your application!','Thank you for your interest in joining Mastercard. Your application for the Data Scientist II position was received.')).company==='Mastercard');
+check('Recipient greetings are removed from employer names',analyzeEmail(email('Thank you for your application to Notion, Varun!','Hi Varun,\nThank you for applying for the Software Engineer, AI Platform position.')).company==='Notion');
+check('An ATS display brand needs independent message corroboration',analyzeEmail(email('Distyl: Update on Your Application','Thank you for your interest in http://Distyl.ai for the AI Engineer, Evaluation position. We have decided not to move forward.','Distyl AI Hiring Team <no-reply@ashbyhq.com>')).company==='Distyl AI');
+check('An uncorroborated ATS display name is not an employer identity',!analyzeEmail(email('Application update','Thank you for applying for the Data Analyst position.','UnknownCo Hiring Team <no-reply@ashbyhq.com>')).identityComplete);
+check('A URL cannot become an automatic employer name',!analyzeEmail(email('Application received','Thank you for applying to http://example.invalid for the Data Analyst position.')).identityComplete);
+check('Generic HireVue meeting labels do not create fake job titles',!analyzeEmail(email('Interview with Deloitte','Your interview is scheduled. POSITION: Deloitte Live Video Interviews')).identityComplete);
 const similar=analyzeEmail(email('Application received: Senior Data Analyst at ExampleCo','Thank you for applying.'),[{id:'existing',company:'ExampleCo',role:'Data Analyst',status:'applied',updated_at:'2026-08-01T12:00:00Z'}]);
 check('Similar different roles stay for review instead of updating or duplicating a card',similar.suggestedApplicationId===null&&!similar.identityComplete);
 
@@ -64,6 +70,9 @@ try{
  must(await save(a,broad,'2025-07-01','2026-11-18',2025,null,true));must(await ca.rpc('apply_gmail_board_updates'));
  const broadApps=must(await ca.from('applications').select('role,application_year').in('role',['Archived Analyst','Current Analyst']));
  check('Custom ranges spanning July assign each email to its own cycle',broadApps.find(x=>x.role==='Archived Analyst')?.application_year===2025&&broadApps.find(x=>x.role==='Current Analyst')?.application_year===2026);
+ const lookalikes=[row('Operations Analyst - Winter 2027, 365230','applied','2026-08-22T16:00:00Z'),row('Operations Analyst','interviewing','2026-08-23T16:00:00Z')];
+ must(await save(a,lookalikes,'2026-07-01','2026-11-18',2026,null,true));const held=must(await ca.rpc('apply_gmail_board_updates'));
+ check('Lookalike season and requisition titles in one batch do not create duplicate cards',held.added===1&&held.review===1);
  const outside=await save(a,[row('Wrong Date','applied','2025-08-20T16:00:00Z')],'2026-07-01','2026-11-18',2026,null,true);
  check('Database rejects email outside the selected date range',!!outside.error);
  must(await admin.from('email_connections').update({scan_lease:null,scan_lease_until:null}).eq('user_id',a.id));
