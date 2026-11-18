@@ -4,6 +4,8 @@ import { Lock, ShieldCheck, UsersRound } from "lucide-react";
 import { getCurrentProfile } from "@/lib/data";
 import { updatePrivacySettings } from "@/lib/profile/actions";
 import Link from "next/link";
+import { AccountDataControls } from "@/components/AccountDataControls";
+import { LegalLinks } from "@/components/LegalPage";
 
 export default async function SettingsPage({ searchParams: searchParamsInput }: { searchParams?: Promise<{ message?: string }> }) {
   const searchParams = await searchParamsInput;
@@ -84,6 +86,8 @@ export default async function SettingsPage({ searchParams: searchParamsInput }: 
             <button type="submit" className="primary-button w-fit">Save settings</button>
           </form>
         </section>
+        <AccountDataControls />
+        <section className="card settings-intro p-6"><h2 className="text-xl font-bold text-ink">Policies and project contact</h2><p className="mt-2 mb-4 text-sm leading-6 text-slate-600">Review how CareerUp handles your information and the terms for using the app. For account or privacy help, contact <a className="underline" href="mailto:varungullanki@gmail.com">varungullanki@gmail.com</a>.</p><LegalLinks /></section>
         </div>
       </main>
     </>

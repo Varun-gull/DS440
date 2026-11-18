@@ -1,3 +1,4 @@
+import { LegalLinks } from "@/components/LegalPage";
 import { ArrowRight, Bookmark, Bot, Check, CheckCircle2, ClipboardList, Search, ShieldCheck, Sparkles, Trophy } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -31,6 +32,6 @@ export default async function HomePage() {
       ].map(({icon:Icon,title,text}) => <article key={title}><span><Icon size={22} aria-hidden /></span><h3>{title}</h3><p>{text}</p></article>)}</div></section>
       <section className="landing-closing"><div><p className="eyebrow">Small steps. Real progress.</p><h2>Give your job search a place to grow.</h2><p>Build a routine with challenges, progress tracking, and rewards you can use.</p></div><Link href="/signup" className="primary-button">Start your next chapter<ArrowRight size={16} className="ml-2" aria-hidden /></Link></section>
     </main>
-    <footer className="public-footer"><span><ShieldCheck size={15} aria-hidden />Your data, your control.</span><Link href="/data-privacy">Privacy & data controls<ArrowRight size={13} aria-hidden /></Link></footer>
+    <footer className="public-footer"><span><ShieldCheck size={15} aria-hidden />Your data, your control.</span><LegalLinks /></footer>
   </div>;
 }

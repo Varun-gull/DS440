@@ -514,7 +514,7 @@ export function RewardsLibrary({
                 <span>
                   I agree to send this job description and my resume only if
                   selected to Google. The generated report will be saved
-                  privately in my CareerUp rewards library.
+                  privately in my CareerUp rewards library. Google’s free tier may use inputs and outputs to improve its services, including human review. Remove personal and confidential details before submitting.
                 </span>
               </label>
               <p className="reward-footnote">

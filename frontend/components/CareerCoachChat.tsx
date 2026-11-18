@@ -122,7 +122,7 @@ export default function CareerCoachChat() {
       </div>
 
       {ready && <form onSubmit={(event) => void send(event)} className="shrink-0 space-y-2.5 border-t border-slate-200 bg-white p-3">
-        {mode === "ai" && <label className="flex items-start gap-2 px-1 text-[11px] leading-4 text-slate-600"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} disabled={working} className="mt-0.5 accent-[#23675D]" />I agree to send this chat and my career preferences to Google.</label>}
+        {mode === "ai" && <label className="flex items-start gap-2 px-1 text-[11px] leading-4 text-slate-600"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} disabled={working} className="mt-0.5 accent-[#23675D]" />I agree to send this chat and my career preferences to Google. Free tier inputs may be used to improve Google services and reviewed by humans. Use anonymized examples.</label>}
         {mode === "ai" && ready.textRemaining === 0 && <p role="status" className="px-1 text-xs text-amber-800">You’ve used today’s AI messages. You can still use the offline guide.</p>}
         <div className="flex items-end gap-2 rounded-2xl border border-slate-300 bg-white p-2 focus-within:border-[#23675D] focus-within:ring-2 focus-within:ring-[#23675D]/10">
           <label htmlFor="careerup-quick-question" className="sr-only">Message your career coach</label>

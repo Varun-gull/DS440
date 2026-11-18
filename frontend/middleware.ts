@@ -45,7 +45,7 @@ export async function middleware(request: NextRequest) {
     "/resume-optimization",
     "/u/",
   ];
-  const isProtectedRoute = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
+  const isProtectedRoute = protectedRoutes.some((route) => request.nextUrl.pathname === route || request.nextUrl.pathname.startsWith(route.endsWith("/") ? route : `${route}/`));
 
   if (!user && (isProtectedRoute || request.nextUrl.pathname === "/mfa")) {
     const url = request.nextUrl.clone();

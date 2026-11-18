@@ -399,3 +399,28 @@ input[type="checkbox"],input[type="radio"] { accent-color:var(--brand); }
   .privacy-card-grid { grid-template-columns:1fr; gap:13px; margin-top:25px; }
   .privacy-card-grid section { padding:23px; }
 }
+
+/* Public policies and deliberate account data controls. */
+.legal-document { width:min(860px, calc(100% - 40px)); margin:42px auto 72px; color:#334155; }
+.legal-document h1 { margin:12px 0; font-size:clamp(32px,5vw,48px); line-height:1.12; letter-spacing:-.04em; color:#152e29; font-weight:700; }
+.legal-date { font-size:12px; color:#64748b; }
+.legal-summary { font-size:18px; line-height:1.7; margin:24px 0; }
+.legal-document nav { margin:24px 0 36px; font-size:14px; }
+.legal-document section { margin:30px 0; scroll-margin-top:90px; }
+.legal-document h2 { font-size:21px; color:#152e29; font-weight:700; margin:0 0 12px; }
+.legal-document section p { font-size:15px; line-height:1.85; margin:12px 0; }
+.legal-document a { color:#23675d; text-decoration:underline; text-underline-offset:3px; }
+.legal-table-wrap { overflow-x:auto; border:1px solid #e3e9ed; border-radius:14px; }
+.legal-document table { width:100%; border-collapse:collapse; font-size:14px; line-height:1.7; background:white; }
+.legal-document th,.legal-document td { padding:16px; border-bottom:1px solid #e3e9ed; vertical-align:top; text-align:left; }
+.legal-document th { background:#edf5f1; color:#185348; }
+.legal-document td:first-child { min-width:130px; width:24%; font-weight:600; }
+.account-delete-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 16px; border:1px solid #e8bdb9; border-radius:10px; color:#9f2f27; font-size:13px; font-weight:600; background:white; min-height:42px; }
+.account-delete-button:hover { background:#fff4f2; }
+.account-delete-filled { background:#a63229; color:white; border-color:#a63229; }
+.account-delete-filled:hover { background:#85271f; }
+.account-delete-button:disabled { opacity:.5; cursor:not-allowed; }
+.account-confirm-panel { max-width:680px; border:1px solid #dce6e2; border-radius:14px; padding:20px; background:#f8fbfa; }
+.account-confirm-danger { background:#fffbfa; border-color:#e8bdb9; }
+.account-confirm-panel input { background:white; }
+@media(max-width:640px) { .legal-document { width:calc(100% - 32px); margin-top:26px; } .legal-document section p { font-size:14px; } .legal-document td,.legal-document th { padding:12px; } .public-footer { gap:18px; flex-wrap:wrap; } }

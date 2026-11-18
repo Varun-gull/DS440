@@ -4,12 +4,16 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requiresMfaChallenge } from "@/lib/auth/mfa";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { hasSignupAgreement, LEGAL_VERSION } from "@/lib/legal";
 
 function redirectWithMessage(path: string, message: string): never {
   redirect(`${path}?message=${encodeURIComponent(message)}`);
 }
 
 export async function signUp(formData: FormData) {
+  if (!hasSignupAgreement(formData)) {
+    redirectWithMessage("/signup", "Confirm that you are 18 or older, agree to the Terms of Service, and acknowledge the Privacy Policy.");
+  }
   const supabase = await getSupabaseServerClient();
   const fullName = String(formData.get("fullName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
@@ -32,6 +36,9 @@ export async function signUp(formData: FormData) {
       emailRedirectTo: `${origin}/auth/callback`,
       data: {
         full_name: fullName,
+        terms_version: LEGAL_VERSION,
+        privacy_version: LEGAL_VERSION,
+        adult_confirmed: true,
         share_application_board: shareApplicationBoard,
         privacy_prompt_answered: true
       }

@@ -38,6 +38,8 @@ export default async function SignupPage({ searchParams: searchParamsInput }: { 
             <span className="mt-1 block text-xs font-semibold text-slate-500">You can change this later from settings.</span>
           </span>
         </label>
+        <label className="flex items-start gap-3 text-sm leading-6 text-slate-700"><input type="checkbox" name="adultConfirmation" required className="mt-1 h-4 w-4 shrink-0 accent-[#23675D]" /><span>I am 18 years of age or older.</span></label>
+        <label className="flex items-start gap-3 text-sm leading-6 text-slate-700"><input type="checkbox" name="acceptTerms" required className="mt-1 h-4 w-4 shrink-0 accent-[#23675D]" /><span>I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline">Terms of Service</Link> and acknowledge the <Link href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline">Privacy Policy</Link>. Gmail and AI remain separate choices.</span></label>
         <button type="submit" className="primary-button mt-1 w-full">Create account</button>
         <p className="text-xs leading-5 text-slate-500">We’ll send a confirmation link. Check your Spam folder if it does not arrive in your inbox.</p>
         <p className="text-xs leading-5 text-slate-500">Your name, school, career interests and progress are visible to signed in CareerUp users. Your email and resume stay private. Gmail access and AI processing each require your separate permission.</p>

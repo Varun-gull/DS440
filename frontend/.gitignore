@@ -12,3 +12,5 @@ coverage/
 supabase/.temp/
 .route-backup/
 .careerup-ui-fixture.local.json
+
+.careerup-privacy-fixture.local.json

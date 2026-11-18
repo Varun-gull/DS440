@@ -2,6 +2,7 @@ import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BrandMark } from "@/components/BrandMark";
+import { LegalLinks } from "@/components/LegalPage";
 
 export function AuthShell({ eyebrow, title, description, children }: { eyebrow: string; title: string; description: string; children: ReactNode }) {
   return <main className="auth-page">
@@ -19,6 +20,6 @@ export function AuthShell({ eyebrow, title, description, children }: { eyebrow: 
         {children}
       </section>
     </div>
-    <footer className="public-footer"><span>CareerUp · Built for your next step.</span><Link href="/data-privacy">Privacy & data controls</Link></footer>
+    <footer className="public-footer"><span>CareerUp · Built for your next step.</span><LegalLinks /></footer>
   </main>;
 }
